@@ -9,24 +9,26 @@ import (
 const bufferSize int = 4096
 
 func main(){
-	fmt.Println("hello", filehandler.ReadFromFile("databse.txt"), filehandler.WriteToFile("database.txt"))
+	fmt.Println("hello", filehandler.ReadFromFile("database.txt"))
 
 
 	file, err :=  os.OpenFile("database.bin", os.O_RDWR|os.O_CREATE, 0644)
-
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
+
 	buffer := make([]byte, bufferSize)
 
 	for i := range buffer {
-		buffer[i] = 'c'
+		buffer[i] = '3'
 	}
-	var offset int64 = 1 * int64(bufferSize)
-	bytesWritten, err := file.WriteAt(buffer, offset)
+	page := 1
+	err =  filehandler.WriteToFile(file, page, buffer)
 	if err != nil {
-		panic(err)
+		fmt.Println("an error occured: ", err )
 	}
-	fmt.Printf("Successfully wrote %d bytes at offset %d\n", bytesWritten, offset)
+
+	
+	
 }
