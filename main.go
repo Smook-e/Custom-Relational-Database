@@ -21,7 +21,12 @@ func main(){
 	buffer := make([]byte, bufferSize)
 
 	for i := range buffer {
-		buffer[i] = 'a'
+		buffer[i] = 'c'
 	}
-	
+	var offset int64 = 1 * int64(bufferSize)
+	bytesWritten, err := file.WriteAt(buffer, offset)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Successfully wrote %d bytes at offset %d\n", bytesWritten, offset)
 }
