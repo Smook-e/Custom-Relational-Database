@@ -6,6 +6,6 @@ import (
 )
 
 
-func WriteToFile() string{
-	return fmt.Sprint("Writing to file")
+func WriteToFile(filename string) string{
+	return fmt.Sprintf("Writing to file %s", filename)
 }
