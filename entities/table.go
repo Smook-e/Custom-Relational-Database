@@ -17,10 +17,11 @@ const (
 	ConstraintPrimaryKey uint8 = 1 << 0 // 1
 	ConstraintNotNull    uint8 = 1 << 1 // 2
 	ConstraintUnique     uint8 = 1 << 2 // 4
+	ConstraintIndex      uint8 = 1 << 3 // 8
 )
 
 type Table struct {
-
+	Name string
 	RootIndex uint32
 	Columns []Column
 }

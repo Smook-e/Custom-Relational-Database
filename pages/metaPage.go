@@ -48,6 +48,7 @@ func ReadMetaPage(db *entities.Database) error{
 				table.Columns = append(table.Columns, *column)
 			
 			}
+			table.Name = string(tableName)
 			db.Tables[string(tableName)] = *table
 	
 		}
