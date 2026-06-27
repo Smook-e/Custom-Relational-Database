@@ -4,6 +4,7 @@ package filehandler
 import (
 	"os"
 	"errors"
+	"fmt"
 )
 const bufferSize int = 4096
 
@@ -18,7 +19,7 @@ func WriteToFile(file *os.File, page int, buffer []byte)  error{
 
 	_, err := file.WriteAt(buffer, int64(page * bufferSize))
 	if err != nil {
-		panic(err)
+		fmt.Errorf("An error occured while reading from file: %w", err)
 	}
 	return nil
 
