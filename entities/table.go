@@ -31,6 +31,11 @@ type Column struct {
 	Contstraints uint8
 	Size uint8
 }
+type ColumnDefinition struct {
+	Name string
+	DataType string
+	Constraints []string
+}
 
 func GetSize(Type byte) (byte, error) {
 	switch Type {
