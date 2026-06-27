@@ -1,5 +1,7 @@
 package entities
 
+import "errors"
+
 // Data type identifiers
 const (
 	TypeTinyInt uint8 = 0 //1 byte
@@ -30,3 +32,20 @@ type Column struct {
 	Size uint8
 }
 
+func GetSize(Type byte) (byte, error) {
+	switch Type {
+	case TypeTinyInt:
+		return 1, nil
+	case TypeSmallInt:
+		return 2, nil
+	case TypeInt:
+		return 4, nil
+	case TypeBigInt:
+		return 8, nil
+	case TypeVarChar:
+		return 0, nil
+	default:
+		return 0, errors.New("unknown DataType")
+	}
+
+}	
