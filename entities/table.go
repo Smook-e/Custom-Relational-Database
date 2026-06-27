@@ -21,7 +21,7 @@ const (
 
 type Table struct {
 
-	RootIndex int
+	RootIndex uint32
 	Columns []Column
 }
 
