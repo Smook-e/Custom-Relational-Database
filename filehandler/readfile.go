@@ -20,10 +20,12 @@ func ReadFromFile(file *os.File, page int, buffer []byte) error{
 	}
 	offset := int64(bufferSize * page)
 
-	_, err := file.ReadAt(buffer, offset)
+	bytes_Read, err := file.ReadAt(buffer, offset)
 	if err != nil {
 		return	fmt.Errorf("An error occured while reading from file: %w", err)
 	}
-
+	if bytes_Read != bufferSize {
+		return errors.New("Database file is corrupted, couldn't read 4096 bytes")
+	}
 	return nil
 }

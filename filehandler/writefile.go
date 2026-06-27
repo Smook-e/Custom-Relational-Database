@@ -19,7 +19,7 @@ func WriteToFile(file *os.File, page int, buffer []byte)  error{
 
 	_, err := file.WriteAt(buffer, int64(page * bufferSize))
 	if err != nil {
-		fmt.Errorf("An error occured while reading from file: %w", err)
+		return fmt.Errorf("An error occured while reading from file: %w", err)
 	}
 	return nil
 

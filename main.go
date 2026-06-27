@@ -7,7 +7,7 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
 
-const bufferSize int = 4096
+
 
 func main(){
 	// fmt.Println("hello", filehandler.ReadFromFile("database.txt"))
@@ -19,14 +19,18 @@ func main(){
 	}
 	defer file.Close()
 
-	buffer := new([10][4096]byte)
+	buffer := make([][4096]byte, 10)
 
-	for i := range buffer[0] {
-		buffer[0][i] = 'c'
+	write := make([]byte, 4096)
+
+	for i := range write {
+		write[i] = 'A'
 	}
-	page := 1
+	page := 2
 
-	err =  filehandler.WriteToFile(file, page, buffer[0][:])
+
+	err =  filehandler.WriteToFile(file, page, write)
+	
 	if err != nil {
 		fmt.Println("an error occured: ", err )
 	}
