@@ -74,10 +74,10 @@ func main(){
 
 	// err =  filehandler.WriteToFile(file, page, buffer[page][:])
 
-	if err != nil {
-		fmt.Println(err) 
-		return
-	}
+	// if err != nil {
+	// 	fmt.Println(err) 
+	// 	return
+	// }
 	
 
 	// fmt.Println(buffer[0][:100])
