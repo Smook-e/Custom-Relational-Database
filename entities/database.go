@@ -8,10 +8,10 @@ import (
 const bufferSize = 4096
 
 type Database struct {
-	file *os.File
-	tables map[string]Table
+	File *os.File
+	Tables map[string]Table
 
-	totalPages int
+	TotalPages int
 
 }
 
@@ -28,7 +28,8 @@ func InitializeDatabase(filename string) (*Database, error) {
 	db := &Database{
 		file: filep,
 		tables: make(map[string]Table),
-		totalPages: int(fileInfo.Size()),
+		totalPages: int(fileInfo.Size() / bufferSize),
 	}
+	
 	return db, nil
 }
