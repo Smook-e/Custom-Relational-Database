@@ -19,16 +19,20 @@ func main(){
 	}
 	defer file.Close()
 
-	buffer := make([]byte, bufferSize)
+	buffer := new([10][4096]byte)
 
-	for i := range buffer {
-		buffer[i] = '3'
+	for i := range buffer[0] {
+		buffer[0][i] = 'c'
 	}
 	page := 1
-	
-	err =  filehandler.WriteToFile(file, page, buffer)
+
+	err =  filehandler.WriteToFile(file, page, buffer[0][:])
 	if err != nil {
 		fmt.Println("an error occured: ", err )
 	}
-	
+
+	err = filehandler.ReadFromFile(file, page, buffer[0][:])
+
+
+	fmt.Println(buffer[0][:100])
 }
