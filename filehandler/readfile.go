@@ -7,7 +7,7 @@ import (
 	"os"
 	"errors"
 )
-const bufferSize int = 4096
+
 
 func ReadFromFile(file *os.File, page int, buffer []byte) error{
 
