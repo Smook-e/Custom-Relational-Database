@@ -2,9 +2,10 @@ package entities
 
 // Data type identifiers
 const (
-	TypeSmallInt uint8 = 1 
-	TypeInt     uint8 = 2 
-	TypeBigInt  uint8 = 3 
+	TypeTinyInt uint8 = 0 //1 byte
+	TypeSmallInt uint8 = 1 // 2 bytes
+	TypeInt     uint8 = 2 // 4 bytes
+	TypeBigInt  uint8 = 3 // 8 bytes
 	TypeVarChar uint8 = 4 
 )
 
@@ -15,6 +16,7 @@ const (
 	ConstraintNotNull    uint8 = 1 << 1 // 2
 	ConstraintUnique     uint8 = 1 << 2 // 4
 )
+
 type Table struct {
 
 	rootIndex int
