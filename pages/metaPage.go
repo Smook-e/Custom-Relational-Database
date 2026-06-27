@@ -3,17 +3,17 @@ package pages
 import (
 	// "os"
 	"encoding/binary"
-	"errors"
+	"os"
 	"fmt"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
 
-
+const bufferSize = 4096
 
 func ReadMetaPage(db *entities.Database) error{
-	buffer := make([]byte, 4096)
+	buffer := make([]byte, bufferSize)
 
 	
 	var nextPage uint16 = 0
@@ -57,4 +57,23 @@ func ReadMetaPage(db *entities.Database) error{
 	}
 
 	return nil
+}
+
+func OpenDatabase(filename string) (*entities.Database, error) {
+	filep, err :=  os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("Critical Error: Could not open database file: %w", err)
+	}
+	fileInfo, err := filep.Stat()
+	
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve file stats: %w", err)
+	}
+	db := &entities.Database{
+		File: filep,
+		Tables: make(map[string]entities.Table),
+		TotalPages: int(fileInfo.Size() / bufferSize),
+	}
+	ReadMetaPage(db)
+	return db, nil
 }
