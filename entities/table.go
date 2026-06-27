@@ -19,13 +19,14 @@ const (
 
 type Table struct {
 
-	rootIndex int
-	columns []Column
+	RootIndex int
+	Columns []Column
 }
 
 type Column struct {
-	name string
-	dataType uint8
-	contstraints uint8
-	size uint8
+	Name string
+	DataType uint8
+	Contstraints uint8
+	Size uint8
 }
+

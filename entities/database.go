@@ -26,10 +26,10 @@ func InitializeDatabase(filename string) (*Database, error) {
 		return nil, fmt.Errorf("Failed to retrieve file stats: %w", err)
 	}
 	db := &Database{
-		file: filep,
-		tables: make(map[string]Table),
-		totalPages: int(fileInfo.Size() / bufferSize),
+		File: filep,
+		Tables: make(map[string]Table),
+		TotalPages: int(fileInfo.Size() / bufferSize),
 	}
-	
+
 	return db, nil
 }
