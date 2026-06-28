@@ -5,6 +5,7 @@ import (
 	// "container/list"
 	"encoding/binary"
 	"fmt"
+	
 	"os"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
@@ -20,32 +21,34 @@ func ReadMetaPage(db *entities.Database) error{
 	var nextPage uint16 = 0
 	
 	for{
-		err := filehandler.ReadFromFile(db.File,int(nextPage), buffer)
+		err := filehandler.ReadFromFile(db.File,int(nextPage) * bufferSize, buffer)
 		if err != nil {
 			return fmt.Errorf("An Error occured while reading Meta pages: %w", err)
 		}
 		offset := 0
 		nextPage = binary.BigEndian.Uint16(buffer[offset:offset+2]); offset += 2;
+		
 		//freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]); 
 		offset += 2;
 		
 		numberOfTables := binary.BigEndian.Uint16(buffer[offset:offset+2]); offset += 2;
 		for range numberOfTables {
 			table := &entities.Table{}
-			tableOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]); offset += 2;
-			nameLength := buffer[tableOffset]; tableOffset++;
-			tableName := buffer[tableOffset: tableOffset + uint16(nameLength)]; tableOffset += uint16(nameLength);
+			tableOffset := int(binary.BigEndian.Uint16(buffer[offset:offset+2])); offset += 2;
+			nameLength := int(buffer[tableOffset]); tableOffset++;
+			tableName := buffer[tableOffset: tableOffset + nameLength]; tableOffset += nameLength;
 			table.RootIndex = binary.BigEndian.Uint32(buffer[tableOffset:tableOffset+4]); tableOffset += 4;
 			
 			numberOfColumns := buffer[tableOffset]; tableOffset++;
 			
 			for range numberOfColumns {
 				columnNameLength := buffer[tableOffset]; tableOffset++;
-				columnName :=  buffer[tableOffset: tableOffset + uint16(columnNameLength)]; tableOffset += uint16(columnNameLength);
+				
+				columnName :=  buffer[tableOffset: tableOffset + int(columnNameLength)]; tableOffset += int(columnNameLength);
 				column := &entities.Column{Name: string(columnName)}
 				column.DataType = buffer[tableOffset]; tableOffset++;
 				column.Contstraints = buffer[tableOffset]; tableOffset++;
-				column.Size, _ = entities.GetSize(column.DataType)
+				column.Size, _ = entities.GetSize(column.DataType); tableOffset++;
 				table.Columns = append(table.Columns, *column)
 			
 			}
@@ -76,13 +79,13 @@ func WriteMetaPage(db *entities.Database) error {
 	
 	var cols []entities.Column
 	var table *entities.Table
-	size := 0
 	for _, name := range keys {
+		size := 0
 		table = db.Tables[name]
 		cols = table.Columns
 		//Pass 1 : Calculate the size of the columns
 		//length of name + name + root index
-		size += 1 + len(table.Name) + 4 
+		size += 1 + len(table.Name) + 4 +1
 		for _, col := range cols {
 			// length of name + name + datatype + constraints + size
 			size += 1 + len(col.Name) + 1 + 1 + 1
@@ -90,10 +93,13 @@ func WriteMetaPage(db *entities.Database) error {
 		tableOffset := freeSpaceOffset - size
 		freeSpaceOffset = tableOffset
 		numberOfTables++
+		
 		binary.BigEndian.PutUint16(buffer[offset:offset+2], uint16(tableOffset)); offset += 2 //add the table offset slot
 		//Pass 2: write the actual content
 		buffer[tableOffset] = uint8(len(table.Name)); tableOffset++;
 		copy(buffer[tableOffset: tableOffset + len(table.Name)], table.Name); tableOffset+= len(table.Name)
+		binary.BigEndian.PutUint32(buffer[tableOffset:tableOffset+4], table.RootIndex); tableOffset += 4
+		buffer[tableOffset] = uint8(len(cols)); tableOffset++;
 		for _, col := range cols {
 			buffer[tableOffset] = uint8(len(col.Name));tableOffset++;
 			copy(buffer[tableOffset: tableOffset + len(col.Name)], col.Name); tableOffset+= len(col.Name);
@@ -129,6 +135,9 @@ func OpenDatabase(filename string) (*entities.Database, error) {
 		Tables: make(map[string]*entities.Table),
 		TotalPages: int(fileInfo.Size() / bufferSize),
 	}
-	ReadMetaPage(db)
+	err = ReadMetaPage(db)
+	if err != nil {
+		return nil, err
+	}
 	return db, nil
 }
