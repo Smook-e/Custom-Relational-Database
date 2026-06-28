@@ -68,6 +68,17 @@ func WriteMetaPage(db *entities.Database) error {
 	offset += 2
 	numberOfTables := 0; numberOfTablesOffset := offset
 	offset += 2
+	keys :=  make([]string, len(db.Tables))
+	for name := range db.Tables {
+		keys = append(keys, name)
+	}
+	tabeBuffer := make([]byte, 128)
+	var cols []entities.Column
+	var col  *entities.Column
+	for _, name := range keys {
+		cols = db.Tables[name].Columns
+		
+	}
 
 	return nil
 }

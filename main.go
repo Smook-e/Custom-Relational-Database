@@ -39,5 +39,5 @@ func main(){
 	Tables : %v
 	`, db.TotalPages, db.Tables)
 
-
+	
 }
