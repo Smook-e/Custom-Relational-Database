@@ -2,7 +2,7 @@ package pages
 
 import (
 	// "os"
-	"container/list"
+	// "container/list"
 	"encoding/binary"
 	"fmt"
 	"os"
@@ -50,7 +50,7 @@ func ReadMetaPage(db *entities.Database) error{
 			
 			}
 			table.Name = string(tableName)
-			db.Tables[string(tableName)] = *table
+			db.Tables[string(tableName)] = table
 	
 		}
 		if nextPage == 0{
@@ -126,7 +126,7 @@ func OpenDatabase(filename string) (*entities.Database, error) {
 	}
 	db := &entities.Database{
 		File: filep,
-		Tables: make(map[string]entities.Table),
+		Tables: make(map[string]*entities.Table),
 		TotalPages: int(fileInfo.Size() / bufferSize),
 	}
 	ReadMetaPage(db)
