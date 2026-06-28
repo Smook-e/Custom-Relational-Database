@@ -3,6 +3,7 @@ package entities
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 )
 
@@ -75,4 +76,22 @@ func GetDataType(datatype string) (uint8, error) {
 		default:
 			return 0, fmt.Errorf("Data type %s not supported", datatype)
 		}
+}
+func GetConstraint(Constraints []string) (uint8, error) {
+	result := uint8(0)
+	for _, constraint := range Constraints {
+			switch strings.ToLower(constraint) {
+			case "primarykey":
+				result |= ConstraintPrimaryKey
+			case "notnull":
+				result |= ConstraintNotNull
+			case "unique":
+				result |= ConstraintUnique
+			case "index":
+				result |= ConstraintIndex
+			default:
+				return 0, fmt.Errorf("Constraint %s not supported", constraint)
+			}
+	}
+	return result, nil
 }

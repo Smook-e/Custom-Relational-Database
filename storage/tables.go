@@ -22,19 +22,7 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 			return nil, err
 		}
 		constraints &= 0
-		for _, constraint := range col.Constraints {
-			switch strings.ToLower(constraint) {
-			case "primarykey":
-				constraints |= entities.ConstraintPrimaryKey
-			case "notnull":
-				constraints |= entities.ConstraintNotNull
-			case "unique":
-				constraints |= entities.ConstraintUnique
-			case "index":
-				constraints |= entities.ConstraintIndex
-			default:
-				return nil, fmt.Errorf("Constraint %s not supported", constraint)
-		}
+		
 		size, err := entities.GetSize(dataType)
 		if err != nil {
 			return nil, err
@@ -45,7 +33,7 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 			Contstraints: constraints,
 			Size:        size,
 		})
-		}
 	}
+	
 	return table,nil
 }
