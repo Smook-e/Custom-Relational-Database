@@ -4,7 +4,7 @@ import (
 	
 	
 	
-	"fmt"
+	
 	"strings"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
@@ -16,6 +16,7 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 
 	table := &entities.Table{Name: tableName}
 	var dataType uint8
+	
 	for i, col := range cols{
 		cleanst := strings.ToLower(col.DataType)
 		switch cleanst {
@@ -31,7 +32,7 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 			dataType = entities.TypeVarChar
 		}
 
-		
+
 
 	}
 	
