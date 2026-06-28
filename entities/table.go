@@ -1,6 +1,10 @@
 package entities
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+
+)
 
 // Data type identifiers
 const (
@@ -54,4 +58,21 @@ func GetSize(Type byte) (byte, error) {
 		return 0, errors.New("unknown DataType")
 	}
 
-}	
+}
+
+func GetDataType(datatype string) (uint8, error) {
+	switch datatype {
+		case "tinyint":
+			return TypeTinyInt, nil
+		case "smallint":
+			return TypeSmallInt, nil
+		case "bigint":
+			return TypeBigInt, nil
+		case "int":
+			return TypeInt, nil
+		case "varchar":
+			return TypeVarChar, nil
+		default:
+			return 0, fmt.Errorf("Data type %s not supported", datatype)
+		}
+}

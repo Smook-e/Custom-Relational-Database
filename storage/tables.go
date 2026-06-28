@@ -17,20 +17,7 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 	var constraints uint8
 	for _, col := range cols{
 		cleanst := strings.ToLower(col.DataType)
-		switch cleanst {
-		case "tinyint":
-			dataType = entities.TypeTinyInt
-		case "smallint":
-			dataType = entities.TypeSmallInt
-		case "bigint":
-			dataType = entities.TypeBigInt
-		case "int":
-			dataType = entities.TypeInt
-		case "varchar":
-			dataType = entities.TypeVarChar
-		default:
-			return nil, fmt.Errorf("Data type %s not supported", col.DataType)
-		}
+		
 		constraints &= 0
 		for _, constraint := range col.Constraints {
 			switch strings.ToLower(constraint) {
