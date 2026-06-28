@@ -17,7 +17,10 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 	var constraints uint8
 	for _, col := range cols{
 		cleanst := strings.ToLower(col.DataType)
-		
+		dataType, err := entities.GetDataType(cleanst)
+		if err != nil {
+			return nil, err
+		}
 		constraints &= 0
 		for _, constraint := range col.Constraints {
 			switch strings.ToLower(constraint) {
