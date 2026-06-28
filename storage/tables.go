@@ -21,7 +21,10 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 		if err != nil {
 			return nil, err
 		}
-		constraints &= 0
+		constraints, err  = entities.GetConstraint(col.Constraints)
+		if err != nil {
+			return nil, err
+		}
 		
 		size, err := entities.GetSize(dataType)
 		if err != nil {
