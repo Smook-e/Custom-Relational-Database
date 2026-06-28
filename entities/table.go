@@ -43,6 +43,7 @@ type ColumnDefinition struct {
 	Constraints []string
 }
 
+
 func GetSize(Type byte) (byte, error) {
 	switch Type {
 	case TypeTinyInt:

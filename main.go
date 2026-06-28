@@ -31,7 +31,7 @@ func main(){
 	}
 	db := &entities.Database{
 		File: filep,
-		Tables: make(map[string]entities.Table),
+		Tables: make(map[string]*entities.Table),
 		TotalPages: int(fileInfo.Size() / 4096),
 	}
 	fmt.Printf(`Opened file

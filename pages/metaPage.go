@@ -2,9 +2,10 @@ package pages
 
 import (
 	// "os"
+	"container/list"
 	"encoding/binary"
-	"os"
 	"fmt"
+	"os"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
@@ -68,18 +69,48 @@ func WriteMetaPage(db *entities.Database) error {
 	offset += 2
 	numberOfTables := 0; numberOfTablesOffset := offset
 	offset += 2
-	keys :=  make([]string, len(db.Tables))
+	keys :=  make([]string,0, len(db.Tables))
 	for name := range db.Tables {
 		keys = append(keys, name)
 	}
-	tabeBuffer := make([]byte, 128)
+	
 	var cols []entities.Column
-	var col  *entities.Column
+	var table *entities.Table
+	size := 0
 	for _, name := range keys {
-		cols = db.Tables[name].Columns
-		
-	}
+		table = db.Tables[name]
+		cols = table.Columns
+		//Pass 1 : Calculate the size of the columns
+		//length of name + name + root index
+		size += 1 + len(table.Name) + 4 
+		for _, col := range cols {
+			// length of name + name + datatype + constraints + size
+			size += 1 + len(col.Name) + 1 + 1 + 1
+		}
+		tableOffset := freeSpaceOffset - size
+		freeSpaceOffset = tableOffset
+		numberOfTables++
+		binary.BigEndian.PutUint16(buffer[offset:offset+2], uint16(tableOffset)); offset += 2 //add the table offset slot
+		//Pass 2: write the actual content
+		buffer[tableOffset] = uint8(len(table.Name)); tableOffset++;
+		copy(buffer[tableOffset: tableOffset + len(table.Name)], table.Name); tableOffset+= len(table.Name)
+		for _, col := range cols {
+			buffer[tableOffset] = uint8(len(col.Name));tableOffset++;
+			copy(buffer[tableOffset: tableOffset + len(col.Name)], col.Name); tableOffset+= len(col.Name);
+			buffer[tableOffset] = col.DataType; tableOffset++;
+			buffer[tableOffset] = col.Contstraints; tableOffset++;
+			buffer[tableOffset] = col.Size; tableOffset++;
+		}
 
+
+
+
+
+	}
+	
+	binary.BigEndian.PutUint16(buffer[freeSpaceOffsetOffset: freeSpaceOffsetOffset + 2], uint16(freeSpaceOffset))// assign the final Free space offset
+	binary.BigEndian.PutUint16(buffer[numberOfTablesOffset: numberOfTablesOffset + 2], uint16(numberOfTables))// assign the final Number of tables
+	db.File.WriteAt(buffer, 0)
 	return nil
 }
 

@@ -10,7 +10,7 @@ import (
 
 type Database struct {
 	File *os.File
-	Tables map[string]Table
+	Tables map[string]*Table
 
 	TotalPages int
 
