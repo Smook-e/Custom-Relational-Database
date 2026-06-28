@@ -29,18 +29,18 @@ func ReadMetaPage(db *entities.Database) error{
 		offset += 2;
 		
 		numberOfTables := binary.BigEndian.Uint16(buffer[offset:offset+2]); offset += 2;
-		for _ = range numberOfTables {
+		for range numberOfTables {
 			table := &entities.Table{}
 			tableOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]); offset += 2;
-			nameLength := binary.BigEndian.Uint16(buffer[tableOffset:tableOffset+2]); tableOffset += 2;
-			tableName := buffer[tableOffset: tableOffset + nameLength]; tableOffset += nameLength;
+			nameLength := buffer[tableOffset]; tableOffset++;
+			tableName := buffer[tableOffset: tableOffset + uint16(nameLength)]; tableOffset += uint16(nameLength);
 			table.RootIndex = binary.BigEndian.Uint32(buffer[tableOffset:tableOffset+4]); tableOffset += 4;
 			
 			numberOfColumns := buffer[tableOffset]; tableOffset++;
 			
-			for _ = range numberOfColumns {
-				columnNameLength := binary.BigEndian.Uint16(buffer[tableOffset:tableOffset+2]); tableOffset += 2;
-				columnName := buffer[tableOffset: tableOffset + columnNameLength]; tableOffset += columnNameLength;
+			for range numberOfColumns {
+				columnNameLength := buffer[tableOffset]; tableOffset++;
+				columnName :=  buffer[tableOffset: tableOffset + uint16(columnNameLength)]; tableOffset += uint16(columnNameLength);
 				column := &entities.Column{Name: string(columnName)}
 				column.DataType = buffer[tableOffset]; tableOffset++;
 				column.Contstraints = buffer[tableOffset]; tableOffset++;
@@ -56,6 +56,18 @@ func ReadMetaPage(db *entities.Database) error{
 			break
 		}
 	}
+
+	return nil
+}
+
+func WriteMetaPage(db *entities.Database) error {
+	buffer := make([]byte, bufferSize)
+	offset := 0
+	binary.BigEndian.PutUint16(buffer,0); offset += 2;
+	freeSpaceOffset := bufferSize; freeSpaceOffsetOffset := offset
+	offset += 2
+	numberOfTables := 0; numberOfTablesOffset := offset
+	offset += 2
 
 	return nil
 }
