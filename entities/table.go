@@ -34,7 +34,7 @@ type Table struct {
 type Column struct {
 	Name string
 	DataType uint8
-	Contstraints uint8
+	Constraints uint8
 	Size uint8
 }
 type ColumnDefinition struct {

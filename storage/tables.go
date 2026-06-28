@@ -31,7 +31,7 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 		table.Columns = append(table.Columns, entities.Column{
 			Name:        col.Name,
 			DataType:    dataType,
-			Contstraints: constraints,
+			Constraints: constraints,
 			Size:        size,
 		})
 	}

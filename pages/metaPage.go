@@ -47,7 +47,7 @@ func ReadMetaPage(db *entities.Database) error{
 				columnName :=  buffer[tableOffset: tableOffset + int(columnNameLength)]; tableOffset += int(columnNameLength);
 				column := &entities.Column{Name: string(columnName)}
 				column.DataType = buffer[tableOffset]; tableOffset++;
-				column.Contstraints = buffer[tableOffset]; tableOffset++;
+				column.Constraints = buffer[tableOffset]; tableOffset++;
 				column.Size, _ = entities.GetSize(column.DataType); tableOffset++;
 				table.Columns = append(table.Columns, *column)
 			
@@ -104,7 +104,7 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = uint8(len(col.Name));tableOffset++;
 			copy(buffer[tableOffset: tableOffset + len(col.Name)], col.Name); tableOffset+= len(col.Name);
 			buffer[tableOffset] = col.DataType; tableOffset++;
-			buffer[tableOffset] = col.Contstraints; tableOffset++;
+			buffer[tableOffset] = col.Constraints; tableOffset++;
 			buffer[tableOffset] = col.Size; tableOffset++;
 		}
 
