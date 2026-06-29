@@ -47,8 +47,8 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 	if len(table.Columns) != len(data){
 		return 0,0, fmt.Errorf("Error: Invalid input size. Please enter %d Fields", len(table.Columns))
 	}
-	
+	size := 0
 	for i,col := range table.Columns {
-
+		
 	}
 }
