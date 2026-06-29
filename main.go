@@ -1,7 +1,7 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 	// "log"
 	// "os"
 
@@ -20,7 +20,10 @@ func main(){
 
 	filename := "database.bin"
 
-    pages.
+    err := pages.TestOpenDatabase(filename)
+    if err != nil {
+        fmt.Print(err)
+    }
     
     
 

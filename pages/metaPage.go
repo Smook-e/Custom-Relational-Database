@@ -186,7 +186,7 @@ func TestOpenDatabase(filename string) error {
 
     // Close the file to ensure all data is flushed
     db.File.Close() 
-    fmt.Println("File closed and flushed.")
+    
 
     
     // Reopen the database to test recovery
@@ -208,5 +208,5 @@ func TestOpenDatabase(filename string) error {
             }
         }
     }
-
+	return nil
 }
