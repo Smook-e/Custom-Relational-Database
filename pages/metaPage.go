@@ -5,12 +5,14 @@ import (
 	// "container/list"
 	"encoding/binary"
 	"fmt"
-	
+	// "sort"
+
 	"os"
 	"sync"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
+
 	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
 
@@ -196,8 +198,8 @@ func TestOpenDatabase(filename string) error {
     }
     db.Tables[t2.Name] = t2
 	db.FreePages = []entities.FreePage{
-		{PageID: 2, FreeSpace: 2048},
-		{PageID: 3, FreeSpace: 1024},
+		{PageID: 2, FreeSpace: 1024},
+		{PageID: 3, FreeSpace: 2048},
 	}
     
     // Write the meta page to the file
@@ -234,5 +236,10 @@ func TestOpenDatabase(filename string) error {
             }
         }
     }
+	found_page, err := FindFreePage(db2, 100)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Found Page:", found_page)
 	return nil
 }
