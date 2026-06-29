@@ -1,8 +1,8 @@
 package storage
 
 import (
-	
-	
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
@@ -37,4 +37,18 @@ func CreateTable(tableName string, cols []entities.ColumnDefinition) (*entities.
 	}
 	
 	return table,nil
+}
+func InsertRow(db *entities.Database, data []string, tableName string) (uint32, uint16, error) {
+	//Pass 1: Check Validity and calculate size
+	table, ok := db.Tables[tableName]
+	if !ok {
+		return 0,0, fmt.Errorf("Error: Table %s Not Found ", tableName)
+	}
+	if len(table.Columns) != len(data){
+		return 0,0, fmt.Errorf("Error: Invalid input size. Please enter %d Fields", len(table.Columns))
+	}
+	
+	for i,col := range table.Columns {
+
+	}
 }
