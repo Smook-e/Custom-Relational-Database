@@ -15,7 +15,7 @@ type Database struct {
 	File *os.File
 	Tables map[string]*Table
 	FreePages	[]FreePage
-	TotalPages int
+	TotalPages uint32
 
 }
 

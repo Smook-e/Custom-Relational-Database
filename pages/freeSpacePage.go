@@ -4,8 +4,9 @@ import (
 	// "os"
 	// "container/list"
 	"encoding/binary"
+	"errors"
 	"fmt"
-	
+
 	// "os"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
@@ -61,4 +62,15 @@ func WriteFreeSpacePage(db *entities.Database) error {
 	filehandler.WriteToFile(db.File, 1, buffer)
 
 	return nil
+}
+func FindFreePage(db *entities.Database, requiredSpace uint16) (uint32, error) {
+	if requiredSpace > bufferSize - 7 {
+		return 0, errors.New("No page has more than 4089 free bytes")
+	}
+	for _, freePage := range db.FreePages {
+		if freePage.FreeSpace >= requiredSpace {
+			return freePage.PageID, nil
+		}
+	}
+	return uint32(db.TotalPages), nil
 }

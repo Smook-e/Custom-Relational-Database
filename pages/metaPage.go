@@ -153,7 +153,7 @@ func OpenDatabase(filename string) (*entities.Database, error) {
 	db := &entities.Database{
 		File: filep,
 		Tables: make(map[string]*entities.Table),
-		TotalPages: int(fileInfo.Size() / bufferSize),
+		TotalPages: uint32(fileInfo.Size() / bufferSize),
 	}
 	err = ReadMetaPage(db)
 	if err != nil {
