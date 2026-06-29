@@ -66,6 +66,10 @@ func ReadMetaPage(db *entities.Database) error{
 			db.Tables[string(tableName)] = table
 	
 		}
+		err = ReadFreeSpacePage(db)
+		if err != nil {
+			return err
+		}
 		if nextPage == 0{
 			break
 		}
@@ -128,6 +132,11 @@ func WriteMetaPage(db *entities.Database) error {
 	binary.BigEndian.PutUint16(buffer[freeSpaceOffsetOffset: freeSpaceOffsetOffset + 2], uint16(freeSpaceOffset))// assign the final Free space offset
 	binary.BigEndian.PutUint16(buffer[numberOfTablesOffset: numberOfTablesOffset + 2], uint16(numberOfTables))// assign the final Number of tables
 	db.File.WriteAt(buffer, 0)
+	err := WriteFreeSpacePage(db)
+	if err != nil {
+		return fmt.Errorf("WriteFreeSpacePage failed: %v", err)
+	}
+
 	return nil
 }
 
