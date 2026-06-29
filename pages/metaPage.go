@@ -195,7 +195,10 @@ func TestOpenDatabase(filename string) error {
         return err
     }
     db.Tables[t2.Name] = t2
-
+	db.FreePages = []entities.FreePage{
+		{PageID: 2, FreeSpace: 2048},
+		{PageID: 3, FreeSpace: 1024},
+	}
     
     // Write the meta page to the file
     err = WriteMetaPage(db)
@@ -216,12 +219,16 @@ func TestOpenDatabase(filename string) error {
     defer db2.File.Close()
 
     
-    
+    fmt.Println("Free Pages:")
+    for _, freePage := range db2.FreePages {
+        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
+    }
     if len(db2.Tables) == 0 {
         fmt.Println("Error: No tables were recovered!")
     } else {
         for name, table := range db2.Tables {
             fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
+
             for _, col := range table.Columns {
                 fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
             }
