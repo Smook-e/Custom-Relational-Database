@@ -25,11 +25,14 @@ func WriteFreeSpacePage(db *entities.Database) error {
 	offset := 0
 	var nextPagePointer uint16 = 0
 	binary.BigEndian.PutUint16(buffer, nextPagePointer); offset += 2 ;
-	binary.BigEndian.PutUint16(buffer ,uint16(len(db.FreePages))); offset += 2;
+	binary.BigEndian.PutUint16(buffer ,uint16(len(db.FreePages))); offset += 2;// number of elements in the page
 	for _, page := range db.FreePages {
 		//PageID
-		binary.BigEndian.PutUint16()
+		binary.BigEndian.PutUint32(buffer, page.PageID); offset += 4
+		//FreeSpace
+		binary.BigEndian.PutUint16(buffer, page.FreeSpace); offset += 2;
 	}
+	db.File.WriteAt(buffer, 1)
 
 	return nil
 }
