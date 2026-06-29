@@ -10,6 +10,7 @@ import (
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
+	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
 
 const bufferSize = 4096
@@ -140,4 +141,72 @@ func OpenDatabase(filename string) (*entities.Database, error) {
 		return nil, err
 	}
 	return db, nil
+}
+func TestOpenDatabase(filename string) error {
+	filep, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+    if err != nil {
+        return err
+    }
+
+    db := &entities.Database{
+        File:   filep,
+        Tables: make(map[string]*entities.Table),
+    }
+
+    
+    // initialize tables
+    
+    t1, err := storage.CreateTable("products", []entities.ColumnDefinition{
+        {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
+        {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
+        {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
+    })
+    if err != nil {
+        return err
+    }
+    db.Tables[t1.Name] = t1
+
+    // Table 2
+    t2, err := storage.CreateTable("users", []entities.ColumnDefinition{
+        {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
+        {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
+        {Name: "age", DataType: "int", Constraints: []string{}},
+    })
+    if err != nil {
+        return err
+    }
+    db.Tables[t2.Name] = t2
+
+    
+    // Write the meta page to the file
+    err = WriteMetaPage(db)
+    if err != nil {
+        return fmt.Errorf("WriteMetaPage failed: %v", err)
+    }
+
+    // Close the file to ensure all data is flushed
+    db.File.Close() 
+    fmt.Println("File closed and flushed.")
+
+    
+    // Reopen the database to test recovery
+    db2, err := OpenDatabase(filename)
+    if err != nil {
+        return fmt.Errorf("OpenDatabase failed: %v", err)
+    }
+    defer db2.File.Close()
+
+    
+    
+    if len(db2.Tables) == 0 {
+        fmt.Println("Error: No tables were recovered!")
+    } else {
+        for name, table := range db2.Tables {
+            fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
+            for _, col := range table.Columns {
+                fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
+            }
+        }
+    }
+
 }
