@@ -68,7 +68,7 @@ func ReadMetaPage(db *entities.Database) error{
 func WriteMetaPage(db *entities.Database) error {
 	buffer := make([]byte, bufferSize)
 	offset := 0
-	binary.BigEndian.PutUint16(buffer,0); offset += 2;
+	binary.BigEndian.PutUint16(buffer,0); offset += 2;//write next page
 	freeSpaceOffset := bufferSize; freeSpaceOffsetOffset := offset
 	offset += 2
 	numberOfTables := 0; numberOfTablesOffset := offset

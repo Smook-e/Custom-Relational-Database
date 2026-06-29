@@ -8,8 +8,8 @@ import (
 )
 
 type FreePage struct {
-	PageID	int
-	FreeSpace	int
+	PageID	uint32
+	FreeSpace	uint16
 }
 type Database struct {
 	File *os.File
