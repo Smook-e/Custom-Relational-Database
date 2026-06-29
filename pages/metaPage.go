@@ -7,6 +7,7 @@ import (
 	"fmt"
 	
 	"os"
+	"sync"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
@@ -15,8 +16,16 @@ import (
 
 const bufferSize = 4096
 
+var bufferPool = sync.Pool{
+    New: func() interface{} {
+        // This ensures every buffer produced by the pool is 4KB
+        return make([]byte, bufferSize)
+    },
+}
+
 func ReadMetaPage(db *entities.Database) error{
-	buffer := make([]byte, bufferSize)
+	buffer := bufferPool.Get().([]byte)
+	defer bufferPool.Put(buffer)
 
 	
 	var nextPage uint16 = 0
@@ -66,7 +75,8 @@ func ReadMetaPage(db *entities.Database) error{
 }
 
 func WriteMetaPage(db *entities.Database) error {
-	buffer := make([]byte, bufferSize)
+	buffer := bufferPool.Get().([]byte)
+	defer bufferPool.Put(buffer)
 	offset := 0
 	binary.BigEndian.PutUint16(buffer,0); offset += 2;//write next page
 	freeSpaceOffset := bufferSize; freeSpaceOffsetOffset := offset

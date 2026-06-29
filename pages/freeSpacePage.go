@@ -20,7 +20,8 @@ func ReadFreeSpacePage(db *entities.Database) error {
 	return nil
 }
 func WriteFreeSpacePage(db *entities.Database) error {
-	buffer := make([]byte, bufferSize)
+	buffer := bufferPool.Get().([]byte)
+	defer bufferPool.Put(buffer)
 
 	offset := 0
 	var nextPagePointer uint16 = 0
