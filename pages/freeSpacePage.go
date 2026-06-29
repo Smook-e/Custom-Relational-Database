@@ -24,7 +24,8 @@ func ReadFreeSpacePage(db *entities.Database) error {
 	}
 
 	offset := 0
-	nextPagePointer := binary.BigEndian.Uint16(buffer[offset: offset + 2]); offset += 2;// Read Next Page Id
+	// nextPagePointer := binary.BigEndian.Uint16(buffer[offset: offset + 2]);
+	offset += 2;// Read Next Page Id
 
 	numberOfElements := binary.BigEndian.Uint16(buffer[offset: offset + 2]); offset += 2;// Read Number of elements
 
@@ -41,6 +42,7 @@ func ReadFreeSpacePage(db *entities.Database) error {
 
 	return nil
 }
+
 func WriteFreeSpacePage(db *entities.Database) error {
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
