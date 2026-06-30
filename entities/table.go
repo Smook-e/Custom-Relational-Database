@@ -52,30 +52,30 @@ func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
 		col = &t.Columns[i]
 		switch col.DataType {
 		case TypeTinyInt:
-			n, err := strconv.Atoi(val)
+			n, err := strconv.ParseInt(val, 10, 8)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to TinyInt", val)
+				return nil, 0, fmt.Errorf("Error converting %s to TinyInt: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int8(n)
 		case TypeSmallInt:
-			n, err := strconv.Atoi(val)
+			n, err := strconv.ParseInt(val, 10, 16)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to SmallInt", val)
+				return nil, 0, fmt.Errorf("Error converting %s to SmallInt: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int16(n)
 		case TypeInt:
-			n, err := strconv.Atoi(val)
+			n, err := strconv.ParseInt(val, 10, 32)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to Int", val)
+				return nil, 0, fmt.Errorf("Error converting %s to Int: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int32(n)
 		case TypeBigInt:
 			n, err := strconv.ParseInt(val, 10, 64)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to BigInt", val)
+				return nil, 0, fmt.Errorf("Error converting %s to BigInt: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int64(n)
