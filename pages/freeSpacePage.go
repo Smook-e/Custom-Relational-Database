@@ -73,5 +73,9 @@ func FindFreePage(db *entities.Database, requiredSpace uint16) (uint32, error) {
 			return freePage.PageID, nil
 		}
 	}
+	err := InitializeNewDataPage(db)
+	if err != nil {
+		return 0,err
+	}
 	return uint32(db.TotalPages), nil
 }
