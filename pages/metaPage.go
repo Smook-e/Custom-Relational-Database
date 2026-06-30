@@ -13,7 +13,7 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 
-	"github.com/Smook-e/Custom-Relational-Database/storage"
+	
 )
 
 const bufferSize = 4096
@@ -177,7 +177,7 @@ func TestOpenDatabase(filename string) error {
     
     // initialize tables
     
-    t1, err := storage.CreateTable("products", []entities.ColumnDefinition{
+    t1, err := entities.CreateTable("products", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
@@ -188,7 +188,7 @@ func TestOpenDatabase(filename string) error {
     db.Tables[t1.Name] = t1
 
     // Table 2
-    t2, err := storage.CreateTable("users", []entities.ColumnDefinition{
+    t2, err := entities.CreateTable("users", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "age", DataType: "int", Constraints: []string{}},
