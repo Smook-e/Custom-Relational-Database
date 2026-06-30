@@ -10,10 +10,10 @@ import (
 )
 
 
-func GetDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16, error) {
+func GetDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,uint16,uint32,  error) {
 	pageID, err:= FindFreePage(db, requiredSpace)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0,0,0, err
 	}
 	
 
@@ -22,7 +22,7 @@ func GetDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16, er
 	//Read the Page 
 	err = filehandler.ReadFromFile(db.File, int(pageID), buffer)
 	if err != nil {
-		return nil,0, err
+		return nil,0,0,0, err
 	}
 	offset := 0
 
@@ -35,7 +35,7 @@ func GetDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16, er
 	offset += 2 + (int(numberOfElements) * 2)
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], freeSpaceOffset)//add the new element at the next free slot
 
-	return buffer,freeSpaceOffset, nil
+	return buffer,freeSpaceOffset,numberOfElements, pageID, nil
 }
 
 func InitializeNewDataPage(db *entities.Database) error {
