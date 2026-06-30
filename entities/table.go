@@ -96,3 +96,12 @@ func GetConstraint(Constraints []string) (uint8, error) {
 	}
 	return result, nil
 }
+
+func (t *Table) GetColumnByName(name string) (*Column, error) {
+	for _, col := range t.Columns {
+		if col.Name == name {
+			return &col, nil
+		}
+	}
+	return nil, fmt.Errorf("Column %s not found in table %s", name, t.Name)
+}
