@@ -2,12 +2,12 @@ package pages
 
 import (
 	// "errors"
+	"encoding/binary"
 	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
-	
 )
 
 
@@ -24,10 +24,15 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
-	pageID, err := FindFreePage(db,size)
+	buffer, freeSpaceOffset, err := GetDataPage(db, size)
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
-	buffer := bufferPool.Get().([]byte)
-	defer bufferPool.Put(buffer)
+	offset := freeSpaceOffset
+	for i, val := range vals {
+		switch v := val.(type) {
+		case int8:
+			buffer[offset] = byte(v)// doesnt work
+		}
+	}	
 }

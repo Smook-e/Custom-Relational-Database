@@ -69,7 +69,7 @@ func FindFreePage(db *entities.Database, requiredSpace uint16) (uint32, error) {
 	}
 	for _, freePage := range db.FreePages {
 		if freePage.FreeSpace >= requiredSpace {
-			freePage.FreeSpace -= requiredSpace
+			freePage.FreeSpace -= (requiredSpace + 2) // required space + 2 bytes for the new slot the points to it
 			return freePage.PageID, nil
 		}
 	}

@@ -48,6 +48,8 @@ func InitializeNewDataPage(db *entities.Database) error {
 	if err != nil {
 		return err
 	}
+	//add the new free page to the database
+	db.FreePages = append(db.FreePages, entities.FreePage{PageID:db.TotalPages,FreeSpace: bufferSize - 4})// 4 bytes for the freespaceoffset and the numberofelements
 	db.TotalPages++
 	return nil
 }
