@@ -1,4 +1,4 @@
-package storage
+package pages
 
 import (
 	// "errors"
@@ -7,16 +7,8 @@ import (
 	"sync"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
-	"github.com/Smook-e/Custom-Relational-Database/pages"
+	
 )
-const bufferSize = 4096
-
-var bufferPool = sync.Pool{
-    New: func() interface{} {
-        // This ensures every buffer produced by the pool is 4KB
-        return make([]byte, bufferSize)
-    },
-}
 
 
 func InsertRow(db *entities.Database, data []string, tableName string) (uint32, uint16, error) {
@@ -32,7 +24,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
-	pageID, err := pages.FindFreePage(db,size)
+	pageID, err := FindFreePage(db,size)
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
