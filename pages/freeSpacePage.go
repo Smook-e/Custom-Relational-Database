@@ -67,15 +67,15 @@ func FindFreePage(db *entities.Database, requiredSpace uint16) (uint32, error) {
 	if requiredSpace > bufferSize - 7 {
 		return 0, errors.New("No page has more than 4089 free bytes")
 	}
-	for _, freePage := range db.FreePages {
-		if freePage.FreeSpace >= requiredSpace {
-			freePage.FreeSpace -= (requiredSpace + 2) // required space + 2 bytes for the new slot the points to it
-			return freePage.PageID, nil
+	for i := range db.FreePages {
+		if db.FreePages[i].FreeSpace >= requiredSpace {
+			db.FreePages[i].FreeSpace -= (requiredSpace + 2) // required space + 2 bytes for the new slot the points to it
+			return db.FreePages[i].PageID, nil
 		}
 	}
 	err := InitializeNewDataPage(db)
 	if err != nil {
 		return 0,err
 	}
-	return uint32(db.TotalPages), nil
+	return uint32(db.TotalPages - 1), nil
 }

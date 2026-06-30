@@ -4,8 +4,10 @@ import (
 	// "errors"
 	"encoding/binary"
 	"fmt"
+	
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
+	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
 
 
@@ -27,6 +29,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	offset := freeSpaceOffset
+	//Pass 2: write the values into the page
 	for _, val := range vals {
 		switch v := val.(type) {
 		case int8:
@@ -47,6 +50,10 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 			copy(buffer[offset:], v)
 			offset += uint16(len(v))
 		}
+	}
+	err = filehandler.WriteToFile(db.File,uint32(pageID), buffer)
+	if err != nil {
+		return 0,0,fmt.Errorf("Failed to Commit Row to disk:%w",err)
 	}
 	return pageID, slot, nil
 }

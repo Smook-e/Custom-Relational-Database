@@ -44,7 +44,7 @@ func InitializeNewDataPage(db *entities.Database) error {
 	offset := 0
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], bufferSize); offset += 2;
 	binary.BigEndian.PutUint16(buffer[offset:offset + 2], 0)
-	err := filehandler.WriteToFile(db.File, int(db.TotalPages), buffer)
+	err := filehandler.WriteToFile(db.File, uint32(db.TotalPages), buffer)
 	if err != nil {
 		return err
 	}
