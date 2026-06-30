@@ -39,3 +39,17 @@ func GetDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16, er
 
 	return buffer,freeSpaceOffset, nil
 }
+
+func InitializeNewDataPage(db *entities.Database) error {
+	buffer := bufferPool.Get().([]byte)
+	defer bufferPool.Put(buffer)
+	offset := 0
+	binary.BigEndian.PutUint16(buffer[offset: offset + 2], bufferSize); offset += 2;
+	binary.BigEndian.PutUint16(buffer[offset:offset + 2], 0)
+	err := filehandler.WriteToFile(db.File, int(db.TotalPages), buffer)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
