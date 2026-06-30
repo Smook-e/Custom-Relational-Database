@@ -105,3 +105,12 @@ func (t *Table) GetColumnByName(name string) (*Column, error) {
 	}
 	return nil, fmt.Errorf("Column %s not found in table %s", name, t.Name)
 }
+
+func (t *Table) GetColumnIndexByName(name string) (int, error) {
+	for i, col := range t.Columns {
+		if col.Name == name {
+			return i, nil
+		}
+	}
+	return -1, fmt.Errorf("Column %s not found in table %s", name, t.Name)
+}
