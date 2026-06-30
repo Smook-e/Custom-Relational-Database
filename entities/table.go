@@ -114,3 +114,10 @@ func (t *Table) GetColumnIndexByName(name string) (int, error) {
 	}
 	return -1, fmt.Errorf("Column %s not found in table %s", name, t.Name)
 }
+
+func (t *Table) GetColumnByIndex(index int) (*Column, error) {
+	if index < 0 || index >= len(t.Columns) {
+		return nil, fmt.Errorf("Index %d out of bounds for table %s", index, t.Name)
+	}
+	return &t.Columns[index], nil
+}
