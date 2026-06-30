@@ -44,10 +44,10 @@ type ColumnDefinition struct {
 	Constraints []string
 }
 
-func (t *Table) GetValues(vals []string) ([]any,uint8 ,  error) {
+func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
 	values := make([]any, len(vals))
 	var col *Column
-	var size uint8 = 0
+	var size uint16 = 0
 	for i, val := range vals {
 		col = &t.Columns[i]
 		switch col.DataType {
@@ -56,31 +56,31 @@ func (t *Table) GetValues(vals []string) ([]any,uint8 ,  error) {
 			if err != nil {
 				return nil, 0, fmt.Errorf("Error converting %s to TinyInt", val)
 			}
-			size += col.Size
+			size += uint16(col.Size)
 			values[i] = int8(n)
 		case TypeSmallInt:
 			n, err := strconv.Atoi(val)
 			if err != nil {
 				return nil, 0, fmt.Errorf("Error converting %s to SmallInt", val)
 			}
-			size += col.Size
+			size += uint16(col.Size)
 			values[i] = int16(n)
 		case TypeInt:
 			n, err := strconv.Atoi(val)
 			if err != nil {
 				return nil, 0, fmt.Errorf("Error converting %s to Int", val)
 			}
-			size += col.Size
+			size += uint16(col.Size)
 			values[i] = int32(n)
 		case TypeBigInt:
 			n, err := strconv.ParseInt(val, 10, 64)
 			if err != nil {
 				return nil, 0, fmt.Errorf("Error converting %s to BigInt", val)
 			}
-			size += col.Size
+			size += uint16(col.Size)
 			values[i] = int64(n)
 		case TypeVarChar:
-			size += uint8(len(val)) + 1 //string length + 1 byte for length prefix
+			size += uint16(len(val)) + 1 //string length + 1 byte for length prefix
 			values[i] = val
 		default:
 			return nil, 0, fmt.Errorf("Unsupported data type for column %s", col.Name)
