@@ -167,3 +167,34 @@ func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 	}
 	return &t.Columns[index], nil
 }
+
+
+func CreateTable(tableName string, cols []ColumnDefinition) (*Table, error) {
+
+	table := &Table{Name: tableName}
+	var constraints uint8
+	for _, col := range cols{
+		cleanst := strings.ToLower(col.DataType)
+		dataType, err := GetDataType(cleanst)
+		if err != nil {
+			return nil, err
+		}
+		constraints, err  = GetConstraint(col.Constraints)
+		if err != nil {
+			return nil, err
+		}
+		
+		size, err := GetSize(dataType)
+		if err != nil {
+			return nil, err
+		}
+		table.Columns = append(table.Columns, Column{
+			Name:        col.Name,
+			DataType:    dataType,
+			Constraints: constraints,
+			Size:        size,
+		})
+	}
+	
+	return table,nil
+}
