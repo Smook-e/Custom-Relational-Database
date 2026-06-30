@@ -44,49 +44,53 @@ type ColumnDefinition struct {
 	Constraints []string
 }
 
-func (t *Table) GetValues(vals []string) ([]any, error) {
+func (t *Table) GetValues(vals []string) ([]any,uint8 ,  error) {
 	values := make([]any, len(vals))
+	var col *Column
+	var size uint8 = 0
 	for i, val := range vals {
-		col, err := t.GetColumnByIndex(i)
-		if err != nil {
-			return nil, err
-		}
+		col = &t.Columns[i]
 		switch col.DataType {
 		case TypeTinyInt:
 			n, err := strconv.Atoi(val)
 			if err != nil {
-				return nil, fmt.Errorf("Error converting %s to TinyInt", val)
+				return nil, 0, fmt.Errorf("Error converting %s to TinyInt", val)
 			}
+			size += col.Size
 			values[i] = int8(n)
 		case TypeSmallInt:
 			n, err := strconv.Atoi(val)
 			if err != nil {
-				return nil, fmt.Errorf("Error converting %s to SmallInt", val)
+				return nil, 0, fmt.Errorf("Error converting %s to SmallInt", val)
 			}
+			size += col.Size
 			values[i] = int16(n)
 		case TypeInt:
 			n, err := strconv.Atoi(val)
 			if err != nil {
-				return nil, fmt.Errorf("Error converting %s to Int", val)
+				return nil, 0, fmt.Errorf("Error converting %s to Int", val)
 			}
+			size += col.Size
 			values[i] = int32(n)
 		case TypeBigInt:
 			n, err := strconv.ParseInt(val, 10, 64)
 			if err != nil {
-				return nil, fmt.Errorf("Error converting %s to BigInt", val)
+				return nil, 0, fmt.Errorf("Error converting %s to BigInt", val)
 			}
+			size += col.Size
 			values[i] = int64(n)
 		case TypeVarChar:
+			size += uint8(len(val)) + 1 //string length + 1 byte for length prefix
 			values[i] = val
 		default:
-			return nil, fmt.Errorf("Unsupported data type for column %s", col.Name)
+			return nil, 0, fmt.Errorf("Unsupported data type for column %s", col.Name)
 		}
 	}
-	return values, nil
+	return values, size, nil
 
 }
 
-func GetSize(Type byte) (byte, error) {
+func GetSize(Type uint8) (uint8, error) {
 	switch Type {
 	case TypeTinyInt:
 		return 1, nil
