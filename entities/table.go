@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"strconv"
 
 )
 
@@ -43,6 +44,47 @@ type ColumnDefinition struct {
 	Constraints []string
 }
 
+func (t *Table) GetValues(vals []string) ([]any, error) {
+	values := make([]any, len(vals))
+	for i, val := range vals {
+		col, err := t.GetColumnByIndex(i)
+		if err != nil {
+			return nil, err
+		}
+		switch col.DataType {
+		case TypeTinyInt:
+			n, err := strconv.Atoi(val)
+			if err != nil {
+				return nil, fmt.Errorf("Error converting %s to TinyInt", val)
+			}
+			values[i] = int8(n)
+		case TypeSmallInt:
+			n, err := strconv.Atoi(val)
+			if err != nil {
+				return nil, fmt.Errorf("Error converting %s to SmallInt", val)
+			}
+			values[i] = int16(n)
+		case TypeInt:
+			n, err := strconv.Atoi(val)
+			if err != nil {
+				return nil, fmt.Errorf("Error converting %s to Int", val)
+			}
+			values[i] = int32(n)
+		case TypeBigInt:
+			n, err := strconv.ParseInt(val, 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("Error converting %s to BigInt", val)
+			}
+			values[i] = int64(n)
+		case TypeVarChar:
+			values[i] = val
+		default:
+			return nil, fmt.Errorf("Unsupported data type for column %s", col.Name)
+		}
+	}
+	return values, nil
+
+}
 
 func GetSize(Type byte) (byte, error) {
 	switch Type {
