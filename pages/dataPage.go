@@ -10,7 +10,7 @@ import (
 )
 
 //Function receives the required space by a row, and returns a buffer, freeSpace offset, numberOfElements(slot) and pageID
-func GetDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,uint16,uint32,  error) {
+func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,uint16,uint32,  error) {
 	pageID, err:= FindFreePage(db, requiredSpace)
 	if err != nil {
 		return nil, 0,0,0, err

@@ -10,6 +10,17 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
 
+func ReadRow(db *entities.Database,tableName string, pageID uint32, slot uint16) ([]any, error) {
+	table, ok := db.Tables[tableName]
+	if !ok {
+		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
+	}
+
+}
+
+
+
+
 // Function takesa the array of data as strings, uses a helper function to transform them into their suitable types
 // then returns the Pageid and slot the row was inserted at
 func InsertRow(db *entities.Database, data []string, tableName string) (uint32, uint16, error) {
@@ -26,7 +37,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	//Get a suitable data page and slot to insert into
-	buffer, freeSpaceOffset,slot,pageID, err := GetDataPage(db, size)
+	buffer, freeSpaceOffset,slot,pageID, err := FindDataPage(db, size)
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
