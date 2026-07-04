@@ -8,6 +8,7 @@ import (
 
 
 )
+//Function a pageid and slot and reads the page into a buffer and specifies the specific offset of the slot
 func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint16, error) {
 	buffer := make([]byte, bufferSize)
 
@@ -22,6 +23,7 @@ func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint1
 	return buffer, tableOffset, nil
 
 }
+
 //Function receives the required space by a row, and returns a buffer, freeSpace offset, numberOfElements(slot) and pageID
 func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,uint16,uint32,  error) {
 	pageID, err:= FindFreePage(db, requiredSpace)
