@@ -8,7 +8,20 @@ import (
 
 
 )
+func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint16, error) {
+	buffer := make([]byte, bufferSize)
 
+	err := filehandler.ReadFromFile(db.File, int(pageID),buffer)
+	if err != nil {
+		return nil,0, err
+	}
+	var offset uint16 = 0
+	offset += 2; // free space offset 2 bytes
+	offset += slot * 2;//each slot has 2 bytes
+	tableOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]);// read the table offset from the specified slot
+	return buffer, tableOffset, nil
+
+}
 //Function receives the required space by a row, and returns a buffer, freeSpace offset, numberOfElements(slot) and pageID
 func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,uint16,uint32,  error) {
 	pageID, err:= FindFreePage(db, requiredSpace)
