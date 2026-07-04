@@ -236,10 +236,14 @@ func TestOpenDatabase(filename string) error {
             }
         }
     }
-	found_page, err := FindFreePage(db2, 100)
+	pageID, slot, err := InsertRow(db2, []string{"1", "joe", "20"}, "users")
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	fmt.Println("Found Page:", found_page)
+	Row, err := ReadRow(db2, "users", pageID, slot)
+	if err != nil {
+		return err
+	}
+	fmt.Println(Row)
 	return nil
 }
