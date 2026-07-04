@@ -277,13 +277,13 @@ func TestWriteandReadDatabase(filename string) error {
         }
     }
 	// pageID, slot, err := InsertRow(db2, []string{"1", "joe", "20"}, "users")
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 	// Row, err := ReadRow(db2, "users", pageID, slot)
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 	// fmt.Println(Row)
 	fmt.Println("Free Pages:")
     for _, freePage := range db2.FreePages {
