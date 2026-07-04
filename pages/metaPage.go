@@ -170,25 +170,32 @@ func TestOpenDatabase(filename string) error {
         return fmt.Errorf("OpenDatabase failed: %v", err)
     }
     defer db.File.Close()
-
+	// db.File.Truncate(2 * bufferSize)
     
     
-    if len(db.Tables) == 0 {
-        fmt.Println("Error: No tables were recovered!")
-    } else {
-        for name, table := range db.Tables {
-            fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
-
-            for _, col := range table.Columns {
-                fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
-            }
-        }
-    }
 	pageID, slot, err := InsertRow(db, []string{"1", "joe", "20"}, "users")
 	if err != nil {
 		return err
 	}
 	Row, err := ReadRow(db, "users", pageID, slot)
+	if err != nil {
+		return err
+	}
+	fmt.Println(Row)
+	pageID, slot, err = InsertRow(db, []string{"2", "emily", "25"}, "users")
+	if err != nil {
+		return err
+	}
+	Row, err = ReadRow(db, "users", pageID, slot)
+	if err != nil {
+		return err
+	}
+	fmt.Println(Row)
+	pageID, slot, err = InsertRow(db, []string{"1", "Phone", "1000"}, "products")
+	if err != nil {
+		return err
+	}
+	Row, err = ReadRow(db, "products", pageID, slot)
 	if err != nil {
 		return err
 	}
@@ -269,15 +276,15 @@ func TestWriteandReadDatabase(filename string) error {
             }
         }
     }
-	pageID, slot, err := InsertRow(db2, []string{"1", "joe", "20"}, "users")
+	// pageID, slot, err := InsertRow(db2, []string{"1", "joe", "20"}, "users")
 	if err != nil {
 		return err
 	}
-	Row, err := ReadRow(db2, "users", pageID, slot)
+	// Row, err := ReadRow(db2, "users", pageID, slot)
 	if err != nil {
 		return err
 	}
-	fmt.Println(Row)
+	// fmt.Println(Row)
 	fmt.Println("Free Pages:")
     for _, freePage := range db2.FreePages {
         fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)

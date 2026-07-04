@@ -31,15 +31,17 @@ func ReadRow(db *entities.Database,tableName string, pageID uint32, slot uint16)
 			Row[i] = int16(binary.BigEndian.Uint16(buffer[offset:offset+2]))
 			offset += 2
 		case entities.TypeInt:
+			
 			Row[i] = int32(binary.BigEndian.Uint32(buffer[offset:offset+4]))
 			offset += 4
 		case entities.TypeBigInt:
 			Row[i] = int64(binary.BigEndian.Uint64(buffer[offset:offset+8]))
 			offset += 8
 		case entities.TypeVarChar:
-			length := buffer[offset]
+			length := uint8(buffer[offset])
 			offset++
 			Row[i] = string(buffer[offset:offset+uint16(length)])
+			offset+= uint16(length)
 		}
 	}
 	return Row, nil
@@ -65,6 +67,9 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 	}
 	//Get a suitable data page and slot to insert into
 	buffer, freeSpaceOffset,slot,pageID, err := FindDataPage(db, size)
+
+	
+
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
@@ -80,6 +85,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 			binary.BigEndian.PutUint16(buffer[offset: offset+2], uint16(v))
 			offset+=2
 		case int32:
+			
 			binary.BigEndian.PutUint32(buffer[offset: offset+4], uint32(v))
 			offset+=4
 		case int64:

@@ -1,13 +1,13 @@
 package pages
 
 import (
-	"github.com/Smook-e/Custom-Relational-Database/entities"
-	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 	"encoding/binary"
 	
 
-
+	"github.com/Smook-e/Custom-Relational-Database/entities"
+	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
+
 //Function a pageid and slot and reads the page into a buffer and specifies the specific offset of the slot
 func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint16, error) {
 	buffer := make([]byte, bufferSize)
@@ -18,7 +18,7 @@ func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint1
 	}
 	var offset uint16 = 0
 	offset += 2; // free space offset 2 bytes
-	offset += slot * 2;//each slot has 2 bytes
+	offset += 2 + slot * 2;//each slot has 2 bytes
 	tableOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]);// read the table offset from the specified slot
 	return buffer, tableOffset, nil
 
@@ -49,7 +49,6 @@ func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,ui
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], numberOfElements + 1)// update the number of elements
 	offset += 2 + (int(numberOfElements) * 2)
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], freeSpaceOffset)//add the new element at the next free slot
-
 	return buffer,freeSpaceOffset,numberOfElements, pageID, nil
 }
 
@@ -57,7 +56,7 @@ func InitializeNewDataPage(db *entities.Database, requiredSpace uint16) error {
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
 	offset := 0
-	binary.BigEndian.PutUint16(buffer[offset: offset + 2], bufferSize); offset += 2;
+	binary.BigEndian.PutUint16(buffer[offset: offset + 2], bufferSize - 1); offset += 2;// free space starts from the end of the file since it's still empty
 	binary.BigEndian.PutUint16(buffer[offset:offset + 2], 0)
 	err := filehandler.WriteToFile(db.File, uint32(db.TotalPages), buffer)
 	if err != nil {

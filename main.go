@@ -19,8 +19,8 @@ import (
 func main(){
 
 	filename := "database.bin"
-
-    err := pages.TestWriteandReadDatabase(filename)
+	pages.TestWriteandReadDatabase(filename)
+    err := pages.TestOpenDatabase(filename)
     if err != nil {
         fmt.Print(err)
     }
