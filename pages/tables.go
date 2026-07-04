@@ -25,6 +25,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
+	//Get a suitable data page and slot to insert into
 	buffer, freeSpaceOffset,slot,pageID, err := GetDataPage(db, size)
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
@@ -32,6 +33,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 	offset := freeSpaceOffset
 	//Pass 2: write the values into the page
 	for _, val := range vals {
+		//cast the value into its type first
 		switch v := val.(type) {
 		case int8:
 			buffer[offset] = byte(v)
