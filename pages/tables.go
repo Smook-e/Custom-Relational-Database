@@ -15,7 +15,34 @@ func ReadRow(db *entities.Database,tableName string, pageID uint32, slot uint16)
 	if !ok {
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
 	}
+	Row := make([]any, len(table.Columns))
 
+	buffer, tableOffset, err  := GetDataPage(db, pageID, slot)
+	if err != nil {
+		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+	}
+	offset := tableOffset
+	for i, col := range table.Columns {
+		switch col.DataType {
+		case entities.TypeTinyInt://int8
+			Row[i] = int8(buffer[offset])
+			offset++
+		case entities.TypeSmallInt://int16
+			Row[i] = int16(binary.BigEndian.Uint16(buffer[offset:offset+2]))
+			offset += 2
+		case entities.TypeInt:
+			Row[i] = int32(binary.BigEndian.Uint32(buffer[offset:offset+4]))
+			offset += 4
+		case entities.TypeBigInt:
+			Row[i] = int64(binary.BigEndian.Uint64(buffer[offset:offset+8]))
+			offset += 8
+		case entities.TypeVarChar:
+			length := buffer[offset]
+			offset++
+			Row[i] = string(buffer[offset:offset+uint16(length)])
+		}
+	}
+	return Row, nil
 }
 
 
