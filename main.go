@@ -20,7 +20,7 @@ func main(){
 
 	filename := "database.bin"
 
-    err := pages.TestOpenDatabase(filename)
+    err := pages.TestWriteandReadDatabase(filename)
     if err != nil {
         fmt.Print(err)
     }

@@ -163,8 +163,46 @@ func OpenDatabase(filename string) (*entities.Database, error) {
 	}
 	return db, nil
 }
+
 func TestOpenDatabase(filename string) error {
+	db, err := OpenDatabase(filename)
+    if err != nil {
+        return fmt.Errorf("OpenDatabase failed: %v", err)
+    }
+    defer db.File.Close()
+
+    
+    
+    if len(db.Tables) == 0 {
+        fmt.Println("Error: No tables were recovered!")
+    } else {
+        for name, table := range db.Tables {
+            fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
+
+            for _, col := range table.Columns {
+                fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
+            }
+        }
+    }
+	pageID, slot, err := InsertRow(db, []string{"1", "joe", "20"}, "users")
+	if err != nil {
+		return err
+	}
+	Row, err := ReadRow(db, "users", pageID, slot)
+	if err != nil {
+		return err
+	}
+	fmt.Println(Row)
+	fmt.Println("Free Pages:")
+    for _, freePage := range db.FreePages {
+        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
+    }
+	WriteMetaPage(db)
+	return nil
+}
+func TestWriteandReadDatabase(filename string) error {
 	filep, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	filep.Truncate(0)
     if err != nil {
         return err
     }
@@ -197,10 +235,8 @@ func TestOpenDatabase(filename string) error {
         return err
     }
     db.Tables[t2.Name] = t2
-	db.FreePages = []entities.FreePage{
-		{PageID: 2, FreeSpace: 1024},
-		{PageID: 3, FreeSpace: 2048},
-	}
+	db.FreePages = []entities.FreePage{}
+	
     
     // Write the meta page to the file
     err = WriteMetaPage(db)
@@ -221,10 +257,7 @@ func TestOpenDatabase(filename string) error {
     defer db2.File.Close()
 
     
-    fmt.Println("Free Pages:")
-    for _, freePage := range db2.FreePages {
-        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
-    }
+    
     if len(db2.Tables) == 0 {
         fmt.Println("Error: No tables were recovered!")
     } else {
@@ -245,5 +278,10 @@ func TestOpenDatabase(filename string) error {
 		return err
 	}
 	fmt.Println(Row)
+	fmt.Println("Free Pages:")
+    for _, freePage := range db2.FreePages {
+        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
+    }
+	WriteMetaPage(db2)
 	return nil
 }

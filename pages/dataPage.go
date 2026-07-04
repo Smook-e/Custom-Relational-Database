@@ -31,7 +31,7 @@ func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,ui
 		return nil, 0,0,0, err
 	}
 	
-
+	
 	buffer := make([]byte, bufferSize)
 	
 	//Read the Page 
@@ -53,7 +53,7 @@ func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,ui
 	return buffer,freeSpaceOffset,numberOfElements, pageID, nil
 }
 
-func InitializeNewDataPage(db *entities.Database) error {
+func InitializeNewDataPage(db *entities.Database, requiredSpace uint16) error {
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
 	offset := 0
@@ -64,7 +64,7 @@ func InitializeNewDataPage(db *entities.Database) error {
 		return err
 	}
 	//add the new free page to the database
-	db.FreePages = append(db.FreePages, entities.FreePage{PageID:db.TotalPages,FreeSpace: bufferSize - 4})// 4 bytes for the freespaceoffset and the numberofelements
+	db.FreePages = append(db.FreePages, entities.FreePage{PageID:db.TotalPages,FreeSpace: bufferSize - 2 - 2 - 2 - requiredSpace})// 2 bytes freeSpaceOffset, 2 numberOfElements, 2 slot, -required space by row
 	filehandler.WriteToFile(db.File, db.TotalPages, buffer)
 	db.TotalPages++
 	return nil
