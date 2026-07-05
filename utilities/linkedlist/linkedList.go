@@ -9,6 +9,10 @@ type Node struct {
 	Next  *Node
 	prev  *Node
 }
+type LinkedList struct {
+	Head *Node
+	Tail *Node
+}
 
 func NewNode(value any) *Node {
 	return &Node{Value: value}
@@ -38,6 +42,18 @@ func AddNodetoHead(head **Node, value any) {
 	newNode.Next = *head
 	(*head).prev = newNode
 	*head = newNode
+}
+func RemoveTailFromTail(tail **Node) {
+	if *tail == nil {
+		return
+	}
+
+	if (*tail).prev == nil {
+		*tail = nil
+		return
+	}
+
+	
 }
 
 func RemoveTailFromHead(head **Node) {
