@@ -12,14 +12,14 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 
-func ReadRow(db *entities.Database,tableName string, pageID uint32, slot uint16) ([]any, error) {
-	table, ok := db.Tables[tableName]
+func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint16) ([]any, error) {
+	table, ok := engine.db.Tables[tableName]
 	if !ok {
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
 	}
 	Row := make([]any, len(table.Columns))
 
-	buffer, tableOffset, err  := pages.GetDataPage(db, pageID, slot)
+	buffer, tableOffset, err  := pages.GetDataPage(engine.db, pageID, slot)
 	if err != nil {
 		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 	}
@@ -54,9 +54,9 @@ func ReadRow(db *entities.Database,tableName string, pageID uint32, slot uint16)
 
 // Function takesa the array of data as strings, uses a helper function to transform them into their suitable types
 // then returns the Pageid and slot the row was inserted at
-func InsertRow(db *entities.Database, data []string, tableName string) (uint32, uint16, error) {
+func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint32, uint16, error) {
 	//Pass 1: Check Validity and calculate size
-	table, ok := db.Tables[tableName]
+	table, ok := engine.db.Tables[tableName]
 	if !ok {
 		return 0,0, fmt.Errorf("Error: Table %s Not Found ", tableName)
 	}
@@ -68,7 +68,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	//Get a suitable data page and slot to insert into
-	buffer, freeSpaceOffset,slot,pageID, err := pages.FindDataPage(db, size)
+	buffer, freeSpaceOffset,slot,pageID, err := pages.FindDataPage(engine.db, size)
 
 	
 
@@ -100,7 +100,7 @@ func InsertRow(db *entities.Database, data []string, tableName string) (uint32, 
 			offset += uint16(len(v))
 		}
 	}
-	err = filehandler.WriteToFile(db.File,uint32(pageID), buffer)
+	err = filehandler.WriteToFile(engine.db.File,uint32(pageID), buffer)
 	if err != nil {
 		return 0,0,fmt.Errorf("Failed to Commit Row to disk:%w",err)
 	}
