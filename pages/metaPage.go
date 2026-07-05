@@ -7,7 +7,7 @@ import (
 	"fmt"
 	// "sort"
 
-	"os"
+	
 	"sync"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
@@ -141,154 +141,154 @@ func WriteMetaPage(db *entities.Database) error {
 
 	return nil
 }
-//
-func OpenDatabase(filename string) (*entities.Database, error) {
-	filep, err :=  os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		return nil, fmt.Errorf("Critical Error: Could not open database file: %w", err)
-	}
-	fileInfo, err := filep.Stat()
+// //
+// func OpenDatabase(filename string) (*entities.Database, error) {
+// 	filep, err :=  os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("Critical Error: Could not open database file: %w", err)
+// 	}
+// 	fileInfo, err := filep.Stat()
 	
-	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve file stats: %w", err)
-	}
-	db := &entities.Database{
-		File: filep,
-		Tables: make(map[string]*entities.Table),
-		TotalPages: uint32(fileInfo.Size() / bufferSize),
-	}
-	err = ReadMetaPage(db)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
+// 	if err != nil {
+// 		return nil, fmt.Errorf("Failed to retrieve file stats: %w", err)
+// 	}
+// 	db := &entities.Database{
+// 		File: filep,
+// 		Tables: make(map[string]*entities.Table),
+// 		TotalPages: uint32(fileInfo.Size() / bufferSize),
+// 	}
+// 	err = ReadMetaPage(db)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return db, nil
+// }
 
-func TestOpenDatabase(filename string) error {
-	db, err := OpenDatabase(filename)
-    if err != nil {
-        return fmt.Errorf("OpenDatabase failed: %v", err)
-    }
-    defer db.File.Close()
-	// db.File.Truncate(2 * bufferSize)
+// func TestOpenDatabase(filename string) error {
+// 	db, err := OpenDatabase(filename)
+//     if err != nil {
+//         return fmt.Errorf("OpenDatabase failed: %v", err)
+//     }
+//     defer db.File.Close()
+// 	// db.File.Truncate(2 * bufferSize)
     
     
-	pageID, slot, err := InsertRow(db, []string{"1", "joe", "20"}, "users")
-	if err != nil {
-		return err
-	}
-	Row, err := ReadRow(db, "users", pageID, slot)
-	if err != nil {
-		return err
-	}
-	fmt.Println(Row)
-	pageID, slot, err = InsertRow(db, []string{"2", "emily", "25"}, "users")
-	if err != nil {
-		return err
-	}
-	Row, err = ReadRow(db, "users", pageID, slot)
-	if err != nil {
-		return err
-	}
-	fmt.Println(Row)
-	pageID, slot, err = InsertRow(db, []string{"1", "Phone", "1000"}, "products")
-	if err != nil {
-		return err
-	}
-	Row, err = ReadRow(db, "products", pageID, slot)
-	if err != nil {
-		return err
-	}
-	fmt.Println(Row)
-	fmt.Println("Free Pages:")
-    for _, freePage := range db.FreePages {
-        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
-    }
-	WriteMetaPage(db)
-	return nil
-}
-func TestWriteandReadDatabase(filename string) error {
-	filep, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
-	filep.Truncate(0)
-    if err != nil {
-        return err
-    }
+// 	pageID, slot, err := InsertRow(db, []string{"1", "joe", "20"}, "users")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	Row, err := ReadRow(db, "users", pageID, slot)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println(Row)
+// 	pageID, slot, err = InsertRow(db, []string{"2", "emily", "25"}, "users")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	Row, err = ReadRow(db, "users", pageID, slot)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println(Row)
+// 	pageID, slot, err = InsertRow(db, []string{"1", "Phone", "1000"}, "products")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	Row, err = ReadRow(db, "products", pageID, slot)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Println(Row)
+// 	fmt.Println("Free Pages:")
+//     for _, freePage := range db.FreePages {
+//         fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
+//     }
+// 	WriteMetaPage(db)
+// 	return nil
+// }
+// func TestWriteandReadDatabase(filename string) error {
+// 	filep, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+// 	filep.Truncate(0)
+//     if err != nil {
+//         return err
+//     }
 
-    db := &entities.Database{
-        File:   filep,
-        Tables: make(map[string]*entities.Table),
-    }
+//     db := &entities.Database{
+//         File:   filep,
+//         Tables: make(map[string]*entities.Table),
+//     }
 
     
-    // initialize tables
+//     // initialize tables
     
-    t1, err := db.CreateTable("products", []entities.ColumnDefinition{
-        {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
-        {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
-        {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
-    })
-    if err != nil {
-        return err
-    }
-    db.Tables[t1.Name] = t1
+//     t1, err := db.CreateTable("products", []entities.ColumnDefinition{
+//         {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
+//         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
+//         {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
+//     })
+//     if err != nil {
+//         return err
+//     }
+//     db.Tables[t1.Name] = t1
 
-    // Table 2
-    t2, err := db.CreateTable("users", []entities.ColumnDefinition{
-        {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
-        {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
-        {Name: "age", DataType: "int", Constraints: []string{}},
-    })
-    if err != nil {
-        return err
-    }
-    db.Tables[t2.Name] = t2
-	db.FreePages = []entities.FreePage{}
+//     // Table 2
+//     t2, err := db.CreateTable("users", []entities.ColumnDefinition{
+//         {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
+//         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
+//         {Name: "age", DataType: "int", Constraints: []string{}},
+//     })
+//     if err != nil {
+//         return err
+//     }
+//     db.Tables[t2.Name] = t2
+// 	db.FreePages = []entities.FreePage{}
 	
     
-    // Write the meta page to the file
-    err = WriteMetaPage(db)
-    if err != nil {
-        return fmt.Errorf("WriteMetaPage failed: %v", err)
-    }
+//     // Write the meta page to the file
+//     err = WriteMetaPage(db)
+//     if err != nil {
+//         return fmt.Errorf("WriteMetaPage failed: %v", err)
+//     }
 
-    // Close the file to ensure all data is flushed
-    db.File.Close() 
+//     // Close the file to ensure all data is flushed
+//     db.File.Close() 
     
 
     
-    // Reopen the database to test recovery
-    db2, err := OpenDatabase(filename)
-    if err != nil {
-        return fmt.Errorf("OpenDatabase failed: %v", err)
-    }
-    defer db2.File.Close()
+//     // Reopen the database to test recovery
+//     db2, err := OpenDatabase(filename)
+//     if err != nil {
+//         return fmt.Errorf("OpenDatabase failed: %v", err)
+//     }
+//     defer db2.File.Close()
 
     
     
-    if len(db2.Tables) == 0 {
-        fmt.Println("Error: No tables were recovered!")
-    } else {
-        for name, table := range db2.Tables {
-            fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
+//     if len(db2.Tables) == 0 {
+//         fmt.Println("Error: No tables were recovered!")
+//     } else {
+//         for name, table := range db2.Tables {
+//             fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
 
-            for _, col := range table.Columns {
-                fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
-            }
-        }
-    }
-	// pageID, slot, err := InsertRow(db2, []string{"1", "joe", "20"}, "users")
-	// if err != nil {
-	// 	return err
-	// }
-	// Row, err := ReadRow(db2, "users", pageID, slot)
-	// if err != nil {
-	// 	return err
-	// }
-	// fmt.Println(Row)
-	fmt.Println("Free Pages:")
-    for _, freePage := range db2.FreePages {
-        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
-    }
-	WriteMetaPage(db2)
-	return nil
-}
+//             for _, col := range table.Columns {
+//                 fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
+//             }
+//         }
+//     }
+// 	// pageID, slot, err := InsertRow(db2, []string{"1", "joe", "20"}, "users")
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// Row, err := ReadRow(db2, "users", pageID, slot)
+// 	// if err != nil {
+// 	// 	return err
+// 	// }
+// 	// fmt.Println(Row)
+// 	fmt.Println("Free Pages:")
+//     for _, freePage := range db2.FreePages {
+//         fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
+//     }
+// 	WriteMetaPage(db2)
+// 	return nil
+// }
