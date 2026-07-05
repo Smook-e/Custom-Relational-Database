@@ -174,3 +174,7 @@ func (L *LinkedList) PrintListReverse() {
 		current = current.prev
 	}
 }
+
+func (L *LinkedList) IsEmpty() bool {
+	return L.Head == nil
+}
