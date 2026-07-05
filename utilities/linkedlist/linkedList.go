@@ -18,70 +18,73 @@ func NewNode(value any) *Node {
 	return &Node{Value: value}
 }
 
-func AddNodetoTail(head **Node, value any) {
+func AddNodetoTail(L *LinkedList, value any) {
 	newNode := NewNode(value)
-	if *head == nil {
-		*head = newNode
+	if L.Tail == nil {
+		L.Head = newNode
+		L.Tail = newNode
 		return
 	}
 
-	current := *head
+	current := L.Tail
 	for current.Next != nil {
 		current = current.Next
 	}
 	current.Next = newNode
 	newNode.prev = current
 }
-func AddNodetoHead(head **Node, value any) {
+func AddNodetoHead(L *LinkedList, value any) {
 	newNode := NewNode(value)
-	if *head == nil {
-		*head = newNode
+	if L.Head == nil {
+		L.Head = newNode
+		L.Tail = newNode
 		return
 	}
 
-	newNode.Next = *head
-	(*head).prev = newNode
-	*head = newNode
+	newNode.Next = L.Head
+	L.Head.prev = newNode
+	L.Head = newNode
 }
-func RemoveTailFromTail(tail **Node) {
-	if *tail == nil {
+func RemoveTailFromTail(L *LinkedList) {
+	if L.Tail == nil {
 		return
 	}
 
-	if (*tail).prev == nil {
-		*tail = nil
+	if L.Tail.prev == nil {
+		L.Tail = nil
 		return
 	}
 
-	
+	L.Tail = L.Tail.prev
+	L.Tail.Next = nil
 }
 
-func RemoveTailFromHead(head **Node) {
-	if *head == nil {
+func RemoveTailFromHead(L *LinkedList) {
+	if L.Head == nil {
 		return
 	}
 
-	if (*head).Next == nil {
-		*head = nil
+	if L.Head.Next == nil {
+		L.Head = nil
 		return
 	}
 
-	current := *head
+	current := L.Head
 	for current.Next != nil {
 		current = current.Next
 	}
 	current.prev.Next = nil
 }
 
-func RemoveNode(head **Node, nodeToRemove *Node) {
-	if *head == nil || nodeToRemove == nil {
+func RemoveNode(L *LinkedList, nodeToRemove *Node) {
+	if L.Head == nil || nodeToRemove == nil {
 		return
 	}
 
-	if *head == nodeToRemove {
-		*head = nodeToRemove.Next
-		if *head != nil {
-			(*head).prev = nil
+	if L.Head == nodeToRemove {
+		L.Head = nodeToRemove.Next
+		if L.Head != nil {
+			L.Head.prev = nil
 		}
 		return
 	}
@@ -93,8 +96,8 @@ func RemoveNode(head **Node, nodeToRemove *Node) {
 		nodeToRemove.Next.prev = nodeToRemove.prev
 	}
 }
-func FindNode(head *Node, value any) *Node {
-	current := head
+func FindNode(L *LinkedList, value any) *Node {
+	current := L.Head
 	for current != nil {
 		if current.Value == value {
 			return current
@@ -104,15 +107,15 @@ func FindNode(head *Node, value any) *Node {
 	return nil
 }
 
-func PrintList(head *Node) {
-	current := head
+func PrintList(L *LinkedList) {
+	current := L.Head
 	for current != nil {
 		fmt.Println(current.Value)
 		current = current.Next
 	}
 }
-func PrintListReverse(tail *Node) {
-	current := tail
+func PrintListReverse(L *LinkedList) {
+	current := L.Tail
 	for current != nil {
 		fmt.Println(current.Value)
 		current = current.prev
