@@ -47,3 +47,13 @@ func RemoveNode(head **Node, nodeToRemove *Node) {
 		nodeToRemove.Next.prev = nodeToRemove.prev
 	}
 }
+func FindNode(head *Node, value any) *Node {
+	current := head
+	for current != nil {
+		if current.Value == value {
+			return current
+		}
+		current = current.Next
+	}
+	return nil
+}
