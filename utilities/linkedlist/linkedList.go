@@ -91,6 +91,30 @@ func (L *LinkedList) RemoveNode(nodeToRemove *Node) {
 		nodeToRemove.Next.prev = nodeToRemove.prev
 	}
 }
+func (L *LinkedList) MoveNodeToHead(nodeToMove *Node) {
+	if L.Head == nil || nodeToMove == nil || L.Head == nodeToMove {
+		return
+	}
+
+	// Remove the node from its current position
+	if nodeToMove.prev != nil {
+		nodeToMove.prev.Next = nodeToMove.Next
+	}
+	if nodeToMove.Next != nil {
+		nodeToMove.Next.prev = nodeToMove.prev
+	}
+
+	// Move the node to the head
+	nodeToMove.Next = L.Head
+	nodeToMove.prev = nil
+	L.Head.prev = nodeToMove
+	L.Head = nodeToMove
+
+	// If the moved node was the tail, update the tail pointer
+	if L.Tail == nodeToMove {
+		L.Tail = nodeToMove.prev
+	}
+}
 func (L *LinkedList) FindNodeByValue(value any) *Node {
 	current := L.Head
 	for current != nil {
