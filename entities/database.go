@@ -25,3 +25,18 @@ func (db *Database) PrintFreePages() {
     }
 
 }
+
+func (db *Database) PrintTables() {
+	
+    if len(db.Tables) == 0 {
+        fmt.Println("No tables were found in the database.")
+    } else {
+        for name, table := range db.Tables {
+            fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
+
+            for _, col := range table.Columns {
+                fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
+            }
+        }
+    }
+}

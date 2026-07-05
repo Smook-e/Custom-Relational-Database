@@ -169,7 +169,7 @@ func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 }
 
 
-func CreateTable(tableName string, cols []ColumnDefinition) (*Table, error) {
+func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (*Table, error) {
 
 	table := &Table{Name: tableName}
 	var constraints uint8

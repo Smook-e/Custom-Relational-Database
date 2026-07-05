@@ -222,7 +222,7 @@ func TestWriteandReadDatabase(filename string) error {
     
     // initialize tables
     
-    t1, err := entities.CreateTable("products", []entities.ColumnDefinition{
+    t1, err := db.CreateTable("products", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
@@ -233,7 +233,7 @@ func TestWriteandReadDatabase(filename string) error {
     db.Tables[t1.Name] = t1
 
     // Table 2
-    t2, err := entities.CreateTable("users", []entities.ColumnDefinition{
+    t2, err := db.CreateTable("users", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "age", DataType: "int", Constraints: []string{}},
