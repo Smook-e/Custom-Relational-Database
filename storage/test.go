@@ -51,9 +51,7 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
 	}
 	fmt.Println(Row)
 	fmt.Println("Free Pages:")
-    for _, freePage := range db.FreePages {
-        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
-    }
-	WriteMetaPage(db)
+    
+	pages.WriteMetaPage(engine.db)
 	return nil
 }

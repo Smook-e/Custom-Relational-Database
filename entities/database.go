@@ -2,7 +2,7 @@ package entities
 
 import (
 	"os"
-	
+	"fmt"
 	// "errors"
 	
 )
@@ -19,3 +19,9 @@ type Database struct {
 
 }
 
+func (db *Database) PrintFreePages() {
+	for _, freePage := range db.FreePages {
+        fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
+    }
+
+}
