@@ -5,6 +5,7 @@ import (
 )
 
 const bufferSize = 4096
+
 type StorageEngine struct {
 	db *entities.Database
 

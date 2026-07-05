@@ -5,9 +5,9 @@ import (
 	// "errors"
 	
 	"fmt"
-	"os"
+	
 
-	"github.com/Smook-e/Custom-Relational-Database/entities"
+	
 	
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
@@ -15,12 +15,12 @@ import (
 
 
 func (engine *StorageEngine) TestOpenDatabase(filename string) error {
-	err := engine.TestOpenDatabase(filename)
+	err := engine.OpenDatabase(filename)
     if err != nil {
         return fmt.Errorf("OpenDatabase failed: %v", err)
     }
     defer engine.db.File.Close()
-	// db.File.Truncate(2 * bufferSize)
+	engine.db.File.Truncate(2 * bufferSize)
     
     
 	pageID, slot, err := engine.InsertRow([]string{"1", "joe", "20"}, "users")
@@ -51,7 +51,7 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
 	}
 	fmt.Println(Row)
 	fmt.Println("Free Pages:")
-    
+    engine.db.PrintFreePages()
 	pages.WriteMetaPage(engine.db)
 	return nil
 }

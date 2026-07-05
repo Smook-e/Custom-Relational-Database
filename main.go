@@ -10,8 +10,8 @@ import (
 	
 	
 	// "github.com/Smook-e/Custom-Relational-Database/entities"
-	"github.com/Smook-e/Custom-Relational-Database/pages"
-	// "github.com/Smook-e/Custom-Relational-Database/storage"
+	// "github.com/Smook-e/Custom-Relational-Database/pages"
+	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
 
 
@@ -19,8 +19,10 @@ import (
 func main(){
 
 	filename := "database.bin"
-	pages.TestWriteandReadDatabase(filename)
-    err := pages.TestOpenDatabase(filename)
+	// pages.TestWriteandReadDatabase(filename)
+    // err := pages.TestOpenDatabase(filename)
+	engine := storage.StorageEngine{}
+    err := engine.TestOpenDatabase(filename)
     if err != nil {
         fmt.Print(err)
     }

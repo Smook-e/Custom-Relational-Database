@@ -3,12 +3,12 @@ package pages
 import (
 	"encoding/binary"
 	
-
+	"fmt"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
 
-//Function a pageid and slot and reads the page into a buffer and specifies the specific offset of the slot
+//Function receives a pageid and slot and reads the page into a buffer and specifies the specific offset of the slot
 func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint16, error) {
 	buffer := make([]byte, bufferSize)
 
@@ -27,9 +27,11 @@ func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint1
 //Function receives the required space by a row, and returns a buffer, freeSpace offset, numberOfElements(slot) and pageID
 func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,uint16,uint32,  error) {
 	pageID, err:= FindFreePage(db, requiredSpace)
+	
 	if err != nil {
 		return nil, 0,0,0, err
 	}
+	
 	
 	
 	buffer := make([]byte, bufferSize)
@@ -39,6 +41,7 @@ func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,ui
 	if err != nil {
 		return nil,0,0,0, err
 	}
+	
 	offset := 0
 
 	freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
@@ -53,18 +56,20 @@ func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,ui
 }
 
 func InitializeNewDataPage(db *entities.Database, requiredSpace uint16) error {
+	fmt.Println("initializing new page")
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
 	offset := 0
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], bufferSize - 1); offset += 2;// free space starts from the end of the file since it's still empty
 	binary.BigEndian.PutUint16(buffer[offset:offset + 2], 0)
-	err := filehandler.WriteToFile(db.File, uint32(db.TotalPages), buffer)
+	err := filehandler.WriteToFile(db.File, db.TotalPages, buffer)
 	if err != nil {
 		return err
 	}
 	//add the new free page to the database
 	db.FreePages = append(db.FreePages, entities.FreePage{PageID:db.TotalPages,FreeSpace: bufferSize - 2 - 2 - 2 - requiredSpace})// 2 bytes freeSpaceOffset, 2 numberOfElements, 2 slot, -required space by row
-	filehandler.WriteToFile(db.File, db.TotalPages, buffer)
+	
+	fmt.Println("Added new Data Page", db.TotalPages, "with free space", bufferSize - 2 - 2 - 2 - requiredSpace)	
 	db.TotalPages++
 	return nil
 }
