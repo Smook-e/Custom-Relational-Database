@@ -1,6 +1,8 @@
 package linkedlist
 
-
+import (
+	"fmt"
+)
 
 type Node struct {
 	Value any
@@ -56,4 +58,12 @@ func FindNode(head *Node, value any) *Node {
 		current = current.Next
 	}
 	return nil
+}
+
+func PrintList(head *Node) {
+	current := head
+	for current != nil {
+		fmt.Println(current.Value)
+		current = current.Next
+	}
 }
