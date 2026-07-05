@@ -2,7 +2,7 @@ package pages
 
 import (
 	// "os"
-	// "container/list"
+	
 	"encoding/binary"
 	"fmt"
 	// "sort"
@@ -19,7 +19,7 @@ import (
 const bufferSize = 4096
 
 var bufferPool = sync.Pool{
-    New: func() interface{} {
+    New: func() any{
         // This ensures every buffer produced by the pool is 4KB
         return make([]byte, bufferSize)
     },
@@ -141,6 +141,41 @@ func WriteMetaPage(db *entities.Database) error {
 
 	return nil
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // //
 // func OpenDatabase(filename string) (*entities.Database, error) {
 // 	filep, err :=  os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
