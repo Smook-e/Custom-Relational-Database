@@ -67,3 +67,10 @@ func PrintList(head *Node) {
 		current = current.Next
 	}
 }
+func PrintListReverse(tail *Node) {
+	current := tail
+	for current != nil {
+		fmt.Println(current.Value)
+		current = current.prev
+	}
+}
