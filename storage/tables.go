@@ -68,7 +68,6 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	//Get a suitable data page and slot to insert into
-	
 	buffer, freeSpaceOffset,slot,pageID, err := pages.FindDataPage(engine.db, size)
 
 	
