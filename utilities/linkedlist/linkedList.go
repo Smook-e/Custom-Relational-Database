@@ -18,7 +18,7 @@ func NewNode(value any) *Node {
 	return &Node{Value: value}
 }
 
-func AddNodetoTail(L *LinkedList, value any) {
+func (L *LinkedList) AddNodetoTail(value any) {
 	newNode := NewNode(value)
 	if L.Tail == nil {
 		L.Head = newNode
@@ -33,7 +33,7 @@ func AddNodetoTail(L *LinkedList, value any) {
 	current.Next = newNode
 	newNode.prev = current
 }
-func AddNodetoHead(L *LinkedList, value any) {
+func (L *LinkedList) AddNodetoHead(value any) {
 	newNode := NewNode(value)
 	if L.Head == nil {
 		L.Head = newNode
@@ -45,7 +45,7 @@ func AddNodetoHead(L *LinkedList, value any) {
 	L.Head.prev = newNode
 	L.Head = newNode
 }
-func RemoveTailFromTail(L *LinkedList) {
+func (L *LinkedList) RemoveTailFromTail() {
 	if L.Tail == nil {
 		return
 	}
@@ -59,7 +59,7 @@ func RemoveTailFromTail(L *LinkedList) {
 	L.Tail.Next = nil
 }
 
-func RemoveTailFromHead(L *LinkedList) {
+func (L *LinkedList) RemoveTailFromHead() {
 	if L.Head == nil {
 		return
 	}
@@ -76,7 +76,7 @@ func RemoveTailFromHead(L *LinkedList) {
 	current.prev.Next = nil
 }
 
-func RemoveNode(L *LinkedList, nodeToRemove *Node) {
+func (L *LinkedList) RemoveNode(nodeToRemove *Node) {
 	if L.Head == nil || nodeToRemove == nil {
 		return
 	}
@@ -96,7 +96,7 @@ func RemoveNode(L *LinkedList, nodeToRemove *Node) {
 		nodeToRemove.Next.prev = nodeToRemove.prev
 	}
 }
-func FindNode(L *LinkedList, value any) *Node {
+func (L *LinkedList) FindNode(value any) *Node {
 	current := L.Head
 	for current != nil {
 		if current.Value == value {
@@ -107,14 +107,14 @@ func FindNode(L *LinkedList, value any) *Node {
 	return nil
 }
 
-func PrintList(L *LinkedList) {
+func (L *LinkedList) PrintList() {
 	current := L.Head
 	for current != nil {
 		fmt.Println(current.Value)
 		current = current.Next
 	}
 }
-func PrintListReverse(L *LinkedList) {
+func (L *LinkedList) PrintListReverse() {
 	current := L.Tail
 	for current != nil {
 		fmt.Println(current.Value)
