@@ -22,6 +22,7 @@ func main(){
 	// pages.TestWriteandReadDatabase(filename)
     // err := pages.TestOpenDatabase(filename)
 	engine := storage.StorageEngine{}
+	engine.TestWriteandReadDatabase(filename)
     err := engine.TestOpenDatabase(filename)
     if err != nil {
         fmt.Print(err)

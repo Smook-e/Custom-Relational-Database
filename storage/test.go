@@ -21,7 +21,7 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
         return fmt.Errorf("OpenDatabase failed: %v", err)
     }
     defer engine.db.File.Close()
-	engine.db.File.Truncate(2 * bufferSize)
+	// engine.db.File.Truncate(2 * bufferSize)
     
     
 	pageID, slot, err := engine.InsertRow([]string{"1", "joe", "20"}, "users")
@@ -94,7 +94,7 @@ func (engine *StorageEngine) TestWriteandReadDatabase(filename string) error {
         return err
     }
     engine.db.Tables[t2.Name] = t2
-	engine.db.FreePages = []entities.FreePage{}
+	
 	
     
     // Write the meta page to the file
