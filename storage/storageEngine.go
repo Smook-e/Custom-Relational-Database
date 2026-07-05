@@ -7,5 +7,6 @@ import (
 
 type StorageEngine struct {
 	db *entities.Database
-	
+
 }
+
