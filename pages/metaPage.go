@@ -141,7 +141,7 @@ func WriteMetaPage(db *entities.Database) error {
 
 	return nil
 }
-
+//
 func OpenDatabase(filename string) (*entities.Database, error) {
 	filep, err :=  os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
