@@ -28,6 +28,17 @@ func AddNodetoTail(head **Node, value any) {
 	current.Next = newNode
 	newNode.prev = current
 }
+func AddNodetoHead(head **Node, value any) {
+	newNode := NewNode(value)
+	if *head == nil {
+		*head = newNode
+		return
+	}
+
+	newNode.Next = *head
+	(*head).prev = newNode
+	*head = newNode
+}
 
 func RemoveNode(head **Node, nodeToRemove *Node) {
 	if *head == nil || nodeToRemove == nil {
