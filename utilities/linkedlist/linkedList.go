@@ -91,7 +91,16 @@ func (L *LinkedList) RemoveNode(nodeToRemove *Node) {
 		nodeToRemove.Next.prev = nodeToRemove.prev
 	}
 }
-
+func (L *LinkedList) FindNodeByValue(value any) *Node {
+	current := L.Head
+	for current != nil {
+		if current.Value == value {
+			return current
+		}
+		current = current.Next
+	}
+	return nil
+}
 func (L *LinkedList) FindNode(value any) *Node {
 	current := L.Head
 	for current != nil {
