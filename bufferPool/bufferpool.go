@@ -16,7 +16,7 @@ type BufferPool struct {
 	cache map[uint32]*linkedlist.Node
 	list linkedlist.LinkedList // Head is most recently used
 	freeIndex []int
-	dirtyPages map[uint16]struct{}
+	dirtyPages map[uint32]struct{}
 }
 
 type Page struct {
@@ -27,7 +27,7 @@ func InitializeBufferPool() *BufferPool {
 	bp := & BufferPool{}
 	bp.cache = make(map[uint32]*linkedlist.Node)
 	bp.list = linkedlist.LinkedList{Tail: nil, Head: nil}
-	bp.dirtyPages = make(map[uint16]struct{})
+	bp.dirtyPages = make(map[uint32]struct{})
 	bp.freeIndex = make([]int, cacheSize)
 	for i := range len(bp.freeIndex) {
 		bp.freeIndex[i] = len(bp.freeIndex) - 1 - i
@@ -72,13 +72,13 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 
 }
 
-func (bp *BufferPool) MarkDirty(pageId uint16) {
+func (bp *BufferPool) MarkDirty(pageId uint32) {
 	bp.dirtyPages[pageId] = struct{}{}
 }
 
 func (bp *BufferPool) Flush() error {
 	for pageId := range bp.dirtyPages {
-		node, ok := bp.cache[uint32(pageId)]
+		node, ok := bp.cache[pageId]
 		if !ok {
 			return fmt.Errorf("Page %d not found in cache", pageId)
 		}
@@ -86,11 +86,12 @@ func (bp *BufferPool) Flush() error {
 		if !ok {
 			return fmt.Errorf("Invalid node value type for pageId %d", pageId)
 		}
-		err := filehandler.WriteToFile(bp.File, int(pageId), bp.pages[index].buffer[:])
+		err := filehandler.WriteToFile(bp.File, pageId, bp.pages[index].buffer[:])
 		if err != nil {
 			return err
 		}
 		delete(bp.dirtyPages, pageId)
 	}
 	return nil
+		
 }
