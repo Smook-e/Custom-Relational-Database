@@ -11,12 +11,12 @@ const bufferSize = 4096
 const cacheSize = 512
 
 type BufferPool struct {
-	File *os.File
-	pages [cacheSize]Page
-	cache map[uint32]*linkedlist.Node
+	File *os.File //original file pointer from database
+	pages [cacheSize]Page //Actual buffer pool, each page is 4KB
+	cache map[uint32]*linkedlist.Node // maps pageId to the corresponding node in the linked list
 	list linkedlist.LinkedList // Head is most recently used
-	freeIndex []int
-	dirtyPages map[uint32]struct{}
+	freeIndex []int // a stack of free indices in the pages array, used to track which pages are available for use
+	dirtyPages map[uint32]struct{} // a set of pageIds that have been modified and need to be written back to disk
 }
 
 type Page struct {
