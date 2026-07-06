@@ -9,13 +9,10 @@ import (
 )
 
 //Function receives a pageid and slot and reads the page into a buffer and specifies the specific offset of the slot
-func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint16, error) {
-	buffer := make([]byte, bufferSize)
+func GetDataPage(buffer []byte, slot uint16) ([]byte,uint16, error) {
+	
 
-	err := filehandler.ReadFromFile(db.File, pageID,buffer)
-	if err != nil {
-		return nil,0, err
-	}
+	
 	var offset uint16 = 0
 	offset += 2; // free space offset 2 bytes
 	offset += 2 + slot * 2;//each slot has 2 bytes
