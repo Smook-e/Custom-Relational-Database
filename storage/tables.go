@@ -18,7 +18,7 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
 	}
 	Row := make([]any, len(table.Columns))
-	fmt.Println("reading")
+	
 	buffer, err := engine.Bp.Get(pageID)
 	if err != nil {
 		return nil,err

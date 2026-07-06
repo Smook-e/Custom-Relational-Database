@@ -26,7 +26,7 @@ func (engine *StorageEngine) TestOpenDatabase() error {
 	if err != nil {
 		return err
 	}
-	engine.Commit()
+	
 	Row, err := engine.ReadRow( "users", pageID, slot)
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func (engine *StorageEngine) TestOpenDatabase() error {
 	if err != nil {
 		return err
 	}
-	engine.Commit()
+	
 	Row, err = engine.ReadRow("users", pageID, slot)
 	if err != nil {
 		return err
@@ -46,19 +46,19 @@ func (engine *StorageEngine) TestOpenDatabase() error {
 	if err != nil {
 		return err
 	}
-	engine.Commit()
+	
 	Row, err = engine.ReadRow("products", pageID, slot)
 	fmt.Println(Row)
 	pageID, slot, err = engine.InsertRow([]string{"2", "Macbook", "1200", "3", "apple"}, "products")
 	if err != nil {
 		return err
 	}
-	engine.Commit()
+	
 	Row, err = engine.ReadRow("products", pageID, slot)
 	if err != nil {
 		return err
 	}
-	engine.Commit()
+	
 	fmt.Println(Row)
 	fmt.Println("Free Pages:")
     engine.db.PrintFreePages()
