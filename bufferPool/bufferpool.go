@@ -71,3 +71,8 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	
 
 }
+
+func (bp *BufferPool) MarkDirty(pageId uint16) {
+	bp.dirtyPages[pageId] = struct{}{}
+}
+
