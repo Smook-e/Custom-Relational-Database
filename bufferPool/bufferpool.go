@@ -13,7 +13,7 @@ type BufferPool struct {
 	pages [cacheSize]Page
 	cache map[uint32]*linkedlist.Node
 	list linkedlist.LinkedList // Head is most recently used
-	freeIndex []uint16
+	freeIndex []int
 	dirtyPages map[uint16]struct{}
 }
 
@@ -26,18 +26,17 @@ func InitializeBufferPool() *BufferPool {
 	bp.cache = make(map[uint32]*linkedlist.Node)
 	bp.list = linkedlist.LinkedList{Tail: nil, Head: nil}
 	bp.dirtyPages = make(map[uint16]struct{})
-	bp.freeIndex = make([]uint16, cacheSize)
+	bp.freeIndex = make([]int, cacheSize)
 	for i := range len(bp.freeIndex) {
-		bp.freeIndex[i] = uint16(len(bp.freeIndex) - 1 - i)
+		bp.freeIndex[i] = len(bp.freeIndex) - 1 - i
 	}
 	return bp
 }
 
 func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	//Check if page exists in cache
-	node, ok := bp.cache[pageId]
-
-	if ok {//Cache Hit
+	
+	if node, ok := bp.cache[pageId]; ok {//Cache Hit
 		index, ok := node.Value.(int)
 		if !ok {
 			return nil, fmt.Errorf("Invalid node value type for pageId %d", pageId)
@@ -47,6 +46,7 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	}
 	
 	//Cache Miss, read from file then add to cache
+	var freeindex int
 
 	// LRUNode := bp.list.RemoveTail()// 
 	// index := LRUNode.Value.(int)
