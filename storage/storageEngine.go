@@ -11,14 +11,19 @@ const bufferSize = 4096
 
 type StorageEngine struct {
 	db *entities.Database
-	bp *bufferpool.BufferPool
+	Bp *bufferpool.BufferPool
 }
 
 func (engine *StorageEngine) Commit() error {
-	err := engine.bp.Flush()
+	err := engine.Bp.Flush()
 	if err != nil {
 		return fmt.Errorf("An error occured while commiting to disk: %w", err)
 	}
 	fmt.Println("Committed Changes to disk successfully")
+	return nil
+}
+
+func (engine *StorageEngine) InitializeStorageEngine() error {
+	engine.Bp = bufferpool.InitializeBufferPool()
 	return nil
 }

@@ -18,11 +18,12 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
 	}
 	Row := make([]any, len(table.Columns))
-	buffer, err := engine.bp.Get(pageID)
+	fmt.Println("reading")
+	buffer, err := engine.Bp.Get(pageID)
 	if err != nil {
 		return nil,err
 	}
-	buffer, tableOffset, err  := pages.GetDataPage(buffer, slot)
+	tableOffset, err  := pages.GetDataPageSlotOffset(buffer, slot)
 	if err != nil {
 		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 	}
@@ -108,5 +109,6 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	if err != nil {
 		return 0,0,fmt.Errorf("Failed to Commit Row to disk:%w",err)
 	}
+	
 	return pageID, slot, nil
 }
