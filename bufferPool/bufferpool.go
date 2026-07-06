@@ -14,6 +14,7 @@ type BufferPool struct {
 	cache map[uint32]*linkedlist.Node
 	list linkedlist.LinkedList // Head is most recently used
 	freeIndex [512]uint16
+	dirtyPages [512]uint16
 }
 
 type Page struct {
