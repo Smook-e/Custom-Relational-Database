@@ -12,7 +12,7 @@ import (
 func GetDataPage(db *entities.Database,pageID uint32, slot uint16) ([]byte,uint16, error) {
 	buffer := make([]byte, bufferSize)
 
-	err := filehandler.ReadFromFile(db.File, int(pageID),buffer)
+	err := filehandler.ReadFromFile(db.File, pageID,buffer)
 	if err != nil {
 		return nil,0, err
 	}
@@ -37,7 +37,7 @@ func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,ui
 	buffer := make([]byte, bufferSize)
 	
 	//Read the Page 
-	err = filehandler.ReadFromFile(db.File, int(pageID), buffer)
+	err = filehandler.ReadFromFile(db.File, pageID, buffer)
 	if err != nil {
 		return nil,0,0,0, err
 	}

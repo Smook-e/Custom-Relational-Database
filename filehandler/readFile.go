@@ -9,7 +9,7 @@ import (
 )
 
 
-func ReadFromFile(file *os.File, page int, buffer []byte) error{
+func ReadFromFile(file *os.File, page uint32, buffer []byte) error{
 
 	if file == nil {
 		return errors.New("Error: File pointer Not found")

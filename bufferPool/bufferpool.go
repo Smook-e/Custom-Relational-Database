@@ -57,7 +57,7 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 		freeindex = LRUNode.Value.(int)// assign its place for our new node
 		delete(bp.cache, LRUNode.PageID)// remove its entry from the cache
 	}
-	err := filehandler.ReadFromFile(bp.File, int(pageId), bp.pages[freeindex].buffer[:])// read the page from file
+	err := filehandler.ReadFromFile(bp.File, pageId, bp.pages[freeindex].buffer[:])// read the page from file
 	if err != nil {
 		return nil, err
 	}
@@ -76,3 +76,21 @@ func (bp *BufferPool) MarkDirty(pageId uint16) {
 	bp.dirtyPages[pageId] = struct{}{}
 }
 
+func (bp *BufferPool) Flush() error {
+	for pageId := range bp.dirtyPages {
+		node, ok := bp.cache[uint32(pageId)]
+		if !ok {
+			return fmt.Errorf("Page %d not found in cache", pageId)
+		}
+		index, ok := node.Value.(int)
+		if !ok {
+			return fmt.Errorf("Invalid node value type for pageId %d", pageId)
+		}
+		err := filehandler.WriteToFile(bp.File, int(pageId), bp.pages[index].buffer[:])
+		if err != nil {
+			return err
+		}
+		delete(bp.dirtyPages, pageId)
+	}
+	return nil
+}

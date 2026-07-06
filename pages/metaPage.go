@@ -30,15 +30,15 @@ func ReadMetaPage(db *entities.Database) error{
 	defer bufferPool.Put(buffer)
 
 	
-	var nextPage uint16 = 0
+	var nextPage uint32 = 0
 	
 	for{
-		err := filehandler.ReadFromFile(db.File,int(nextPage) * bufferSize, buffer)
+		err := filehandler.ReadFromFile(db.File,nextPage * bufferSize, buffer)
 		if err != nil {
 			return fmt.Errorf("An Error occured while reading Meta pages: %w", err)
 		}
 		offset := 0
-		nextPage = binary.BigEndian.Uint16(buffer[offset:offset+2]); offset += 2;
+		nextPage = binary.BigEndian.Uint32(buffer[offset:offset+4]); offset += 4;
 		
 		//freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]); 
 		offset += 2;
@@ -84,7 +84,7 @@ func WriteMetaPage(db *entities.Database) error {
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
 	offset := 0
-	binary.BigEndian.PutUint16(buffer,0); offset += 2;//write next page
+	binary.BigEndian.PutUint32(buffer,0); offset += 4;//write next page
 	freeSpaceOffset := bufferSize; freeSpaceOffsetOffset := offset
 	offset += 2
 	numberOfTables := 0; numberOfTablesOffset := offset
