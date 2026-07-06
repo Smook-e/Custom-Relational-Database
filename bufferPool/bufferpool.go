@@ -48,6 +48,26 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	}
 	
 	//Cache Miss, read from file then add to cache
+	var freeindex int;
+
+	if len(bp.freeIndex) > 0{ // Array still has free space
+		freeindex, bp.freeIndex = bp.freeIndex[len(bp.freeIndex) - 1], bp.freeIndex[:len(bp.freeIndex) - 1]
+	}else  {
+		LRUNode := bp.list.RemoveTail()// remove least recently used node
+		freeindex = LRUNode.Value.(int)// assign its place for our new node
+		delete(bp.cache, LRUNode.PageID)// remove its entry from the cache
+	}
+	err := filehandler.ReadFromFile(bp.File, int(pageId), bp.pages[freeindex].buffer[:])// read the page from file
+	if err != nil {
+		return nil, err
+	}
+	bp.list.AddNodetoHead(freeindex)// add the new node to the head of the list
+	bp.cache[pageId] = bp.list.Head// add the new node to the cache
+	bp.list.Head.PageID = pageId// set the pageId of the new node
+	return bp.pages[freeindex].buffer[:], nil
+
+
+
 	
 
 }
