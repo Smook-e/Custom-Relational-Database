@@ -76,7 +76,7 @@ func (bp *BufferPool) MarkDirty(pageId uint32) {
 	bp.dirtyPages[pageId] = struct{}{}
 }
 
-func (bp *BufferPool) Flush() error {
+func (bp *BufferPool) Flush() error {//writes all dirty pages to disk
 	for pageId := range bp.dirtyPages {
 		node, ok := bp.cache[pageId]
 		if !ok {
