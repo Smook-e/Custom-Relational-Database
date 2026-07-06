@@ -169,7 +169,7 @@ func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 }
 
 
-func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (*Table, error) {
+func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (error) {
 
 	table := &Table{Name: tableName}
 	var constraints uint8
@@ -177,16 +177,16 @@ func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (*Tab
 		cleanst := strings.ToLower(col.DataType)
 		dataType, err := GetDataType(cleanst)
 		if err != nil {
-			return nil, err
+			return  err
 		}
 		constraints, err  = GetConstraint(col.Constraints)
 		if err != nil {
-			return nil, err
+			return  err
 		}
 		
 		size, err := GetSize(dataType)
 		if err != nil {
-			return nil, err
+			return  err
 		}
 		table.Columns = append(table.Columns, Column{
 			Name:        col.Name,
@@ -195,6 +195,6 @@ func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (*Tab
 			Size:        size,
 		})
 	}
-	
-	return table,nil
+	db.Tables[tableName] = table
+	return nil
 }

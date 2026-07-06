@@ -22,22 +22,10 @@ func GetDataPageSlotOffset(buffer []byte, slot uint16) (uint16, error) {
 }
 
 //Function receives the required space by a row, and returns a buffer, freeSpace offset, numberOfElements(slot) and pageID
-func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,uint16,uint32,  error) {
-	pageID, err:= FindFreePage(db, requiredSpace)
-	
-	if err != nil {
-		return nil, 0,0,0, err
-	}
+func FindandUpdateDataPageSlot( buffer []byte, requiredSpace uint16) (uint16,uint16, error) {
+
 	
 	
-	
-	buffer := make([]byte, bufferSize)
-	
-	//Read the Page 
-	err = filehandler.ReadFromFile(db.File, pageID, buffer)
-	if err != nil {
-		return nil,0,0,0, err
-	}
 	
 	offset := 0
 	freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
@@ -49,9 +37,9 @@ func FindDataPage(db *entities.Database, requiredSpace uint16) ([]byte,uint16,ui
 	offset += 2 + (int(numberOfElements) * 2)
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], freeSpaceOffset)//add the new element at the next free slot
 	
-	return buffer,freeSpaceOffset,numberOfElements, pageID, nil
+	return freeSpaceOffset,numberOfElements, nil
 }
-
+	
 func InitializeNewDataPage(db *entities.Database, requiredSpace uint16) error {
 	fmt.Println("initializing new page")
 	buffer := bufferPool.Get().([]byte)

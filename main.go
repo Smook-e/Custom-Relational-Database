@@ -21,16 +21,22 @@ func main(){
 	filename := "database.bin"
 	// pages.TestWriteandReadDatabase(filename)
     // err := pages.TestOpenDatabase(filename)
-	engine := storage.StorageEngine{}
-	engine.Bp = 
-	engine.TestWriteandReadDatabase(filename)
-    err := engine.TestOpenDatabase(filename)
+	engine, err := storage.InitializeStorageEngine(filename)
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
+	defer engine.Bp.File.Close()
+	engine.TestWriteandReadDatabase()
+	engine, err = storage.InitializeStorageEngine(filename)
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
+    err = engine.TestOpenDatabase()
     if err != nil {
         fmt.Print(err)
     }
     
-    
-    
-    
-    
+
 }

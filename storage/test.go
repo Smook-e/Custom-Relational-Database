@@ -6,7 +6,7 @@ import (
 	
 	"fmt"
 	
-	"os"
+	
 	
 	
 	"github.com/Smook-e/Custom-Relational-Database/pages"
@@ -15,12 +15,10 @@ import (
 
 
 
-func (engine *StorageEngine) TestOpenDatabase(filename string) error {
-	err := engine.OpenDatabase(filename)
-    if err != nil {
-        return fmt.Errorf("OpenDatabase failed: %v", err)
-    }
-    defer engine.db.File.Close()
+func (engine *StorageEngine) TestOpenDatabase() error {
+	
+    
+    
 	// engine.db.File.Truncate(2 * bufferSize)
     
     
@@ -28,6 +26,7 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
 	if err != nil {
 		return err
 	}
+	engine.Commit()
 	Row, err := engine.ReadRow( "users", pageID, slot)
 	if err != nil {
 		return err
@@ -37,6 +36,7 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
 	if err != nil {
 		return err
 	}
+	engine.Commit()
 	Row, err = engine.ReadRow("users", pageID, slot)
 	if err != nil {
 		return err
@@ -46,16 +46,19 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
 	if err != nil {
 		return err
 	}
+	engine.Commit()
 	Row, err = engine.ReadRow("products", pageID, slot)
 	fmt.Println(Row)
 	pageID, slot, err = engine.InsertRow([]string{"2", "Macbook", "1200", "3", "apple"}, "products")
 	if err != nil {
 		return err
 	}
+	engine.Commit()
 	Row, err = engine.ReadRow("products", pageID, slot)
 	if err != nil {
 		return err
 	}
+	engine.Commit()
 	fmt.Println(Row)
 	fmt.Println("Free Pages:")
     engine.db.PrintFreePages()
@@ -64,23 +67,14 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
 }
 
 
-func (engine *StorageEngine) TestWriteandReadDatabase(filename string) error {
-	filep, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
-	filep.Truncate(0)
-    if err != nil {
-        return err
-    }
-
-    engine.db = &entities.Database{
-		File:   filep,
-		Tables: make(map[string]*entities.Table),
-		FreePages: make([]entities.FreePage, 0),
-	}
+func (engine *StorageEngine) TestWriteandReadDatabase() error {
+	
 
     
+    engine.Bp.File.Truncate(0) // Clear the file before testing
     // initialize tables
     
-    t1, err := engine.db.CreateTable("products", []entities.ColumnDefinition{
+    err := engine.db.CreateTable("products", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
@@ -90,10 +84,10 @@ func (engine *StorageEngine) TestWriteandReadDatabase(filename string) error {
     if err != nil {
         return err
     }
-    engine.db.Tables[t1.Name] = t1
+    // engine.db.Tables[t1.Name] = t1
 
     // Table 2
-    t2, err := engine.db.CreateTable("users", []entities.ColumnDefinition{
+    err = engine.db.CreateTable("users", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "age", DataType: "int", Constraints: []string{}},
@@ -101,7 +95,7 @@ func (engine *StorageEngine) TestWriteandReadDatabase(filename string) error {
     if err != nil {
         return err
     }
-    engine.db.Tables[t2.Name] = t2
+    engine.db.FreePages = []entities.FreePage{}
 	
 	
     
@@ -117,7 +111,7 @@ func (engine *StorageEngine) TestWriteandReadDatabase(filename string) error {
 
     
     // Reopen the database to test recovery
-    err = engine.OpenDatabase(filename)
+    engine, err = InitializeStorageEngine(engine.db.File.Name())
     if err != nil {
         return fmt.Errorf("OpenDatabase failed: %v", err)
     }

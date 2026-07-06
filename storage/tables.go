@@ -8,7 +8,7 @@ import (
 	
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
-	"github.com/Smook-e/Custom-Relational-Database/filehandler"
+	
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 
@@ -72,9 +72,15 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	//Get a suitable data page and slot to insert into
-	buffer, freeSpaceOffset,slot,pageID, err := pages.FindDataPage(engine.db, size)
-
-	
+	pageID, err := pages.FindFreePage(engine.db, size)
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while finding free page: %w", err)
+	}
+	buffer, err := engine.Bp.Get(pageID)
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
+	}
+	freeSpaceOffset,slot, err := pages.FindandUpdateDataPageSlot(buffer, size)
 
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
@@ -104,10 +110,6 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			copy(buffer[offset:], v)
 			offset += uint16(len(v))
 		}
-	}
-	err = filehandler.WriteToFile(engine.db.File,uint32(pageID), buffer)
-	if err != nil {
-		return 0,0,fmt.Errorf("Failed to Commit Row to disk:%w",err)
 	}
 	
 	return pageID, slot, nil

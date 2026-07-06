@@ -23,7 +23,10 @@ func (engine *StorageEngine) Commit() error {
 	return nil
 }
 
-func (engine *StorageEngine) InitializeStorageEngine() error {
+func InitializeStorageEngine(filename string) (*StorageEngine, error) {
+	engine := &StorageEngine{}
+	engine.OpenDatabase(filename)
 	engine.Bp = bufferpool.InitializeBufferPool()
-	return nil
+	engine.Bp.File = engine.db.File
+	return engine, nil
 }
