@@ -12,7 +12,7 @@ const bufferSize = 4096
 type BufferPool struct {
 	pages [512]Page
 	cache map[uint32]*linkedlist.Node
-	list linkedlist.LinkedList // Head is least recently used
+	list linkedlist.LinkedList // Head is most recently used
 }
 
 type Page struct {
@@ -34,5 +34,6 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	
 	//Cache Miss, read from file then add to cache
 
+	LRUPage := bp.list.RemoveTail().(uint32)
 	
 }

@@ -44,36 +44,36 @@ func (L *LinkedList) AddNodetoHead(value any) {
 	L.Head.prev = newNode
 	L.Head = newNode
 }
-func (L *LinkedList) RemoveTail() any {
+func (L *LinkedList) RemoveTail() *Node {
 	if L.Tail == nil {
-		return 0
+		return nil
 	}
 
 	if L.Tail.prev == nil {
-		val := L.Tail.Value
+		n := L.Tail
 		L.Tail = nil
-		return val
+		return n
 	}
-	val := L.Tail.Value
+	n := L.Tail
 	L.Tail = L.Tail.prev
 	L.Tail.Next = nil
-	return val
+	return n
 }
 
-func (L *LinkedList) RemoveHead() any{
+func (L *LinkedList) RemoveHead() *Node{
 	if L.Head == nil {
-		return 0
+		return nil
 	}
 
 	if L.Head.Next == nil {
-		val := L.Head.Value
+		n := L.Head
 		L.Head = nil
-		return val
+		return n
 	}
-	val := L.Head.Value
+	n := L.Head
 	L.Head = L.Head.Next
 	L.Head.prev = nil
-	return val
+	return n
 }
 
 func (L *LinkedList) RemoveNode(nodeToRemove *Node) {
