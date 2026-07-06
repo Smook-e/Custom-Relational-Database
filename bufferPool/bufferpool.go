@@ -7,19 +7,21 @@ import (
 )
 
 const bufferSize = 4096
-
+const cacheSize = 512
 
 type BufferPool struct {
-	pages [512]Page
+	pages [cacheSize]Page
 	cache map[uint32]*linkedlist.Node
 	list linkedlist.LinkedList // Head is most recently used
-	freeIndex [512]uint16
-	dirtyPages [512]uint16
+	freeIndex [cacheSize]uint16
+	dirtyPages [cacheSize]uint16
 }
 
 type Page struct {
 	buffer [bufferSize]byte
 }
+
+
 
 func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	//Check if page exists in cache
