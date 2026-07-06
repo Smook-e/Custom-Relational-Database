@@ -6,7 +6,7 @@ import (
 
 type Node struct {
 	Value any
-	pageID uint32
+	PageID uint32
 	Next  *Node
 	prev  *Node
 }
