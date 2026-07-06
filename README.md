@@ -43,9 +43,3 @@ Ensures data integrity through explicit bit-width conversions and validation.
 - [ ] **Concurrency Control:** Thread-safe access and locking mechanisms.
 
 ***
-
-### Key Changes made:
-1.  **Buffer Pool:** Moved from "Future Roadmap" to "Core Features," highlighting the LRU and Dirty Page logic.
-2.  **Commit Logic:** Added the concept of "Dirty Page Tracking" and "Symmetric I/O."
-3.  **Page Layout:** Simplified the diagram into a concise "Forward/Backward" representation.
-4.  **Technical Stack:** Updated to include the Buffer Pool and memory management strategies.
