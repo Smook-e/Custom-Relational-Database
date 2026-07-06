@@ -10,7 +10,7 @@ const bufferSize = 4096
 type BufferPool struct {
 	pages [512]Page
 	cache map[uint32]*linkedlist.Node
-	
+	list linkedlist.LinkedList
 }
 
 type Page struct {
