@@ -4,12 +4,14 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/utilities/linkedlist"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 	"fmt"
+	"os"
 )
 
 const bufferSize = 4096
 const cacheSize = 512
 
 type BufferPool struct {
+	File *os.File
 	pages [cacheSize]Page
 	cache map[uint32]*linkedlist.Node
 	list linkedlist.LinkedList // Head is most recently used
@@ -46,10 +48,6 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	}
 	
 	//Cache Miss, read from file then add to cache
-	var freeindex int
-
-	// LRUNode := bp.list.RemoveTail()// 
-	// index := LRUNode.Value.(int)
-	// delete(bp.cache, LRUNode.PageID)
+	
 
 }
