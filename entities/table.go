@@ -31,7 +31,10 @@ type Table struct {
 	RootIndex uint32
 	Columns []Column
 }
-
+type Row struct {
+	PageID uint32
+	Slot uint16
+}
 type Column struct {
 	Name string
 	DataType uint8
