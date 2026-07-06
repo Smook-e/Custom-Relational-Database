@@ -29,9 +29,14 @@ Ensures data integrity through explicit bit-width conversions and validation.
 - **Endianness:** Uses `BigEndian` encoding for cross-platform binary compatibility.
 
 ## 📂 Page Layout (4KB)
-**Header (Forward) $\rightarrow$ $\leftarrow$ Payload (Backward)**
-`[ FreeSpaceOffset (2B) | NumElements (2B) | Slot Array (N * 2B) ... ]` $\rightarrow$ $\leftarrow$ `[ Row Data ]`
-
+```text
+[ Free Space Offset (2B) ] [ Num Elements (2B) ]
+[ Slot 0 Offset (2B) ] [ Slot 1 Offset (2B) ] ... [ Slot N Offset (2B) ]
+... (Unused Space) ...
+[ Row N Data (Variable) ]
+[ Row N-1 Data (Variable) ]
+[ Row 0 Data (Variable) ]
+```
 ## 📈 Roadmap
 - [x] **Slotted Page Layout**
 - [x] **Free Space Management**
