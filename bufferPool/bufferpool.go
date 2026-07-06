@@ -13,6 +13,7 @@ type BufferPool struct {
 	pages [512]Page
 	cache map[uint32]*linkedlist.Node
 	list linkedlist.LinkedList // Head is most recently used
+	freeIndex [512]uint16
 }
 
 type Page struct {
@@ -34,7 +35,8 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	
 	//Cache Miss, read from file then add to cache
 
-	LRUNode := bp.list.RemoveTail()
-	index := LRUNode.Value.(int)
-	LRUNode.
+	// LRUNode := bp.list.RemoveTail()// 
+	// index := LRUNode.Value.(int)
+	// delete(bp.cache, LRUNode.PageID)
+
 }
