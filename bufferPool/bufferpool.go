@@ -13,15 +13,24 @@ type BufferPool struct {
 	pages [cacheSize]Page
 	cache map[uint32]*linkedlist.Node
 	list linkedlist.LinkedList // Head is most recently used
-	freeIndex [cacheSize]uint16
-	dirtyPages [cacheSize]uint16
+	freeIndex []uint16
+	dirtyPages map[uint16]struct{}
 }
 
 type Page struct {
 	buffer [bufferSize]byte
 }
 
-
+func InitializeBufferPool() *BufferPool {
+	bp := & BufferPool{}
+	bp.cache = make(map[uint32]*linkedlist.Node)
+	bp.dirtyPages = make(map[uint16]struct{})
+	bp.freeIndex = make([]uint16, cacheSize)
+	for i := range len(bp.freeIndex) {
+		bp.freeIndex[i] = uint16(len(bp.freeIndex) - 1 - i)
+	}
+	return bp
+}
 
 func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	//Check if page exists in cache
