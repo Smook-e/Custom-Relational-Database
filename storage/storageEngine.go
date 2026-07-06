@@ -1,8 +1,10 @@
 package storage
 
 import (
-	"github.com/Smook-e/Custom-Relational-Database/entities"
+	"fmt"
+
 	"github.com/Smook-e/Custom-Relational-Database/bufferPool"
+	"github.com/Smook-e/Custom-Relational-Database/entities"
 )
 
 const bufferSize = 4096
@@ -12,3 +14,11 @@ type StorageEngine struct {
 	bp *bufferpool.BufferPool
 }
 
+func (engine *StorageEngine) Commit() error {
+	err := engine.bp.Flush()
+	if err != nil {
+		return fmt.Errorf("An error occured while commiting to disk: %w", err)
+	}
+	fmt.Println("Committed Changes to disk successfully")
+	return nil
+}
