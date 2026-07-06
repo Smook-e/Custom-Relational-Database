@@ -55,6 +55,16 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	}else  {
 		LRUNode := bp.list.RemoveTail()// remove least recently used node
 		freeindex = LRUNode.Value.(int)// assign its place for our new node
+
+		if _, isDirty := bp.dirtyPages[LRUNode.PageID]; isDirty { // if the evicted page is dirty, write it back to disk
+			// Flush the page to disk before overwriting the buffer
+			err := filehandler.WriteToFile(bp.File, LRUNode.PageID, bp.pages[freeindex].buffer[:])
+			if err != nil {
+				return nil, fmt.Errorf("failed to flush evicted page: %w", err)
+			}
+			delete(bp.dirtyPages, LRUNode.PageID)
+    	}
+
 		delete(bp.cache, LRUNode.PageID)// remove its entry from the cache
 	}
 	err := filehandler.ReadFromFile(bp.File, pageId, bp.pages[freeindex].buffer[:])// read the page from file
@@ -94,8 +104,9 @@ func (bp *BufferPool) Flush() error {//writes all dirty pages to disk
 		if err != nil {
 			return err
 		}
-		delete(bp.dirtyPages, pageId)
+		
 	}
+	clear(bp.dirtyPages)
 	return nil
 		
 }
