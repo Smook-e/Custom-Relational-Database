@@ -80,6 +80,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
+	engine.Bp.MarkDirty(pageID)
 	freeSpaceOffset,slot, err := pages.FindandUpdateDataPageSlot(buffer, size)
 
 	if err != nil {
