@@ -72,8 +72,12 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 
 }
 
-func (bp *BufferPool) MarkDirty(pageId uint32) {
+func (bp *BufferPool) MarkDirty(pageId uint32) error {
+	if _, ok := bp.cache[pageId]; !ok {
+		return fmt.Errorf("Page %d not found in cache", pageId)
+	}
 	bp.dirtyPages[pageId] = struct{}{}
+	return nil
 }
 
 func (bp *BufferPool) Flush() error {//writes all dirty pages to disk
