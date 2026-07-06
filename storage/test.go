@@ -42,7 +42,13 @@ func (engine *StorageEngine) TestOpenDatabase(filename string) error {
 		return err
 	}
 	fmt.Println(Row)
-	pageID, slot, err = engine.InsertRow([]string{"1", "Phone", "1000"}, "products")
+	pageID, slot, err = engine.InsertRow([]string{"1", "IPhone", "1000", "2", "apple"}, "products")
+	if err != nil {
+		return err
+	}
+	Row, err = engine.ReadRow("products", pageID, slot)
+	fmt.Println(Row)
+	pageID, slot, err = engine.InsertRow([]string{"2", "Macbook", "1200", "3", "apple"}, "products")
 	if err != nil {
 		return err
 	}
@@ -78,6 +84,8 @@ func (engine *StorageEngine) TestWriteandReadDatabase(filename string) error {
         {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
+        {Name: "quantity", DataType: "int", Constraints: []string{"notnull"}},
+        {Name: "seller", DataType: "varchar", Constraints: []string{"notnull"}},
     })
     if err != nil {
         return err

@@ -63,7 +63,7 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 				return nil, fmt.Errorf("failed to flush evicted page: %w", err)
 			}
 			delete(bp.dirtyPages, LRUNode.PageID)
-    	}
+		}
 
 		delete(bp.cache, LRUNode.PageID)// remove its entry from the cache
 	}
