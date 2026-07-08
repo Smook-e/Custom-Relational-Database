@@ -233,3 +233,19 @@ func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
 		return nil, fmt.Errorf("Unsupported data type for serialization")
 	}
 }
+func Compare(val1, val2 []byte, dataType uint8) (int, error) {
+	switch dataType {
+	case TypeTinyInt:
+		return int(val1[0]) - int(val2[0]), nil
+	case TypeSmallInt:
+		return int(binary.BigEndian.Uint16(val1)) - int(binary.BigEndian.Uint16(val2)), nil
+	case TypeInt:
+		return int(binary.BigEndian.Uint32(val1)) - int(binary.BigEndian.Uint32(val2)), nil
+	case TypeBigInt:
+		return int(binary.BigEndian.Uint64(val1)) - int(binary.BigEndian.Uint64(val2)), nil
+	case TypeVarChar:
+		return strings.Compare(string(val1[1:]), string(val2[1:])), nil
+	default:
+		return 0, fmt.Errorf("Unsupported data type for comparison")
+	}
+}
