@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"encoding/binary"
 
 )
 
@@ -200,4 +201,35 @@ func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (erro
 	}
 	db.Tables[tableName] = table
 	return nil
+}
+
+func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
+
+	switch dataType {
+	case TypeTinyInt:
+		return []byte{byte(val.(int8))}, nil
+	case TypeSmallInt:
+		buf := make([]byte, 2)
+		binary.BigEndian.PutUint16(buf, uint16(val.(int16)))
+		return buf, nil
+	case TypeInt:
+		buf := make([]byte, 4)
+		binary.BigEndian.PutUint32(buf, uint32(val.(int32)))
+		return buf, nil
+	case TypeBigInt:
+		buf := make([]byte, 8)
+		binary.BigEndian.PutUint64(buf, uint64(val.(int64)))
+		return buf, nil
+	case TypeVarChar:
+		strVal := val.(string)
+		if len(strVal) > 255 {
+			return nil, fmt.Errorf("String length exceeds maximum of 255 characters")
+		}
+		buf := make([]byte, len(strVal)+1)
+		buf[0] = byte(len(strVal))
+		copy(buf[1:], strVal)
+		return buf, nil
+	default:
+		return nil, fmt.Errorf("Unsupported data type for serialization")
+	}
 }
