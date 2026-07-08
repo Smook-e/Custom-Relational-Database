@@ -207,21 +207,40 @@ func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
 
 	switch dataType {
 	case TypeTinyInt:
-		return []byte{byte(val.(int8))}, nil
+		v, ok := val.(int8)
+		if !ok {
+			return nil, fmt.Errorf("Expected int8 for TypeTinyInt, got %T", val)
+		}
+		return []byte{byte(v)}, nil
 	case TypeSmallInt:
 		buf := make([]byte, 2)
-		binary.BigEndian.PutUint16(buf, uint16(val.(int16)))
+		v, ok := val.(int16)
+		if !ok {
+			return nil, fmt.Errorf("Expected int16 for TypeSmallInt, got %T", val)
+		}
+		binary.BigEndian.PutUint16(buf, uint16(v))
 		return buf, nil
 	case TypeInt:
 		buf := make([]byte, 4)
-		binary.BigEndian.PutUint32(buf, uint32(val.(int32)))
+		v, ok := val.(int32)
+		if !ok {
+			return nil, fmt.Errorf("Expected int32 for TypeInt, got %T", val)
+		}
+		binary.BigEndian.PutUint32(buf, uint32(v))
 		return buf, nil
 	case TypeBigInt:
 		buf := make([]byte, 8)
-		binary.BigEndian.PutUint64(buf, uint64(val.(int64)))
+		v, ok := val.(int64)
+		if !ok {
+			return nil, fmt.Errorf("Expected int64 for TypeBigInt, got %T", val)
+		}
+		binary.BigEndian.PutUint64(buf, uint64(v))
 		return buf, nil
 	case TypeVarChar:
-		strVal := val.(string)
+		strVal, ok := val.(string)
+		if !ok {
+			return nil, fmt.Errorf("Expected string for TypeVarChar, got %T", val)
+		}
 		if len(strVal) > 255 {
 			return nil, fmt.Errorf("String length exceeds maximum of 255 characters")
 		}
