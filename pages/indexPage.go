@@ -1,19 +1,5 @@
 package pages
 
-
-type LeafEntry struct {
-    Key    []byte
-    PageID uint32
-    Slot   uint16
-}
-
-type InternalEntry struct {
-    Key     []byte
-    LeftPtr uint32
-	// plus one final RightPtr after all entries
-}
-
-
 //LeafPage 
 /*
 isLeaf 1 byte
@@ -26,6 +12,11 @@ slot 2 bytes
 .
 .
 */
+type LeafEntry struct {
+    Key    []byte
+    PageID uint32
+    Slot   uint16
+}
 //InternalPage
 /*
 isLeaf 1 byte
@@ -37,3 +28,11 @@ pageID 4 bytes
 .
 .
 */
+type InternalEntry struct {
+    Key     []byte
+    LeftPtr uint32
+	// plus one final RightPtr after all entries
+}
+
+
+
