@@ -66,3 +66,25 @@ func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 	}
 	return nil
 }
+
+func InitializeInternalPage(entries []InternalEntry, buffer []byte, rightPtr uint32) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	offset := 0
+	buffer[offset] = uint8(isInternal)
+	offset += 1
+	binary.BigEndian.PutUint16(buffer[offset:offset+2], uint16(len(entries)))
+	offset += 2
+
+	for _, entry := range entries {
+		binary.BigEndian.PutUint32(buffer[offset:offset+4], entry.LeftPtr)
+		offset += 4
+		binary.BigEndian.PutUint16(buffer[offset:offset+2], uint16(len(entry.Key)))
+		offset += 2
+		copy(buffer[offset:offset+len(entry.Key)], entry.Key)
+		offset += len(entry.Key)
+	}
+	binary.BigEndian.PutUint32(buffer[offset:offset+4], rightPtr)
+	return nil
+}
