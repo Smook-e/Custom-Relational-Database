@@ -26,3 +26,14 @@ slot 2 bytes
 .
 .
 */
+//InternalPage
+/*
+isLeaf 1 byte
+numberOfEntries 2 bytes
+pageID 4 bytes
+key len(buffer)
+pageID 4 bytes
+.
+.
+.
+*/
