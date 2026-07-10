@@ -2,6 +2,7 @@ package pages
 
 import (
 	"encoding/binary"
+	"fmt"
 )
 //LeafPage 
 /*
@@ -49,6 +50,12 @@ func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 	if len(entries) == 0 {
 		return nil
 	}
+	entrySize := len(entries[0].Key) + 6 // Key + PageID + Slot
+    totalRequired := LeafPageHeaderSize + (len(entries) * entrySize)
+    
+    if totalRequired > 4096 {
+        return fmt.Errorf("page overflow: entries exceed 4KB")
+    }
 	offset := 0
 	buffer[offset] = uint8(isLeaf)
 	offset += 1
@@ -73,6 +80,13 @@ func InitializeInternalPage(entries []InternalEntry, buffer []byte, rightPtr uin
 	if len(entries) == 0 {
 		return nil
 	}
+	entrySize := len(entries[0].Key) + 4 // Key + LeftPtr
+    totalRequired := InternalPageHeaderSize + (len(entries) * entrySize) + 4 // + rightPtr
+
+    if totalRequired > 4096 {
+        return fmt.Errorf("page overflow: entries exceed 4KB")
+    }
+
 	offset := 0
 	buffer[offset] = uint8(isInternal)
 	offset += 1
