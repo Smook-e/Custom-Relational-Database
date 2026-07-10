@@ -35,6 +35,30 @@ func (engine *StorageEngine) IndexSearch(root uint32, key []byte, dataType uint8
 		// If we reach here, it means the key is greater than all entries, so we should go to the right pointer
 		rightptr := binary.BigEndian.Uint32(buffer[offset : offset+4])
 		return engine.IndexSearch(rightptr, key, dataType)
+	} else {
+		// Leaf page
+		offset += 1 + 4 // Skip isLeaf and nextLeafPage
+		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
+		offset += 2
+		for range numberOfEntries {
+			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
+			if err != nil {
+				return 0, 0, fmt.Errorf("comparison error: %w", err)
+			}
+			offset += len(key)
+			if comp == 0 {
+				// Key found, return the pageID and slot
+				pageID := binary.BigEndian.Uint32(buffer[offset : offset+4])
+				offset += 4
+				slot := binary.BigEndian.Uint16(buffer[offset : offset+2])
+				return pageID, slot, nil
+			}else if comp < 0 {
+				// Key is less than the current entry's key, so it doesn't exist in this leaf page
+				return 0, 0, fmt.Errorf("key not found")
+			}
+			offset += 4 + 2 // Skip pageID and slot
+		}
+		return 0, 0, fmt.Errorf("key not found")
+
 	}
-	return 0, 0, nil
 }
