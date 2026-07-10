@@ -20,7 +20,7 @@ func (engine *StorageEngine) IndexSearch(root uint32, key []byte, dataType uint8
 		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
 		offset += 2
 		for range numberOfEntries {
-			leftptr := binary.BigEndian.Uint32(buffer[offset : offset+4])
+			leftptr := binary.BigEndian.Uint32(buffer[offset : offset+4])// left PageID
 			offset += 4
 			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
 			if err != nil {
