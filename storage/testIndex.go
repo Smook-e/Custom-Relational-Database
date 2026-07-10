@@ -13,20 +13,40 @@ func (engine *StorageEngine) TestIndexPage() {
 		fmt.Println("Error creating new page:", err)
 		return
 	}
+	buffer, err := engine.Bp.Get(pageID)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
 	fmt.Println("Created new page with ID:", pageID)
 	keys := []int{10,20,30,40,50}
 	entries := make([]pages.LeafEntry, len(keys))
-	for i, key := range keys {
-		key,err := engine.db.Serialize(key, entities.TypeInt)
+	for i, val := range keys {
+		key,err := engine.db.Serialize(val, entities.TypeInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		entries[i] = pages.LeafEntry{
 			Key:    key,
-			PageID: uint32(i),
-			Slot:   uint16(i),
+			PageID: uint32(i+val),
+			Slot:   uint16(i*val),
 		}
+	}
+	pages.InitializeLeafPage(entries, buffer)
+	fmt.Println("Initialized leaf page with entries:", keys)
+	for _, val := range keys {
+		key,err := engine.db.Serialize(val, entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		pageID, slot, err := engine.IndexSearch(pageID, key, entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error searching for key:", val, "Error:", err)
+			continue
+		}
+		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", val, pageID, slot)
 	}
 	
 }
