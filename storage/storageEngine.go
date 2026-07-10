@@ -5,6 +5,7 @@ import (
 
 	"github.com/Smook-e/Custom-Relational-Database/bufferPool"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
+	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
 
 const bufferSize = 4096
@@ -29,4 +30,11 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	engine.Bp = bufferpool.InitializeBufferPool()
 	engine.Bp.File = engine.db.File
 	return engine, nil
+}
+func (engine *StorageEngine) NewPage() (uint32, error) {
+	newPageID := engine.db.TotalPages
+	buffer := make([]byte, bufferSize)
+	filehandler.WriteToFile(engine.db.File, newPageID, buffer)
+	engine.Bp.Get(newPageID)
+	return newPageID, nil
 }
