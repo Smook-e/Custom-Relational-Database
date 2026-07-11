@@ -33,6 +33,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 }
 func (engine *StorageEngine) NewPage() (uint32, error) {
 	newPageID := engine.db.TotalPages
+	engine.db.TotalPages++
 	buffer := make([]byte, bufferSize)
 	filehandler.WriteToFile(engine.db.File, newPageID, buffer)
 	engine.Bp.Get(newPageID)
