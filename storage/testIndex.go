@@ -61,6 +61,16 @@ func (engine *StorageEngine) TestIndexPageRoot() {
 	}
 	pages.InitializeLeafPage(leaf2_entries, buffer2)
 	fmt.Println("Initialized second leaf page with entries:", leaf2_keys)
+	// create root internal page
+	root_entries := []pages.InternalEntry{
+		{
+			Key: leaf2_entries[0].Key, // first key of second leaf page
+			LeftPtr: pageID,           // first leaf page
+		},
+	}
+	
+	pages.InitializeInternalPage(root_entries, buffer, pageID2) // right pointer to second leaf page
+	fmt.Println("Initialized root internal page with entries:", root_entries)
 }
 func (engine *StorageEngine) TestIndexPage() {
 	pageID, err := engine.NewPage()
