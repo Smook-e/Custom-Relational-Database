@@ -6,6 +6,9 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+func (engine *StorageEngine) TestIndexPageRoot() {
+	
+}
 
 func (engine *StorageEngine) TestIndexPage() {
 	pageID, err := engine.NewPage()
