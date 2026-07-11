@@ -34,6 +34,33 @@ func (engine *StorageEngine) TestIndexPageRoot() {
 	}
 	pages.InitializeLeafPage(leaf1_entries, buffer)
 	fmt.Println("Initialized first leaf page with entries:", leaf1_keys)
+	// create second leaf page
+	pageID2, err := engine.NewPage()
+	if err != nil {
+		fmt.Println("Error creating new page:", err)
+		return
+	}
+	buffer2, err := engine.Bp.Get(pageID2)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
+	leaf2_keys := []int32{40, 50, 60}
+	leaf2_entries := make([]pages.LeafEntry, len(leaf2_keys))
+	for i, val := range leaf2_keys {
+		key, err := engine.db.Serialize(val, entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		leaf2_entries[i] = pages.LeafEntry{
+			Key:    key,
+			PageID: uint32(i + len(leaf1_keys)), // continue page IDs
+			Slot:   uint16(i),
+		}
+	}
+	pages.InitializeLeafPage(leaf2_entries, buffer2)
+	fmt.Println("Initialized second leaf page with entries:", leaf2_keys)
 }
 func (engine *StorageEngine) TestIndexPage() {
 	pageID, err := engine.NewPage()
