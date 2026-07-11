@@ -19,7 +19,7 @@ func (engine *StorageEngine) TestIndexPage() {
 		return
 	}
 	fmt.Println("Created new page with ID:", pageID)
-	keys := []int{10,20,30,40,50}
+	keys := []int32{10,20,30,40,50}
 	entries := make([]pages.LeafEntry, len(keys))
 	for i, val := range keys {
 		key,err := engine.db.Serialize(val, entities.TypeInt)
@@ -29,8 +29,8 @@ func (engine *StorageEngine) TestIndexPage() {
 		}
 		entries[i] = pages.LeafEntry{
 			Key:    key,
-			PageID: uint32(i+val),
-			Slot:   uint16(i*val),
+			PageID: uint32(i),
+			Slot:   uint16(i),
 		}
 	}
 	pages.InitializeLeafPage(entries, buffer)

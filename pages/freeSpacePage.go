@@ -74,7 +74,7 @@ func FindFreePage(db *entities.Database, requiredSpace uint16) (uint32, error) {
 		}
 	}
 	err := InitializeNewDataPage(db, requiredSpace)
-	fmt.Println("From findfreepage: Initializing a new page. Returning page", db.TotalPages)
+	fmt.Println("From findfreepage: Initializing a new page. Returning page", db.TotalPages - 1)
 	if err != nil {
 		return 0,err
 	}
