@@ -62,6 +62,16 @@ func (engine *StorageEngine) TestIndexPageRoot() {
 	pages.InitializeLeafPage(leaf2_entries, buffer2)
 	fmt.Println("Initialized second leaf page with entries:", leaf2_keys)
 	// create root internal page
+	pageID3, err := engine.NewPage()
+	if err != nil {
+		fmt.Println("Error creating new page:", err)
+		return
+	}
+	buffer3, err := engine.Bp.Get(pageID3)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
 	root_entries := []pages.InternalEntry{
 		{
 			Key: leaf2_entries[0].Key, // first key of second leaf page
@@ -69,7 +79,7 @@ func (engine *StorageEngine) TestIndexPageRoot() {
 		},
 	}
 	
-	pages.InitializeInternalPage(root_entries, buffer, pageID2) // right pointer to second leaf page
+	pages.InitializeInternalPage(root_entries, buffer3, pageID2) // right pointer to second leaf page
 	fmt.Println("Initialized root internal page with entries:", root_entries)
 	// search for keys in the index
 	for _, val := range append(leaf1_keys, leaf2_keys...) {
@@ -78,7 +88,7 @@ func (engine *StorageEngine) TestIndexPageRoot() {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		pageID, slot, err := engine.IndexSearch(pageID, key, entities.TypeInt)
+		pageID, slot, err := engine.IndexSearch(pageID3, key, entities.TypeInt)
 		if err != nil {
 			fmt.Println("Error searching for key:", val, "Error:", err)
 			continue

@@ -37,7 +37,7 @@ func main(){
     if err != nil {
         fmt.Print(err)
     }
-	engine.TestIndexPage()
+	engine.TestIndexPageRoot()
     
 
 }
