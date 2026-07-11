@@ -71,6 +71,20 @@ func (engine *StorageEngine) TestIndexPageRoot() {
 	
 	pages.InitializeInternalPage(root_entries, buffer, pageID2) // right pointer to second leaf page
 	fmt.Println("Initialized root internal page with entries:", root_entries)
+	// search for keys in the index
+	for _, val := range append(leaf1_keys, leaf2_keys...) {
+		key, err := engine.db.Serialize(val, entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		pageID, slot, err := engine.IndexSearch(pageID, key, entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error searching for key:", val, "Error:", err)
+			continue
+		}
+		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", val, pageID, slot)
+	}
 }
 func (engine *StorageEngine) TestIndexPage() {
 	pageID, err := engine.NewPage()
