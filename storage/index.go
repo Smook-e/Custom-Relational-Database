@@ -75,7 +75,20 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 				return root, nil, nil
 			}else {
 				// Split this internal page and return the new root and key to be inserted into the parent
-				// (Implementation of split logic goes here)
+				internalEntries := make([]pages.InternalEntry, numberOfEntries + 1)
+				//Insert all entries into internalEntries slice
+				offset = InternalPageHeaderSize
+				for i := 0; i <= int(numberOfEntries) ; i++ {
+					leftptr := binary.BigEndian.Uint32(buffer[offset : offset+4]) // left PageID
+					offset += 4
+					if i == found {
+						internalEntries[i] = pages.InternalEntry{
+							Key:     newKey,
+							LeftPtr: leftptr,
+						}
+						offset -= 4 // Move back to overwrite the left pointer of the found entry
+						binary.BigEndian.PutUint32(buffer[offset:offset + 4], newRoot) // right pointer of the new key
+					}
 				return newRoot, newKey, nil
 			}
 		}
