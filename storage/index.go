@@ -63,6 +63,21 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 				return newRoot, newKey, nil
 			}
 		}
+	} else {
+	// Leaf page
+		offset += 1 + 4 // Skip isLeaf and nextLeafPage
+		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
+		offset += 2
+		maxEntries := (4096 - LeafPageHeaderSize) / (len(key) + 6) // 6 bytes for pageID and slot
+		if numberOfEntries < uint16(maxEntries) {
+			// Insert the new key, pageID, and slot into this leaf page
+			// (Implementation of insertion logic goes here)
+			return root, nil, nil
+		} else {
+			// Split this leaf page and return the new root and key to be inserted into the parent
+			// (Implementation of split logic goes here)
+			return newRoot, newKey, nil
+		}
 	}
 }
 
