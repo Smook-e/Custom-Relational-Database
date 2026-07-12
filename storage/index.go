@@ -146,6 +146,15 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 			if err != nil {
 				return 0, nil, fmt.Errorf("failed to initialize right page: %w", err)
 			}
+			// Initialize the left page (current page) with the left half of the entries
+			err = pages.InitializeLeafPage(leftEntries, buffer)
+			if err != nil {
+				return 0, nil, fmt.Errorf("failed to initialize left page: %w", err)
+			}
+			//update the nextLeafPage pointer of the left page to point to the new right page
+			binary.BigEndian.PutUint32(buffer[1:1+4], rightPage)
+			// Return the right page ID and the first key of the right page to be inserted into the parent internal page
+			return rightPage, rightEntries[0].Key, nil
 		}
 			
 	}
