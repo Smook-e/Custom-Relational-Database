@@ -158,6 +158,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 				}
 				offset += len(key) + 6 // Move to the next entry
 			}
+			engine.Bp.MarkDirty(root)
 			return root, nil, nil
 		} else {
 			// Split this leaf page and return the new root and key to be inserted into the parent
@@ -202,7 +203,6 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 			}
 			// Initialize the right page
 			rightBuffer, err := engine.Bp.Get(rightPage)
-			engine.Bp.MarkDirty(rightPage)
 			if err != nil {
 				return 0, nil, fmt.Errorf("failed to get buffer for new page %d: %w", rightPage, err)
 			}
@@ -218,6 +218,8 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 			//update the nextLeafPage pointer of the left page to point to the new right page
 			binary.BigEndian.PutUint32(buffer[1:1+4], rightPage)
 			// Return the right page ID and the first key of the right page to be inserted into the parent internal page
+			engine.Bp.MarkDirty(rightPage)
+			engine.Bp.MarkDirty(root)
 			return rightPage, rightEntries[0].Key, nil
 		}
 			
