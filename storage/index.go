@@ -1,9 +1,11 @@
 package storage
 
 import (
-	"fmt"
-	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"encoding/binary"
+	"fmt"
+
+	"github.com/Smook-e/Custom-Relational-Database/entities"
+	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 const (
 	LeafPageHeaderSize     = 1 + 4 + 2 // isLeaf + nextLeafPage + numberOfEntries
@@ -95,10 +97,38 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 			return root, nil, nil
 		} else {
 			// Split this leaf page and return the new root and key to be inserted into the parent
-			// (Implementation of split logic goes here)
-			return newRoot, newKey, nil
+			leafEntries := make([]pages.LeafEntry, numberOfEntries + 1)
+			for i := 0; i <= int(numberOfEntries) ; i++ {
+
+				comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
+				if err != nil {
+					return 0, nil, fmt.Errorf("comparison error: %w", err)
+				}
+				if comp < 0 {
+					// Insert the new entry here
+					leafEntries[i] = pages.LeafEntry{
+						Key:    key,
+						PageID: pageID,
+						Slot:   slot,
+					}
+				}else{
+					offset += len(key)
+					page := binary.BigEndian.Uint32(buffer[offset : offset+4])
+					offset += 4
+					slot := binary.BigEndian.Uint16(buffer[offset : offset+2])
+					offset += 2
+					leafEntries[i] = pages.LeafEntry{
+						Key:    buffer[offset-len(key)-6 : offset-6], // Extract the key from the buffer
+						PageID: page,
+						Slot:   slot,
+					}
+				}
+				
+				}
+			}
+			
 		}
-	}
+	
 }
 
 
