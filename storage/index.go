@@ -71,7 +71,16 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 		maxEntries := (4096 - LeafPageHeaderSize) / (len(key) + 6) // 6 bytes for pageID and slot
 		if numberOfEntries < uint16(maxEntries) {
 			// Insert the new key, pageID, and slot into this leaf page
-			// (Implementation of insertion logic goes here)
+			for range numberOfEntries {
+				comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
+				if err != nil {
+					return 0, nil, fmt.Errorf("comparison error: %w", err)
+				}
+				if comp < 0 {
+					// Shift entries to make space for the new entry
+					dataEnd := LeafPageHeaderSize + numberOfEntries*(len(key) + 6)
+					copy(buffer[offset + len(key) + 6:dataEnd + len(key) + 6], buffer[offset:dataEnd]) // Shift the rest of the entries
+			}
 			return root, nil, nil
 		} else {
 			// Split this leaf page and return the new root and key to be inserted into the parent
