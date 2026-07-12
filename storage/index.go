@@ -129,6 +129,9 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 				// Return the right page ID and the midKey to be inserted into the parent internal page
 				return rightPage, midKey, nil
 			}
+		}
+		// If no split occurred in the child page, just return the current root
+		return root, nil, nil
 	} else {
 	// Leaf page
 		offset += 1 + 4 // Skip isLeaf and nextLeafPage
@@ -224,7 +227,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 		}
 			
 	}
-	
+
 }
 
 
