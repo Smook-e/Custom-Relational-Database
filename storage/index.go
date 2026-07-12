@@ -78,8 +78,19 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 				}
 				if comp < 0 {
 					// Shift entries to make space for the new entry
-					dataEnd := LeafPageHeaderSize + numberOfEntries*(len(key) + 6)
+					dataEnd := LeafPageHeaderSize + int(numberOfEntries)*(len(key) + 6)
 					copy(buffer[offset + len(key) + 6:dataEnd + len(key) + 6], buffer[offset:dataEnd]) // Shift the rest of the entries
+					// Insert the new entry
+					copy(buffer[offset:offset+len(key)], key)
+					offset += len(key)
+					binary.BigEndian.PutUint32(buffer[offset:offset + 4], pageID)
+					offset += 4
+					binary.BigEndian.PutUint16(buffer[offset:offset + 2], slot)
+					// Update the number of entries
+					binary.BigEndian.PutUint16(buffer[1+4:1+4+2], numberOfEntries+1)
+					return root, nil, nil
+				}
+				offset += len(key) + 6 // Move to the next entry
 			}
 			return root, nil, nil
 		} else {
