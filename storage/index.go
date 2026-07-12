@@ -96,7 +96,37 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 						offset += len(key)
 					}
 				}
-				
+				rightPtr := binary.BigEndian.Uint32(buffer[offset : offset+4]) // right pointer of the last entry
+				// Split the internalEntries into two halves
+				mid := len(internalEntries) / 2
+				leftEntries := internalEntries[:mid]
+				rightEntries := internalEntries[mid+1:]
+				midKey := internalEntries[mid].Key
+				firstRightPtr := internalEntries[mid].LeftPtr
+
+				// Create a new internal page for the right half
+				rightPage, err := engine.NewPage()
+				if err != nil {
+					return 0, nil, fmt.Errorf("failed to allocate new page: %w", err)
+				}
+				// Initialize the right page
+				rightBuffer, err := engine.Bp.Get(rightPage)
+				if err != nil {
+					return 0, nil, fmt.Errorf("failed to get buffer for new page %d: %w", rightPage, err)
+				}
+				err = pages.InitializeInternalPage(rightEntries, rightBuffer, rightPtr)
+				if err != nil {
+					return 0, nil, fmt.Errorf("failed to initialize right page: %w", err)
+				}
+				// Initialize the left page (current page) with the left half of the entries
+				err = pages.InitializeInternalPage(leftEntries, buffer, firstRightPtr)
+				if err != nil {
+					return 0, nil, fmt.Errorf("failed to initialize left page: %w", err)
+				}
+				engine.Bp.MarkDirty(rightPage)
+				engine.Bp.MarkDirty(root)
+				// Return the right page ID and the midKey to be inserted into the parent internal page
+				return rightPage, midKey, nil
 			}
 	} else {
 	// Leaf page
