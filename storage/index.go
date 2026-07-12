@@ -98,6 +98,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 		} else {
 			// Split this leaf page and return the new root and key to be inserted into the parent
 			leafEntries := make([]pages.LeafEntry, numberOfEntries + 1)
+			//Insert all entries into leafEntries slice
 			for i := 0; i <= int(numberOfEntries) ; i++ {
 
 				comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
@@ -124,10 +125,30 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 					}
 				}
 				
-				}
 			}
-			
+			// Split the leafEntries into two halves
+			mid := len(leafEntries) / 2
+			leftEntries := leafEntries[:mid]
+			rightEntries := leafEntries[mid:]
+
+			// Create a new leaf page for the right half
+			rightPage, err := engine.NewPage()
+			if err != nil {
+				return 0, nil, fmt.Errorf("failed to allocate new page: %w", err)
+			}
+			// Initialize the right page
+			rightBuffer, err := engine.Bp.Get(rightPage)
+			engine.Bp.MarkDirty(rightPage)
+			if err != nil {
+				return 0, nil, fmt.Errorf("failed to get buffer for new page %d: %w", rightPage, err)
+			}
+			err = pages.InitializeLeafPage(rightEntries, rightBuffer)
+			if err != nil {
+				return 0, nil, fmt.Errorf("failed to initialize right page: %w", err)
+			}
 		}
+			
+	}
 	
 }
 
