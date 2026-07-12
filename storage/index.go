@@ -72,6 +72,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 				binary.BigEndian.PutUint32(buffer[offset:offset + 4], newRoot)//right pointer of the new key
 				// Update the number of entries
 				binary.BigEndian.PutUint16(buffer[1:1+2], numberOfEntries+1)
+				engine.Bp.MarkDirty(root)
 				return root, nil, nil
 			}else {
 				// Split this internal page and return the new root and key to be inserted into the parent
