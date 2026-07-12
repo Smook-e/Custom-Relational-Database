@@ -27,8 +27,10 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 		maxEntries := (4096 - InternalPageHeaderSize) / (len(key) + 4) // 4 bytes for pageID
 		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
 		offset += 2
-		found := false
-		for range numberOfEntries {
+		found := -1
+		var newRoot uint32
+		var newKey []byte
+		for i := range numberOfEntries {
 			leftptr := binary.BigEndian.Uint32(buffer[offset : offset+4]) // left PageID
 			offset += 4
 			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
@@ -37,18 +39,20 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 			}
 			if comp < 0 {
 				// Key is less than the current entry's key, so we should go to the left pointer
-				found = true
-				newRoot, newKey, err := engine.IndexInsert(leftptr, key, pageID, slot, dataType)
+				found = int(i)
+				newRoot, newKey, err = engine.IndexInsert(leftptr, key, pageID, slot, dataType)
 				if err != nil {
 					return 0, nil, err
 				}
 				break
 			}
+			offset += len(key)
 		}
 		// If we reach here, it means the key is greater than all entries, so we should go to the right pointer
-		if !found {
+		if found == -1 {
+			found = int(numberOfEntries)
 			rightptr := binary.BigEndian.Uint32(buffer[offset : offset+4])
-			newRoot, newKey, err := engine.IndexInsert(rightptr, key, pageID, slot, dataType)
+			newRoot, newKey, err = engine.IndexInsert(rightptr, key, pageID, slot, dataType)
 			if err != nil {
 				return 0, nil, err
 			}
@@ -57,9 +61,19 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 		if newKey != nil {
 			if numberOfEntries < uint16(maxEntries) {
 				// Insert the new key and pageID into this internal page
-				// (Implementation of insertion logic goes here)
+				// find the correct position to insert the new key
+				offset = InternalPageHeaderSize + int(found)*(len(key) + 4) - len(key) // move back right after the left pointer of the found entry
+				// Shift entries to make space for the new entry
+				dataEnd := InternalPageHeaderSize + int(numberOfEntries)*(len(key) + 4)
+				copy(buffer[offset + len(newKey) + 4:dataEnd + len(newKey) + 4], buffer[offset:dataEnd]) // Shift the rest of the entries
+				// Insert the new entry
+				copy(buffer[offset:offset+len(newKey)], newKey)
+				offset += len(newKey)
+				binary.BigEndian.PutUint32(buffer[offset:offset + 4], newRoot)//right pointer of the new key
+				// Update the number of entries
+				binary.BigEndian.PutUint16(buffer[1:1+2], numberOfEntries+1)
 				return root, nil, nil
-			} else {
+			}else {
 				// Split this internal page and return the new root and key to be inserted into the parent
 				// (Implementation of split logic goes here)
 				return newRoot, newKey, nil
