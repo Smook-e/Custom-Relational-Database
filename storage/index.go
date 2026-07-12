@@ -5,6 +5,19 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"encoding/binary"
 )
+const (
+	HeaderSizeLeaf = 1 + 4 + 2 // isLeaf (1 byte) + nextLeafPage (4 bytes) + numberOfEntries (2 bytes)
+	HeaderSizeInternal = 1 + 2 // isLeaf (1 byte) + numberOfEntries (2 bytes)
+)
+
+// Recursive function to insert a key into the index starting from the root page, and split the page if necessary. Returns the new root page ID and the new key to be inserted into the parent page if a split occurs.
+func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, []byte, error) {
+
+}
+
+
+
+
 
 func (engine *StorageEngine) IndexSearch(root uint32, key []byte, dataType uint8) (uint32, uint16, error) {
 	buffer , err := engine.Bp.Get(root)
