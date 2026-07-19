@@ -141,6 +141,49 @@ func (engine *StorageEngine) TestIndexSearchPage() {
 }
 
 func (engine *StorageEngine) TestIndexInsert() {
+	// create a new page to act as the root of the index
+	pageID, err := engine.NewPage()
+	if err != nil {
+		fmt.Println("Error creating new page:", err)
+		return
+	}
+	buffer, err := engine.Bp.Get(pageID)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
+	err =pages.InitializeLeafPage([]pages.LeafEntry{
 
-	
+	}, buffer)
+	if err != nil {
+		fmt.Println("Error initializing leaf page:", err)
+		return
+	}
+	for i := 1; i <= 10; i++ {
+		key, err := engine.db.Serialize(int32(i*10), entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		_, err = engine.InsertIntoIndex(pageID, key, uint32(i), uint16(i), entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error inserting key:", i*10, "Error:", err)
+			return
+		}
+		fmt.Printf("Inserted key %d at PageID: %d, Slot: %d\n", i*10, pageID)
+	}
+	// search for keys in the index
+	for i := 1; i <= 10; i++ {
+		key, err := engine.db.Serialize(int32(i*10), entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		pageID, slot, err := engine.IndexSearch(pageID, key, entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error searching for key:", i*10, "Error:", err)
+			continue
+		}
+		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", i*10, pageID, slot)
+	}
 }
