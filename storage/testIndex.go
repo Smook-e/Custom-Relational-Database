@@ -172,6 +172,20 @@ func (engine *StorageEngine) TestIndexInsertRoot() {
 		}
 		fmt.Printf("Inserted key %d at PageID: %d\n", i*10, root)
 	}
+	// search
+	for i := range 1000 {
+		key, err := engine.db.Serialize(int64(i*10), entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		pageID, slot, err := engine.IndexSearch(root, key, entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error searching for key:", i*10, "Error:", err)
+			continue
+		}
+		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", i*10, pageID, slot)
+	}
 }
 
 
