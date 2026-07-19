@@ -37,7 +37,7 @@ func (engine *StorageEngine) NewPage() (uint32, error) {
 	buffer := make([]byte, bufferSize)
 	filehandler.WriteToFile(engine.db.File, newPageID, buffer)
 	engine.Bp.Get(newPageID)
-	fmt.Println("created Page :", newPageID)
+	
 	return newPageID, nil
 }
 

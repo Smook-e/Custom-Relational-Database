@@ -139,6 +139,27 @@ func (engine *StorageEngine) TestIndexSearchPage() {
 	}
 	
 }
+func (engine *StorageEngine) TestIndexInsertRoot() {
+	// create a new page to act as the root of the index
+	root, err := engine.NewPage()
+	if err != nil {
+		fmt.Println("Error creating new page:", err)
+		return
+	}
+	buffer, err := engine.Bp.Get(root)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
+	err =pages.InitializeLeafPage([]pages.LeafEntry{
+
+	}, buffer)
+	if err != nil {
+		fmt.Println("Error initializing leaf page:", err)
+		return
+	}
+}
+
 
 func (engine *StorageEngine) TestIndexInsert() {
 	// create a new page to act as the root of the index
@@ -166,7 +187,7 @@ func (engine *StorageEngine) TestIndexInsert() {
 			return
 		}
 		_, err = engine.InsertIntoIndex(pageID, key, uint32(i), uint16(i), entities.TypeInt)
-		fmt.Println(pageID)
+		
 		if err != nil {
 			fmt.Println("Error inserting key:", i*10, "Error:", err)
 			return

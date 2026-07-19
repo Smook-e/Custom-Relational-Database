@@ -46,14 +46,14 @@ func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uin
 func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, []byte, error) {
 
 	buffer , err := engine.Bp.Get(root)
-	fmt.Println("Getting buffer for root", root)
+	
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to get buffer for page %d: %w", root, err)
 	}
 	// Check if the page is a leaf or internal page
 	offset := 0
 	if buffer[offset] == 0 {
-		fmt.Println("Internal Page")
+		
 		// Internal page
 		offset += 1
 		maxEntries := (4096 - InternalPageHeaderSize - 4) / (len(key) + 4) // 4 bytes for pageID
