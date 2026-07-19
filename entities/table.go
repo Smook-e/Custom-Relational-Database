@@ -261,7 +261,14 @@ func Compare(val1, val2 []byte, dataType uint8) (int, error) {
 	case TypeInt:
 		return int(binary.BigEndian.Uint32(val1)) - int(binary.BigEndian.Uint32(val2)), nil
 	case TypeBigInt:
-		return int(binary.BigEndian.Uint64(val1)) - int(binary.BigEndian.Uint64(val2)), nil
+		v1 := int64(binary.BigEndian.Uint64(val1))
+		v2 := int64(binary.BigEndian.Uint64(val2))
+		if v1 < v2 {
+			return -1, nil
+		} else if v1 > v2 {
+			return 1, nil
+		}
+		return 0, nil
 	case TypeVarChar:
 		return strings.Compare(string(val1[1:]), string(val2[1:])), nil
 	default:
