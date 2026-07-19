@@ -11,9 +11,39 @@ const (
 	LeafPageHeaderSize     = 1 + 4 + 2 // isLeaf + nextLeafPage + numberOfEntries
 	InternalPageHeaderSize = 1 + 2   // isLeaf + numberOfEntries
 )
+func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, error) {
+	newRoot, newKey, err := IndexInsert(engine, root, key, pageID, slot, dataType)
+	if err != nil {
+		return 0, fmt.Errorf("failed to insert into index: %w", err)
+	}
+	if newKey != nil {
+		// A split occurred at the root, so we need to create a new root
+		newRootPageID, err := engine.NewPage()
+		if err != nil {
+			return 0, fmt.Errorf("failed to allocate new root page: %w", err)
+		}
+		newRootBuffer, err := engine.Bp.Get(newRootPageID)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get buffer for new root page %d: %w", newRootPageID, err)
+		}
+		internalEntries := []pages.InternalEntry{
+			{
+				Key:     newKey,
+				LeftPtr: root,
+			},
+		}
+		err = pages.InitializeInternalPage(internalEntries, newRootBuffer, newRoot)
+		if err != nil {
+			return 0, fmt.Errorf("failed to initialize new root page: %w", err)
+		}
+		engine.Bp.MarkDirty(newRootPageID)
+		return newRootPageID, nil
+	}
+	return newRoot, nil
+}
 
 // Recursive function to insert a key into the index starting from the root page, and split the page if necessary. Returns the new root page ID and the new key to be inserted into the parent page if a split occurs.
-func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, []byte, error) {
+func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, []byte, error) {
 
 	buffer , err := engine.Bp.Get(root)
 	if err != nil {
@@ -40,7 +70,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 			if comp < 0 {
 				// Key is less than the current entry's key, so we should go to the left pointer
 				found = int(i)
-				newRoot, newKey, err = engine.IndexInsert(leftptr, key, pageID, slot, dataType)
+				newRoot, newKey, err = IndexInsert(engine, leftptr, key, pageID, slot, dataType)
 				if err != nil {
 					return 0, nil, err
 				}
@@ -52,7 +82,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 		if found == -1 {
 			found = int(numberOfEntries)
 			rightptr := binary.BigEndian.Uint32(buffer[offset : offset+4])
-			newRoot, newKey, err = engine.IndexInsert(rightptr, key, pageID, slot, dataType)
+			newRoot, newKey, err = IndexInsert(engine, rightptr, key, pageID, slot, dataType)
 			if err != nil {
 				return 0, nil, err
 			}

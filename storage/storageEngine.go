@@ -39,3 +39,4 @@ func (engine *StorageEngine) NewPage() (uint32, error) {
 	engine.Bp.Get(newPageID)
 	return newPageID, nil
 }
+
