@@ -158,6 +158,20 @@ func (engine *StorageEngine) TestIndexInsertRoot() {
 		fmt.Println("Error initializing leaf page:", err)
 		return
 	}
+
+	for i := range 1000 {
+		key, err := engine.db.Serialize(int64(i*10), entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeInt)
+		if err != nil {
+			fmt.Println("Error inserting key:", i*10, "Error:", err)
+			return
+		}
+		fmt.Printf("Inserted key %d at PageID: %d\n", i*10, root)
+	}
 }
 
 
