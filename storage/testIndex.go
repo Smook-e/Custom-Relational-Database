@@ -161,46 +161,42 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(){
 		return
 	}
 
-	for i:= 0; i <= 1000; i += 2 {
+	for i:= 0; i <= 10000; i += 2 {
 		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
-		if i * 10 == 4390 {
-			println(root)
-		}
+		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
 			return
 		}
-		if  i > 900 {
+		if  i > 9900 {
 			fmt.Printf("Inserted key %d with root %d\n", i, root)
 		}
 		
 	}
-	for i:= 1; i <= 1000; i += 2 {
+	for i:= 1; i <= 10000; i += 2 {
 		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
-		if i * 10 == 4390 {
-			println(root)
-		}
+		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
 			return
 		}
-		if i > 900 {
+		if i > 9900 {
 			fmt.Printf("Inserted key %d with root %d\n", i, root)
 		}
 		
 	}
 	//search
-	for i := range 1000 {
+	for i := range 10000 {
 		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
@@ -213,6 +209,8 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(){
 		}
 		
 	}
+	buffer, _ = engine.Bp.Get(3)
+	PrintLeafPageEntries(buffer, 8, entities.TypeBigInt)
 }
 func PrintLeafPageEntries(buffer []byte,keySize int, dataType uint8) {
 	if buffer[0] != uint8(pages.IsLeaf) {

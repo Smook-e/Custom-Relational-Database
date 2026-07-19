@@ -227,46 +227,40 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 		} else {
 			// Split this leaf page and return the new root and key to be inserted into the parent
 			
-			leafEntries := make([]pages.LeafEntry, numberOfEntries + 1)
-			//Insert all entries into leafEntries slice
-			inserted := false
-			for i := 0; i < int(numberOfEntries) ; i++ {
+			leafEntries := make([]pages.LeafEntry, numberOfEntries+1)
+			writeIdx := 0
+			offset := LeafPageHeaderSize
 
-				comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
-				if err != nil {
-					return 0, nil, fmt.Errorf("comparison error: %w", err)
-				}
-				if comp < 0 {
-					// Insert the new entry here
-					inserted = true
-					leafEntries[i] = pages.LeafEntry{
-						Key:    key,
-						PageID: pageID,
-						Slot:   slot,
+			for readIdx := 0; readIdx < int(numberOfEntries); readIdx++ {
+				existingKey := buffer[offset : offset+len(key)]
+
+				if !inserted {
+					comp, err := entities.Compare(key, existingKey, dataType)
+					if err != nil {
+						return 0, nil, fmt.Errorf("comparison error: %w", err)
 					}
-				}else{
-					offset += len(key)
-					page := binary.BigEndian.Uint32(buffer[offset : offset+4])
-					offset += 4
-					slot := binary.BigEndian.Uint16(buffer[offset : offset+2])
-					offset += 2
-					extractedKey := make([]byte, len(key))
-					copy(extractedKey, buffer[offset-len(key)-6:offset-6]) // Extract the key from the buffer
-					leafEntries[i] = pages.LeafEntry{
-						Key:    extractedKey,
-						PageID: page,
-						Slot:   slot,
+					if comp < 0 {
+						leafEntries[writeIdx] = pages.LeafEntry{Key: key, PageID: pageID, Slot: slot}
+						writeIdx++
+						inserted = true
 					}
 				}
-				
+
+				// always read and copy through the existing entry, regardless of whether we just inserted
+				extractedKey := make([]byte, len(key))
+				copy(extractedKey, existingKey)
+				offset += len(key)
+				page := binary.BigEndian.Uint32(buffer[offset : offset+4])
+				offset += 4
+				entrySlot := binary.BigEndian.Uint16(buffer[offset : offset+2])
+				offset += 2
+
+				leafEntries[writeIdx] = pages.LeafEntry{Key: extractedKey, PageID: page, Slot: entrySlot}
+				writeIdx++
 			}
+
 			if !inserted {
-				// If the new entry is greater than all existing entries, insert it at the end
-				leafEntries[numberOfEntries] = pages.LeafEntry{
-					Key:    key,
-					PageID: pageID,
-					Slot:   slot,
-				}
+				leafEntries[writeIdx] = pages.LeafEntry{Key: key, PageID: pageID, Slot: slot}
 			}
 			// Split the leafEntries into two halves
 			mid := len(leafEntries) / 2
@@ -278,6 +272,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 			if err != nil {
 				return 0, nil, fmt.Errorf("failed to allocate new page: %w", err)
 			}
+			fmt.Println("splitting leaf page", root, "into", rightPage)
 			// Initialize the right page
 			rightBuffer, err := engine.Bp.Get(rightPage)
 			if err != nil {
