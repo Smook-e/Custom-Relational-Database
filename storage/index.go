@@ -24,7 +24,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 	if buffer[offset] == 0 {
 		// Internal page
 		offset += 1
-		maxEntries := (4096 - InternalPageHeaderSize) / (len(key) + 4) // 4 bytes for pageID
+		maxEntries := (4096 - InternalPageHeaderSize - 4) / (len(key) + 4) // 4 bytes for pageID
 		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
 		offset += 2
 		found := -1
@@ -167,7 +167,8 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 			// Split this leaf page and return the new root and key to be inserted into the parent
 			leafEntries := make([]pages.LeafEntry, numberOfEntries + 1)
 			//Insert all entries into leafEntries slice
-			for i := 0; i <= int(numberOfEntries) ; i++ {
+			inserted := false
+			for i := 0; i < int(numberOfEntries) ; i++ {
 
 				comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
 				if err != nil {
@@ -175,6 +176,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 				}
 				if comp < 0 {
 					// Insert the new entry here
+					inserted = true
 					leafEntries[i] = pages.LeafEntry{
 						Key:    key,
 						PageID: pageID,
@@ -193,6 +195,14 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 					}
 				}
 				
+			}
+			if !inserted {
+				// If the new entry is greater than all existing entries, insert it at the end
+				leafEntries[numberOfEntries] = pages.LeafEntry{
+					Key:    key,
+					PageID: pageID,
+					Slot:   slot,
+				}
 			}
 			// Split the leafEntries into two halves
 			mid := len(leafEntries) / 2
