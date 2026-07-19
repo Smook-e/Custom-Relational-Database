@@ -159,7 +159,7 @@ func (engine *StorageEngine) TestIndexInsertRoot() {
 		return
 	}
 
-	for i := range 1000 {
+	for i := range 100000 {
 		key, err := engine.db.Serialize(int64(i*10), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
@@ -173,10 +173,13 @@ func (engine *StorageEngine) TestIndexInsertRoot() {
 			fmt.Println("Error inserting key:", i*10, "Error:", err)
 			return
 		}
-		fmt.Printf("Inserted key %d with root %d\n", i*10, root)
+		if i * 10 % 100 == 0 {
+			fmt.Printf("Inserted key %d with root %d\n", i*10, root)
+		}
+		
 	}
 	// search
-	for i := range 1000 {
+	for i := range 100000 {
 		key, err := engine.db.Serialize(int64(i*10), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)

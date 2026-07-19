@@ -14,7 +14,7 @@ const (
 func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, error) {
 	newRoot, newKey, err := IndexInsert(engine, root, key, pageID, slot, dataType)
 	if err != nil {
-		println("Error inserting into index", newRoot, binary.BigEndian.Uint64(key))
+		
 		return 0, fmt.Errorf("failed to insert into index: %w", err)
 	}
 	if newKey != nil {
@@ -38,7 +38,7 @@ func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uin
 			return 0, fmt.Errorf("failed to initialize new root page: %w", err)
 		}
 		engine.Bp.MarkDirty(newRootPageID)
-		println("Created new root page", newRootPageID, "with key", newKey)
+		
 		return newRootPageID, nil
 	}
 	
@@ -99,10 +99,10 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 				// find the correct position to insert the new key
 				if found == int(numberOfEntries) {
 					// Insert at the end
-					fmt.Println("inserting at the end")
+					
 					offset = InternalPageHeaderSize + int(numberOfEntries)*(len(key) + 4) + 4 // 4 bytes for the right pointer
 				} else {
-					offset = InternalPageHeaderSize + int(found)*(len(key) + 4) - len(key)
+					offset = InternalPageHeaderSize + int(found)*(len(key) + 4) - len(key) // 4 bytes for the left pointer of the found entry
 				}
 				
 				// Shift entries to make space for the new entry
@@ -115,10 +115,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 				// Update the number of entries
 				binary.BigEndian.PutUint16(buffer[1:1+2], numberOfEntries+1)
 				engine.Bp.MarkDirty(root)
-				if binary.BigEndian.Uint64(key) == 4380 {
-					println(" key 4380 at PageID:", root)
-					fmt.Printf("left pointer %d, right pointer %d", binary.BigEndian.Uint32(buffer[3:7]), newRoot)
-				}
+				
 				
 				return root, nil, nil
 			}else {
@@ -226,7 +223,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 			return root, nil, nil
 		} else {
 			// Split this leaf page and return the new root and key to be inserted into the parent
-			println("Splitting leaf page", root)
+			
 			leafEntries := make([]pages.LeafEntry, numberOfEntries + 1)
 			//Insert all entries into leafEntries slice
 			inserted := false
