@@ -160,31 +160,34 @@ func (engine *StorageEngine) TestIndexInsertRoot() {
 	}
 
 	for i := range 1000 {
-		key, err := engine.db.Serialize(int64(i*10), entities.TypeInt)
+		key, err := engine.db.Serialize(int64(i*10), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeInt)
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
+		if i * 10 == 4390 {
+			println(root)
+		}
 		if err != nil {
 			fmt.Println("Error inserting key:", i*10, "Error:", err)
 			return
 		}
-		fmt.Printf("Inserted key %d at PageID: %d\n", i*10, root)
+		fmt.Printf("Inserted key %d with root %d\n", i*10, root)
 	}
 	// search
 	for i := range 1000 {
-		key, err := engine.db.Serialize(int64(i*10), entities.TypeInt)
+		key, err := engine.db.Serialize(int64(i*10), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		pageID, slot, err := engine.IndexSearch(root, key, entities.TypeInt)
+		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error searching for key:", i*10, "Error:", err)
 			continue
 		}
-		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", i*10, pageID, slot)
+		
 	}
 }
 

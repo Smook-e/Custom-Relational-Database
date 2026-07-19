@@ -38,8 +38,7 @@ func main(){
         fmt.Print(err)
     }
 	engine.TestIndexSearchPageRoot()
-	engine.TestIndexInsert()
-	
-    
+	engine.TestIndexInsertRoot()
 
+    
 }

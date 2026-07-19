@@ -81,6 +81,9 @@ func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 
 func InitializeInternalPage(entries []InternalEntry, buffer []byte, rightPtr uint32) error {
 	if len(entries) == 0 {
+		buffer[0] = uint8(isInternal)
+		binary.BigEndian.PutUint16(buffer[1:3], 0) // numberOfEntries is 0
+		binary.BigEndian.PutUint32(buffer[3:7], rightPtr) // rightPtr
 		return nil
 	}
 	entrySize := len(entries[0].Key) + 4 // Key + LeftPtr

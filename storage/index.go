@@ -14,6 +14,7 @@ const (
 func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, error) {
 	newRoot, newKey, err := IndexInsert(engine, root, key, pageID, slot, dataType)
 	if err != nil {
+		println("Error inserting into index", newRoot, binary.BigEndian.Uint64(key))
 		return 0, fmt.Errorf("failed to insert into index: %w", err)
 	}
 	if newKey != nil {
@@ -37,8 +38,10 @@ func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uin
 			return 0, fmt.Errorf("failed to initialize new root page: %w", err)
 		}
 		engine.Bp.MarkDirty(newRootPageID)
+		println("Created new root page", newRootPageID, "with key", newKey)
 		return newRootPageID, nil
 	}
+	
 	return newRoot, nil
 }
 
@@ -94,9 +97,16 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 			if numberOfEntries < uint16(maxEntries) {
 				// Insert the new key and pageID into this internal page
 				// find the correct position to insert the new key
-				offset = InternalPageHeaderSize + int(found)*(len(key) + 4) - len(key) // move back right after the left pointer of the found entry
+				if found == int(numberOfEntries) {
+					// Insert at the end
+					fmt.Println("inserting at the end")
+					offset = InternalPageHeaderSize + int(numberOfEntries)*(len(key) + 4) + 4 // 4 bytes for the right pointer
+				} else {
+					offset = InternalPageHeaderSize + int(found)*(len(key) + 4) - len(key)
+				}
+				
 				// Shift entries to make space for the new entry
-				dataEnd := InternalPageHeaderSize + int(numberOfEntries)*(len(key) + 4)
+				dataEnd := InternalPageHeaderSize + int(numberOfEntries)*(len(key) + 4) + 4 // 4 bytes for the right pointer
 				copy(buffer[offset + len(newKey) + 4:dataEnd + len(newKey) + 4], buffer[offset:dataEnd]) // Shift the rest of the entries
 				// Insert the new entry
 				copy(buffer[offset:offset+len(newKey)], newKey)
@@ -105,6 +115,11 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 				// Update the number of entries
 				binary.BigEndian.PutUint16(buffer[1:1+2], numberOfEntries+1)
 				engine.Bp.MarkDirty(root)
+				if binary.BigEndian.Uint64(key) == 4380 {
+					println(" key 4380 at PageID:", root)
+					fmt.Printf("left pointer %d, right pointer %d", binary.BigEndian.Uint32(buffer[3:7]), newRoot)
+				}
+				
 				return root, nil, nil
 			}else {
 				// Split this internal page and return the new root and key to be inserted into the parent
@@ -211,6 +226,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 			return root, nil, nil
 		} else {
 			// Split this leaf page and return the new root and key to be inserted into the parent
+			println("Splitting leaf page", root)
 			leafEntries := make([]pages.LeafEntry, numberOfEntries + 1)
 			//Insert all entries into leafEntries slice
 			inserted := false
