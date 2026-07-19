@@ -6,6 +6,7 @@ import (
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
+	"encoding/binary"
 )
 func (engine *StorageEngine) TestIndexSearchPageRoot() {
 	pageID, err := engine.NewPage()
@@ -213,8 +214,8 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(){
 		
 	}
 }
-func PrintLeafPageEntries(buffer []byte, dataType uint8) {
-	if buffer[0] != uint8(pages.isLeaf) {
+func PrintLeafPageEntries(buffer []byte,keySize int, dataType uint8) {
+	if buffer[0] != uint8(pages.IsLeaf) {
 		fmt.Println("Not a leaf page")
 		return
 	}
@@ -222,7 +223,15 @@ func PrintLeafPageEntries(buffer []byte, dataType uint8) {
 	offset := 7
 	fmt.Printf("Leaf Page Entries (Total: %d):\n", numberOfEntries)
 	for i := 0; i < int(numberOfEntries); i++ {
-		var key any
+		keyData := buffer[offset : offset+keySize]
+		key, err := entities.Deserialize(keyData, dataType)
+		if err != nil {
+			fmt.Println("Error deserializing key:", err)
+			return
+		}
+		fmt.Printf("  Key %d: %v\n", i, key)
+		offset += keySize + 6 // Move to the next entry
+	}
 }
 
 func (engine *StorageEngine) TestIndexInsertRoot() {

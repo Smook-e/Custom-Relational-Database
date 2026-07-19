@@ -42,13 +42,13 @@ const (
 	LeafPageHeaderSize     = 1 + 4 + 2 // isLeaf + nextLeafPage + numberOfEntries
 	InternalPageHeaderSize = 1 + 2   // isLeaf + numberOfEntries
 	EntrySize              = 4 + 2   // pageID + slot
-	isLeaf = 1
-	isInternal = 0
+	IsLeaf = 1
+	IsInternal = 0
 )
 
 func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 	if len(entries) == 0 {
-		buffer[0] = uint8(isLeaf)
+		buffer[0] = uint8(IsLeaf)
 		binary.BigEndian.PutUint32(buffer[1:5], 0) // nextLeafPage is initially 0
 		binary.BigEndian.PutUint16(buffer[5:7], 0) // numberOfEntries is 0
 		return nil
@@ -60,7 +60,7 @@ func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
         return fmt.Errorf("page overflow: entries exceed 4KB")
     }
 	offset := 0
-	buffer[offset] = uint8(isLeaf)
+	buffer[offset] = uint8(IsLeaf)
 	offset += 1
 	binary.BigEndian.PutUint32(buffer[offset:offset+4], 0) // nextLeafPage is initially 0
 	offset += 4
@@ -81,7 +81,7 @@ func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 
 func InitializeInternalPage(entries []InternalEntry, buffer []byte, rightPtr uint32) error {
 	if len(entries) == 0 {
-		buffer[0] = uint8(isInternal)
+		buffer[0] = uint8(IsInternal)
 		binary.BigEndian.PutUint16(buffer[1:3], 0) // numberOfEntries is 0
 		binary.BigEndian.PutUint32(buffer[3:7], rightPtr) // rightPtr
 		return nil
@@ -94,7 +94,7 @@ func InitializeInternalPage(entries []InternalEntry, buffer []byte, rightPtr uin
     }
 
 	offset := 0
-	buffer[offset] = uint8(isInternal)
+	buffer[offset] = uint8(IsInternal)
 	offset += 1
 	binary.BigEndian.PutUint16(buffer[offset:offset+2], uint16(len(entries)))
 	offset += 2
