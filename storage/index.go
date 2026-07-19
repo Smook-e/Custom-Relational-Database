@@ -203,11 +203,14 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 					binary.BigEndian.PutUint32(buffer[offset:offset + 4], pageID)
 					offset += 4
 					binary.BigEndian.PutUint16(buffer[offset:offset + 2], slot)
+					offset += 2
 					// Update the number of entries
 					binary.BigEndian.PutUint16(buffer[1+4:1+4+2], numberOfEntries+1)
 					return root, nil, nil
+				}else{
+
+					offset += len(key) + 6 // Move to the next entry
 				}
-				offset += len(key) + 6 // Move to the next entry
 			}
 			if !inserted {
 				// If the new entry is greater than all existing entries, insert it at the end
@@ -353,7 +356,7 @@ func (engine *StorageEngine) IndexSearch(root uint32, key []byte, dataType uint8
 				return pageID, slot, nil
 			}else if comp < 0 {
 				// Key is less than the current entry's key, so it doesn't exist in this leaf page
-				return 0, 0, fmt.Errorf("key not found")
+				return 0, 0, fmt.Errorf("key not found, %d ", binary.BigEndian.Uint64(buffer[offset-len(key):offset]))
 			}
 			offset += 4 + 2 // Skip pageID and slot
 		}

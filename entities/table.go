@@ -252,6 +252,26 @@ func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
 		return nil, fmt.Errorf("Unsupported data type for serialization")
 	}
 }
+func Deserialize(data []byte, dataType uint8) (any, error) {
+	switch dataType {
+	case TypeTinyInt:
+		return int8(data[0]), nil
+	case TypeSmallInt:
+		return int16(binary.BigEndian.Uint16(data)), nil
+	case TypeInt:
+		return int32(binary.BigEndian.Uint32(data)), nil
+	case TypeBigInt:
+		return int64(binary.BigEndian.Uint64(data)), nil
+	case TypeVarChar:
+		length := int(data[0])
+		if length+1 > len(data) {
+			return nil, fmt.Errorf("Data length mismatch for VarChar")
+		}
+		return string(data[1 : 1+length]), nil
+	default:
+		return nil, fmt.Errorf("Unsupported data type for deserialization")
+	}
+}
 func Compare(val1, val2 []byte, dataType uint8) (int, error) {
 	switch dataType {
 	case TypeTinyInt:

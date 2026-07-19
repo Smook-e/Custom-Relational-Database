@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
@@ -139,6 +140,91 @@ func (engine *StorageEngine) TestIndexSearchPage() {
 	}
 	
 }
+func (engine *StorageEngine) TestIndexInsertMiddleRoot(){
+	// create a new page to act as the root of the index
+	root, err := engine.NewPage()
+	if err != nil {
+		fmt.Println("Error creating new page:", err)
+		return
+	}
+	buffer, err := engine.Bp.Get(root)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
+	err =pages.InitializeLeafPage([]pages.LeafEntry{
+
+	}, buffer)
+	if err != nil {
+		fmt.Println("Error initializing leaf page:", err)
+		return
+	}
+
+	for i:= 0; i <= 1000; i += 2 {
+		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
+		if i * 10 == 4390 {
+			println(root)
+		}
+		if err != nil {
+			fmt.Println("Error inserting key:", i, "Error:", err)
+			return
+		}
+		if  i > 900 {
+			fmt.Printf("Inserted key %d with root %d\n", i, root)
+		}
+		
+	}
+	for i:= 1; i <= 1000; i += 2 {
+		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
+		if i * 10 == 4390 {
+			println(root)
+		}
+		if err != nil {
+			fmt.Println("Error inserting key:", i, "Error:", err)
+			return
+		}
+		if i > 900 {
+			fmt.Printf("Inserted key %d with root %d\n", i, root)
+		}
+		
+	}
+	//search
+	for i := range 1000 {
+		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
+		if err != nil {
+			fmt.Println("Error searching for key:", i, "Error:", err)
+			continue
+		}
+		
+	}
+}
+func PrintLeafPageEntries(buffer []byte, dataType uint8) {
+	if buffer[0] != uint8(pages.isLeaf) {
+		fmt.Println("Not a leaf page")
+		return
+	}
+	numberOfEntries := binary.BigEndian.Uint16(buffer[5:7])
+	offset := 7
+	fmt.Printf("Leaf Page Entries (Total: %d):\n", numberOfEntries)
+	for i := 0; i < int(numberOfEntries); i++ {
+		var key any
+}
+
 func (engine *StorageEngine) TestIndexInsertRoot() {
 	// create a new page to act as the root of the index
 	root, err := engine.NewPage()
@@ -173,7 +259,7 @@ func (engine *StorageEngine) TestIndexInsertRoot() {
 			fmt.Println("Error inserting key:", i*10, "Error:", err)
 			return
 		}
-		if i * 10 % 100 == 0 {
+		if i * 10 % 1000 == 0 {
 			fmt.Printf("Inserted key %d with root %d\n", i*10, root)
 		}
 		
