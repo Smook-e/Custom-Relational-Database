@@ -272,7 +272,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 			if err != nil {
 				return 0, nil, fmt.Errorf("failed to allocate new page: %w", err)
 			}
-			fmt.Println("splitting leaf page", root, "into", rightPage)
+			// fmt.Println("splitting leaf page", root, "into", rightPage)
 			// Initialize the right page
 			rightBuffer, err := engine.Bp.Get(rightPage)
 			if err != nil {

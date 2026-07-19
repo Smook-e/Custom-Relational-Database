@@ -4,9 +4,10 @@ import (
 	"fmt"
 	
 
+	"encoding/binary"
+
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
-	"encoding/binary"
 )
 func (engine *StorageEngine) TestIndexSearchPageRoot() {
 	pageID, err := engine.NewPage()
@@ -253,34 +254,32 @@ func (engine *StorageEngine) TestIndexInsertRoot() {
 	}
 
 	for i := range 100000 {
-		key, err := engine.db.Serialize(int64(i*10), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
-		if i * 10 == 4390 {
-			println(root)
-		}
+		
 		if err != nil {
-			fmt.Println("Error inserting key:", i*10, "Error:", err)
+			fmt.Println("Error inserting key:", i, "Error:", err)
 			return
 		}
 		if i * 10 % 1000 == 0 {
-			fmt.Printf("Inserted key %d with root %d\n", i*10, root)
+			fmt.Printf("Inserted key %d with root %d\n", i, root)
 		}
 		
 	}
 	// search
 	for i := range 100000 {
-		key, err := engine.db.Serialize(int64(i*10), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
 		if err != nil {
-			fmt.Println("Error searching for key:", i*10, "Error:", err)
+			fmt.Println("Error searching for key:", i, "Error:", err)
 			continue
 		}
 		
@@ -308,7 +307,7 @@ func (engine *StorageEngine) TestIndexInsert() {
 		return
 	}
 	for i := 1; i <= 10; i++ {
-		key, err := engine.db.Serialize(int32(i*10), entities.TypeInt)
+		key, err := engine.db.Serialize(int32(i), entities.TypeInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -316,23 +315,23 @@ func (engine *StorageEngine) TestIndexInsert() {
 		_, err = engine.InsertIntoIndex(pageID, key, uint32(i), uint16(i), entities.TypeInt)
 		
 		if err != nil {
-			fmt.Println("Error inserting key:", i*10, "Error:", err)
+			fmt.Println("Error inserting key:", i, "Error:", err)
 			return
 		}
-		fmt.Printf("Inserted key %d at PageID: %d\n", i*10, pageID)
+		fmt.Printf("Inserted key %d at PageID: %d\n", i, pageID)
 	}
 	// search for keys in the index
 	for i := 1; i <= 10; i++ {
-		key, err := engine.db.Serialize(int32(i*10), entities.TypeInt)
+		key, err := engine.db.Serialize(int32(i), entities.TypeInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		pageID, slot, err := engine.IndexSearch(pageID, key, entities.TypeInt)
 		if err != nil {
-			fmt.Println("Error searching for key:", i*10, "Error:", err)
+			fmt.Println("Error searching for key:", i, "Error:", err)
 			continue
 		}
-		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", i*10, pageID, slot)
+		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", i, pageID, slot)
 	}
 }

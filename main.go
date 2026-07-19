@@ -37,8 +37,9 @@ func main(){
     if err != nil {
         fmt.Print(err)
     }
-	// engine.TestIndexSearchPageRoot()
-	engine.TestIndexInsertMiddleRoot()
+	
+	// engine.TestIndexInsertMiddleRoot()
+	engine.TestIndexInsertRoot()
 
     
 }
