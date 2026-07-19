@@ -138,6 +138,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
 		offset += 2
 		maxEntries := (4096 - LeafPageHeaderSize) / (len(key) + 6) // 6 bytes for pageID and slot
+		inserted := false
 		if numberOfEntries < uint16(maxEntries) {
 			// Insert the new key, pageID, and slot into this leaf page
 			for range numberOfEntries {
@@ -146,6 +147,7 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 					return 0, nil, fmt.Errorf("comparison error: %w", err)
 				}
 				if comp < 0 {
+					inserted = true
 					// Shift entries to make space for the new entry
 					dataEnd := LeafPageHeaderSize + int(numberOfEntries)*(len(key) + 6)
 					copy(buffer[offset + len(key) + 6:dataEnd + len(key) + 6], buffer[offset:dataEnd]) // Shift the rest of the entries
@@ -160,6 +162,16 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 					return root, nil, nil
 				}
 				offset += len(key) + 6 // Move to the next entry
+			}
+			if !inserted {
+				// If the new entry is greater than all existing entries, insert it at the end
+				copy(buffer[offset:offset+len(key)], key)
+				offset += len(key)
+				binary.BigEndian.PutUint32(buffer[offset:offset + 4], pageID)
+				offset += 4
+				binary.BigEndian.PutUint16(buffer[offset:offset + 2], slot)
+				// Update the number of entries
+				binary.BigEndian.PutUint16(buffer[1+4:1+4+2], numberOfEntries+1)
 			}
 			engine.Bp.MarkDirty(root)
 			return root, nil, nil
