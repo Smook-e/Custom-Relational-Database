@@ -53,9 +53,6 @@ func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 		binary.BigEndian.PutUint16(buffer[5:7], 0) // numberOfEntries is 0
 		return nil
 	}
-
-		return nil
-	}
 	entrySize := len(entries[0].Key) + 6 // Key + PageID + Slot
     totalRequired := LeafPageHeaderSize + (len(entries) * entrySize)
     
