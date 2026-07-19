@@ -48,6 +48,12 @@ const (
 
 func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 	if len(entries) == 0 {
+		buffer[0] = uint8(isLeaf)
+		binary.BigEndian.PutUint32(buffer[1:5], 0) // nextLeafPage is initially 0
+		binary.BigEndian.PutUint16(buffer[5:7], 0) // numberOfEntries is 0
+		return nil
+	}
+
 		return nil
 	}
 	entrySize := len(entries[0].Key) + 6 // Key + PageID + Slot

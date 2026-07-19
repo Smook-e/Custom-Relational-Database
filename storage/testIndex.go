@@ -166,11 +166,12 @@ func (engine *StorageEngine) TestIndexInsert() {
 			return
 		}
 		_, err = engine.InsertIntoIndex(pageID, key, uint32(i), uint16(i), entities.TypeInt)
+		fmt.Println(pageID)
 		if err != nil {
 			fmt.Println("Error inserting key:", i*10, "Error:", err)
 			return
 		}
-		fmt.Printf("Inserted key %d at PageID: %d, Slot: %d\n", i*10, pageID)
+		fmt.Printf("Inserted key %d at PageID: %d\n", i*10, pageID)
 	}
 	// search for keys in the index
 	for i := 1; i <= 10; i++ {
