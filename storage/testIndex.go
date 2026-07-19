@@ -6,7 +6,7 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
-func (engine *StorageEngine) TestIndexPageRoot() {
+func (engine *StorageEngine) TestIndexSearchPageRoot() {
 	pageID, err := engine.NewPage()
 	if err != nil {
 		fmt.Println("Error creating new page:", err)
@@ -96,7 +96,7 @@ func (engine *StorageEngine) TestIndexPageRoot() {
 		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", val, pageID, slot)
 	}
 }
-func (engine *StorageEngine) TestIndexPage() {
+func (engine *StorageEngine) TestIndexSearchPage() {
 	pageID, err := engine.NewPage()
 	if err != nil {
 		fmt.Println("Error creating new page:", err)
@@ -137,5 +137,10 @@ func (engine *StorageEngine) TestIndexPage() {
 		}
 		fmt.Printf("Found key %d at PageID: %d, Slot: %d\n", val, pageID, slot)
 	}
+	
+}
+
+func (engine *StorageEngine) TestIndexInsert() {
+
 	
 }
