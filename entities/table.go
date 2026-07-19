@@ -255,7 +255,14 @@ func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
 func Compare(val1, val2 []byte, dataType uint8) (int, error) {
 	switch dataType {
 	case TypeTinyInt:
-		return int(val1[0]) - int(val2[0]), nil
+		v1 := int8(val1[0])
+		v2 := int8(val2[0])
+		if v1 < v2 {
+			return -1, nil
+		} else if v1 > v2 {
+			return 1, nil
+		}
+		return 0, nil
 	case TypeSmallInt:
 		v1 := int16(binary.BigEndian.Uint16(val1))
 		v2 := int16(binary.BigEndian.Uint16(val2))
