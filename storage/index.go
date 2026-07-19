@@ -90,8 +90,10 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 						offset -= 4 // Move back to overwrite the left pointer of the found entry
 						binary.BigEndian.PutUint32(buffer[offset:offset + 4], newRoot) // right pointer of the new key
 					}else {
+						extractedKey := make([]byte, len(key))
+						copy(extractedKey, buffer[offset:offset+len(key)])
 						internalEntries[i] = pages.InternalEntry{
-							Key:     buffer[offset:offset+len(key)],
+							Key:     extractedKey,
 							LeftPtr: leftptr,
 						}
 						offset += len(key)
