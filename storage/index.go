@@ -200,8 +200,10 @@ func (engine *StorageEngine) IndexInsert(root uint32, key []byte, pageID uint32,
 					offset += 4
 					slot := binary.BigEndian.Uint16(buffer[offset : offset+2])
 					offset += 2
+					key := make([]byte, len(key))
+					copy(key, buffer[offset-len(key)-6:offset-6]) // Extract the key from the buffer
 					leafEntries[i] = pages.LeafEntry{
-						Key:    buffer[offset-len(key)-6 : offset-6], // Extract the key from the buffer
+						Key:    key,
 						PageID: page,
 						Slot:   slot,
 					}
