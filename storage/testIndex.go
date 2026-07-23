@@ -9,6 +9,21 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+func ( engine *StorageEngine) TestSearch(RootPageID uint32) {
+	for i := range 10000 {
+		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		_, _, err = engine.IndexSearch(RootPageID, key, entities.TypeBigInt)
+		if err != nil {
+			fmt.Println("Error searching for key:", i, "Error:", err)
+			continue
+		}
+		
+	}
+}
 func (engine *StorageEngine) TestIndexSearchPageRoot() {
 	pageID, err := engine.NewPage()
 	if err != nil {
@@ -142,12 +157,18 @@ func (engine *StorageEngine) TestIndexSearchPage() {
 	}
 	
 }
-func (engine *StorageEngine) TestIndexInsertMiddleRoot(){
+func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 	// create a new page to act as the root of the index
-	root, err := engine.NewPage()
-	if err != nil {
-		fmt.Println("Error creating new page:", err)
-		return
+	var root uint32
+	var err error
+	if rootPageID == 0 {
+		root, err = engine.NewPage()
+		if err != nil {
+			fmt.Println("Error creating new page:", err)
+			return
+		}
+	} else {
+		root = rootPageID
 	}
 	buffer, err := engine.Bp.Get(root)
 	if err != nil {
@@ -233,12 +254,18 @@ func PrintLeafPageEntries(buffer []byte,keySize int, dataType uint8) {
 	}
 }
 
-func (engine *StorageEngine) TestIndexInsertRoot() {
+func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 	// create a new page to act as the root of the index
-	root, err := engine.NewPage()
-	if err != nil {
-		fmt.Println("Error creating new page:", err)
-		return
+	var root uint32
+	var err error
+	if rootPageID == 0 {
+		root, err = engine.NewPage()
+		if err != nil {
+			fmt.Println("Error creating new page:", err)
+			return
+		}
+	} else {
+		root = rootPageID
 	}
 	buffer, err := engine.Bp.Get(root)
 	if err != nil {

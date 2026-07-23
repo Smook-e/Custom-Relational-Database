@@ -28,7 +28,7 @@ func (engine *StorageEngine) OpenDatabase(filename string) ( error) {
 		FreePages: make([]entities.FreePage, 0),
 		TotalPages: uint32(fileInfo.Size() / bufferSize),
 	}
-	
+	fmt.Println("Total Pages", engine.db.TotalPages)
 	err = pages.ReadMetaPage(engine.db)
 	if err != nil {
 		return  err
