@@ -35,4 +35,21 @@ func BenchmarkColdRead(b *testing.B) {
         bp.Get(uint32(i  % int(numPages))) 
     }
 }
+func BenchmarkWarmRead(b *testing.B) {
+	// ensure pages are cached — e.g. read once before benchmark loop
+	filep, err :=  os.OpenFile("../database.bin", os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		fmt.Printf("Critical Error: Could not open database file: %v", err)
+	}
+	
+	bp := InitializeBufferPool(filep)
+	//warm up the cache by reading all pages once
+	for i := range 512 {
+		bp.Get(uint32(i))
+	}
+	b.ResetTimer()
+	for i := 0; b.Loop(); i++ {
+		bp.Get(uint32(i  % 512)) 
+	}
 
+}
