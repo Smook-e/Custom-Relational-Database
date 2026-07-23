@@ -1,6 +1,6 @@
 # Custom Relational Database Engine (Go)
 
-A relational database engine built from scratch in Go. Every byte on disk is placed there by code in this repository: a slotted-page storage engine, an LRU-backed buffer pool, and a type-agnostic B+Tree index supporting O(log n) lookups over millions of rows.
+A relational database engine built from scratch in Go. Every byte on disk is placed there by code in this repository: a slotted-page storage engine, an LRU-backed buffer pool, and a Multi-type B+Tree index supporting O(log n) lookups over millions of rows.
 
 This is not a key-value store with SQL syntax bolted on. It's an attempt to reproduce, and understand, the actual mechanics that PostgreSQL and SQLite are built on — page layout, buffer management, and tree-structured indexing — from scratch.
 
