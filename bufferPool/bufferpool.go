@@ -25,9 +25,9 @@ type Page struct {
 
 func InitializeBufferPool() *BufferPool {
 	bp := & BufferPool{}
-	bp.cache = make(map[uint32]*linkedlist.Node)
+	bp.cache = make(map[uint32]*linkedlist.Node, cacheSize)
 	bp.list = linkedlist.LinkedList{Tail: nil, Head: nil}
-	bp.dirtyPages = make(map[uint32]struct{})
+	bp.dirtyPages = make(map[uint32]struct{}, cacheSize)
 	bp.freeIndex = make([]int, cacheSize)
 	for i := range len(bp.freeIndex) {
 		bp.freeIndex[i] = len(bp.freeIndex) - 1 - i
