@@ -23,8 +23,9 @@ type Page struct {
 	buffer [bufferSize]byte
 }
 
-func InitializeBufferPool() *BufferPool {
+func InitializeBufferPool(file *os.File) *BufferPool {
 	bp := & BufferPool{}
+	bp.File = file
 	bp.cache = make(map[uint32]*linkedlist.Node, cacheSize)
 	bp.list = linkedlist.LinkedList{Tail: nil, Head: nil}
 	bp.dirtyPages = make(map[uint32]struct{}, cacheSize)
@@ -39,6 +40,7 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	//Check if page exists in cache
 	
 	if node, ok := bp.cache[pageId]; ok {//Cache Hit
+		// fmt.Println("Cache Hit for pageId:", pageId)
 		index, ok := node.Value.(int)
 		if !ok {
 			return nil, fmt.Errorf("Invalid node value type for pageId %d", pageId)

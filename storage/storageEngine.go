@@ -27,8 +27,8 @@ func (engine *StorageEngine) Commit() error {
 func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	engine := &StorageEngine{}
 	engine.OpenDatabase(filename)
-	engine.Bp = bufferpool.InitializeBufferPool()
-	engine.Bp.File = engine.db.File
+	engine.Bp = bufferpool.InitializeBufferPool(engine.db.File)
+	
 	return engine, nil
 }
 func (engine *StorageEngine) NewPage() (uint32, error) {
