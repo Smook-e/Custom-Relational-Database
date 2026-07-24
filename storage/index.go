@@ -8,6 +8,7 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 const (
+	nextLeafPageOffset = 1
 	LeafPageHeaderSize     = 1 + 4 + 2 // isLeaf + nextLeafPage + numberOfEntries
 	InternalPageHeaderSize = 1 + 2   // isLeaf + numberOfEntries
 )
