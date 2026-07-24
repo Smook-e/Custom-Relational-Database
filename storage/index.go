@@ -9,6 +9,7 @@ import (
 )
 const (
 	nextLeafPageOffset = 1
+	leafPageNumEntriesOffset = 5
 	LeafPageHeaderSize     = 1 + 4 + 2 // isLeaf + nextLeafPage + numberOfEntries
 	InternalPageHeaderSize = 1 + 2   // isLeaf + numberOfEntries
 )
