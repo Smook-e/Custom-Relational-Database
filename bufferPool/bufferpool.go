@@ -56,6 +56,9 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 		freeindex, bp.freeIndex = bp.freeIndex[len(bp.freeIndex) - 1], bp.freeIndex[:len(bp.freeIndex) - 1]
 	}else  {
 		LRUNode := bp.list.RemoveTail()// remove least recently used node
+		if LRUNode == nil {
+			return nil, fmt.Errorf("LRUNode is nil, unexpected state in buffer pool. for pageId %d", pageId)
+		}
 		freeindex = LRUNode.Value.(int)// assign its place for our new node
 
 		if _, isDirty := bp.dirtyPages[LRUNode.PageID]; isDirty { // if the evicted page is dirty, write it back to disk

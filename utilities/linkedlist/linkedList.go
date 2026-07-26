@@ -46,6 +46,7 @@ func (L *LinkedList) AddNodetoHead(value any) {
 }
 func (L *LinkedList) RemoveTail() *Node {
 	if L.Tail == nil {
+		
 		return nil
 	}
 

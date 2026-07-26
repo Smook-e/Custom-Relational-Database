@@ -37,7 +37,7 @@ func main(){
     if err != nil {
         fmt.Print(err)
     }
-	engine.TestIndexInsertMiddleRoot(0)
+	engine.TestIndexInsertRoot(0)
 	engine.Bp.Flush()
 	engine.Bp.File.Close()
 	engine, err = storage.InitializeStorageEngine(filename)

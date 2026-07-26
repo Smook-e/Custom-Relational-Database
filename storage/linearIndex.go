@@ -36,6 +36,9 @@ func (engine *StorageEngine) LinearSearch(rootId uint32, key []byte, dataType ui
 		}
 		//get next leaf page
 		leafId = binary.BigEndian.Uint32(buffer[nextLeafPageOffset:nextLeafPageOffset + 4])
+		if leafId == 516 {
+			fmt.Printf("rootId: %d", rootId)
+		}
 		//get number of keys
 		numKeys := binary.BigEndian.Uint16(buffer[leafPageNumEntriesOffset:leafPageNumEntriesOffset + 2])
 		offset = LeafPageHeaderSize
