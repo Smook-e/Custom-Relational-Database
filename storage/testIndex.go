@@ -245,6 +245,8 @@ func PrintLeafPageEntries(buffer []byte,keySize int, dataType uint8) {
 		fmt.Println("Not a leaf page")
 		return
 	}
+	nextLeafPage := binary.BigEndian.Uint32(buffer[1:5])
+	fmt.Printf("Next Leaf Page ID: %d\n", nextLeafPage)
 	numberOfEntries := binary.BigEndian.Uint16(buffer[5:7])
 	offset := 7
 	fmt.Printf("Leaf Page Entries (Total: %d):\n", numberOfEntries)
@@ -306,7 +308,14 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 		}
 		
 	}
+	page, err := engine.Bp.Get(541)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
+	PrintLeafPageEntries(page, 8, entities.TypeBigInt)
 	// search
+	engine.Commit()
 	for i := range 1000000 {
 		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
