@@ -35,9 +35,6 @@ func (engine *StorageEngine) LinearSearch(rootId uint32, key []byte, dataType ui
 			return 0 ,0,fmt.Errorf("An Error Occured %w", err)
 		}
 		
-		
-		fmt.Println("Page : ", leafId)
-		
 		//get next leaf page
 		leafId = binary.BigEndian.Uint32(buffer[nextLeafPageOffset:nextLeafPageOffset + 4])
 		//get number of keys

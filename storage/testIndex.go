@@ -294,6 +294,9 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
+		if i % 100000 == 0 { 
+			continue // Skip inserting key 101 to check in search
+		}
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
 		
 		if err != nil {
@@ -308,15 +311,15 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 		}
 		
 	}
-	page, err := engine.Bp.Get(541)
-	if err != nil {
-		fmt.Println("Error retrieving page from buffer pool:", err)
-		return
-	}
-	PrintLeafPageEntries(page, 8, entities.TypeBigInt)
+	// page, err := engine.Bp.Get(541)
+	// if err != nil {
+	// 	fmt.Println("Error retrieving page from buffer pool:", err)
+	// 	return
+	// }
+	// PrintLeafPageEntries(page, 8, entities.TypeBigInt)
 	// search
 	engine.Commit()
-	for i := range 1000000 {
+	for i := 0; i <= 1000000; i++ {
 		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
@@ -325,7 +328,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 		_, _, err = engine.LinearSearch(root, key, entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error searching for key:", i, "Error:", err)
-			break
+			continue
 		}
 		
 	}
