@@ -27,16 +27,7 @@ func main(){
 		return
 	}
 	defer engine.Bp.File.Close()
-	engine.TestWriteandReadDatabase()
-	engine, err = storage.InitializeStorageEngine(filename)
-	if err != nil {
-		fmt.Print(err)
-		return
-	}
-    err = engine.TestOpenDatabase()
-    if err != nil {
-        fmt.Print(err)
-    }
+	
 	engine.TestIndexInsertMiddleRoot(0)
 	engine.Commit()
 	engine.Bp.File.Close()
