@@ -27,7 +27,7 @@ func main(){
 		return
 	}
 	defer engine.Bp.File.Close()
-	
+	engine.PrintMetaData()
 	// engine.TestIndexInsertMiddleRoot(0)
 	// engine.Commit()
 	// engine.TestSearch(347)

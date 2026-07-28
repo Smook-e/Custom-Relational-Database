@@ -3,7 +3,7 @@ package pages
 import (
 	"encoding/binary"
 	
-	"fmt"
+	
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
@@ -41,7 +41,7 @@ func FindandUpdateDataPageSlot( buffer []byte, requiredSpace uint16) (uint16,uin
 }
 	
 func InitializeNewDataPage(db *entities.Database, requiredSpace uint16) error {
-	fmt.Println("initializing new page")
+	// fmt.Println("initializing new page")
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
 	offset := 0
@@ -54,7 +54,7 @@ func InitializeNewDataPage(db *entities.Database, requiredSpace uint16) error {
 	//add the new free page to the database
 	db.FreePages = append(db.FreePages, entities.FreePage{PageID:db.TotalPages,FreeSpace: bufferSize - 2 - 2 - 2 - requiredSpace})// 2 bytes freeSpaceOffset, 2 numberOfElements, 2 slot, -required space by row
 	
-	fmt.Println("Added new Data Page", db.TotalPages, "with free space", bufferSize - 2 - 2 - 2 - requiredSpace)	
+	// fmt.Println("Added new Data Page", db.TotalPages, "with free space", bufferSize - 2 - 2 - 2 - requiredSpace)	
 	db.TotalPages++
 	return nil
 }

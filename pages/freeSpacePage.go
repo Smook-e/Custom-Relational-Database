@@ -53,7 +53,7 @@ func WriteFreeSpacePage(db *entities.Database) error {
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], nextPagePointer); offset += 2 ;//Write next page ID
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2] ,uint16(len(db.FreePages))); offset += 2;// number of elements in the page
 	for _, page := range db.FreePages {
-		fmt.Println("Wrote to FreeSpaceFile", page.PageID, page.FreeSpace)
+		// fmt.Println("Wrote to FreeSpaceFile", page.PageID, page.FreeSpace)
 		//PageID
 		binary.BigEndian.PutUint32(buffer[offset: offset + 4], page.PageID); offset += 4
 		//FreeSpace
@@ -74,7 +74,7 @@ func FindFreePage(db *entities.Database, requiredSpace uint16) (uint32, error) {
 		}
 	}
 	err := InitializeNewDataPage(db, requiredSpace)
-	fmt.Println("From findfreepage: Initializing a new page. Returning page", db.TotalPages - 1)
+	// fmt.Println("From findfreepage: Initializing a new page. Returning page", db.TotalPages - 1)
 	if err != nil {
 		return 0,err
 	}
