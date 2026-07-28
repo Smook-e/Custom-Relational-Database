@@ -19,8 +19,7 @@ import (
 func main(){
 
 	filename := "database.bin"
-	// pages.TestWriteandReadDatabase(filename)
-    // err := pages.TestOpenDatabase(filename)
+	
 	engine, err := storage.InitializeStorageEngine(filename)
 	if err != nil {
 		fmt.Print(err)
@@ -28,9 +27,7 @@ func main(){
 	}
 	defer engine.Bp.File.Close()
 	engine.PrintMetaData()
-	// engine.TestIndexInsertMiddleRoot(0)
-	// engine.Commit()
-	// engine.TestSearch(347)
+	
 
     
 }
