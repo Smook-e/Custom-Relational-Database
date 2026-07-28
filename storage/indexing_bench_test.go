@@ -33,7 +33,7 @@ func BenchmarkIndexSearch(b *testing.B) {
 	engine.db.File.Truncate(0)
 }
 func BenchmarkLinearSearch(b *testing.B) {
-	// Initialize the storage engine and insert 100,000 BigInt keys into the index
+	// Initialize the storage engine
 	filename := "database.bin"
 	engine, err := InitializeStorageEngine(filename)
 	if err != nil {

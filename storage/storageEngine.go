@@ -26,7 +26,7 @@ func (engine *StorageEngine) Commit() error {
 	return nil
 }
 
-// PrintMetaData prints database metadata by delegating to the Database printer.
+
 func (engine *StorageEngine) PrintMetaData() error {
 	if engine == nil || engine.db == nil {
 		return fmt.Errorf("storage engine or database not initialized")
@@ -58,8 +58,8 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	// Initialize buffer pool
 	engine.Bp = bufferpool.InitializeBufferPool(engine.db.File)
 
-	// If the file is empty, create a minimal, testable database: meta + free-space pages,
-	// two example tables and a few rows.
+	// If the file is empty, create a Database with a meta page, free-space page, and
+	// example tables and a few rows.
 	if engine.db.TotalPages == 0 {
 		// create example tables
 		if err := engine.db.CreateTable("products", []entities.ColumnDefinition{
