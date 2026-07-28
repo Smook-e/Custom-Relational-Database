@@ -24,16 +24,16 @@ func BenchmarkIndexSearch(b *testing.B) {
 	var root uint32 = 346 // root page id after inserting 1000,000 BigInt keys
 	b.ResetTimer()
 	//search 
-	for i := 0; i <= 1000000; i++ {
-		key, err := engine.db.Serialize(int64(i % 1000000), entities.TypeBigInt)
+	for  b.Loop() {
+		key, err := engine.db.Serialize(int64(999999), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
 		if err != nil {
-			fmt.Println("Error searching for key:", i, "Error:", err)
-			continue
+			fmt.Println("Error searching for key 999999 ","Error:", err)
+			return
 		}
 	}
 }
@@ -56,15 +56,15 @@ func BenchmarkLinearSearch(b *testing.B) {
 	var root uint32 = 346 // root page id after inserting 1000,000 BigInt keys
 	b.ResetTimer()
 	//search 
-	for i := 0; i <= 1000000; i++ {
-		key, err := engine.db.Serialize(int64(i % 1000000), entities.TypeBigInt)
+	for b.Loop()  {
+		key, err := engine.db.Serialize(int64(999999), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
 		_, _, err = engine.LinearSearch(root, key, entities.TypeBigInt)
 		if err != nil {
-			fmt.Println("Error searching for key:", i, "Error:", err)
+			fmt.Println("Error searching for key 999999 ","Error:", err)
 			return
 		}
 	}

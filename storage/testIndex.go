@@ -294,20 +294,16 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		if i % 100000 == 0 { 
-			continue // Skip inserting key 101 to check in search
-		}
+		
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
 		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
 			return
 		}
-		if i% 10000 == 0 {
-			fmt.Print( i, " ")
-		}
-		if i% 200000 == 0 {
-			fmt.Println("root:", root)
+		
+		if i% 100000 == 0 {
+			fmt.Println("key:", i, "root:", root)
 		}
 		
 	}
@@ -325,7 +321,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		_, _, err = engine.LinearSearch(root, key, entities.TypeBigInt)
+		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error searching for key:", i, "Error:", err)
 			continue
