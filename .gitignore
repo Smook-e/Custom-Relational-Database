@@ -1,2 +1,5 @@
 .directory
 .env
+mem.prof
+*.test
+*.bin
