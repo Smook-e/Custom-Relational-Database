@@ -26,6 +26,7 @@ func (engine *StorageEngine) Commit() error {
 	return nil
 }
 
+
 func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	engine := &StorageEngine{}
 

@@ -40,3 +40,28 @@ func (db *Database) PrintTables() {
         }
     }
 }
+
+// PrintDatabase prints high level information about the database,
+// all tables and their columns, and free page info.
+func (db *Database) PrintDatabase() {
+    if db == nil {
+        fmt.Println("Database is nil")
+        return
+    }
+
+    // File information
+    fileName := "<unknown>"
+    if db.File != nil {
+        fileName = db.File.Name()
+    }
+    fmt.Printf("Database file: %s\n", fileName)
+    fmt.Printf("Total pages: %d\n", db.TotalPages)
+    fmt.Printf("Number of tables: %d\n", len(db.Tables))
+
+    // Tables and columns
+    db.PrintTables()
+
+    // Free pages
+    fmt.Println("Free Pages:")
+    db.PrintFreePages()
+}
