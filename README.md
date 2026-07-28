@@ -43,7 +43,16 @@ A custom buffer pool sits between every higher layer (B+Tree, page logic) and di
 - **BigEndian encoding:** used throughout for cross-platform binary compatibility.
 ## Benchmarks
  
-Measured with Go's built-in benchmarking tool (`go test -bench=.`) on an AMD Ryzen 5 5600 (6-core), comparing a buffer pool hit (page already resident) against a miss (page evicted, requiring a fresh read):
+**Indexed lookup vs. full table scan**, on a 1,000,000-row `BigInt`-keyed table (AMD Ryzen 5 5600), searching for the same worst-case key via both an indexed B+Tree lookup and a full linear scan of the leaf chain:
+ 
+```text
+BenchmarkIndexSearch-12     894442       1340 ns/operation   
+BenchmarkLinearSearch-12    67       16969646 ns/operation
+```
+ 
+An indexed lookup is roughly **12,663x faster** than a full scan on this dataset. With ~292 entries per leaf page and ~341-way fanout on internal nodes, the tree stays at just 3 levels for datasets up to ~34 million entries — every lookup up to that scale costs at most 3 page accesses, while a full scan cost grows linearly with row count.
+ 
+**Buffer pool cache hit vs. miss**, measured separately (AMD Ryzen 5 5600):
  
 ```text
 BenchmarkWarmRead-12    74507995      15.79 ns/op      0 B/op    0 allocs/op
