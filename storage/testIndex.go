@@ -259,7 +259,7 @@ func PrintLeafPageEntries(buffer []byte,keySize int, dataType uint8) {
 	}
 }
 
-func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
+func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) uint32 {
 	// create a new page to act as the root of the index
 	var root uint32
 	var err error
@@ -267,7 +267,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 		root, err = engine.NewPage()
 		if err != nil {
 			fmt.Println("Error creating new page:", err)
-			return
+			return 0
 		}
 	} else {
 		root = rootPageID
@@ -275,28 +275,28 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 	buffer, err := engine.Bp.Get(root)
 	if err != nil {
 		fmt.Println("Error retrieving page from buffer pool:", err)
-		return
+		return 0
 	}
 	err =pages.InitializeLeafPage([]pages.LeafEntry{
 
 	}, buffer)
 	if err != nil {
 		fmt.Println("Error initializing leaf page:", err)
-		return
+		return 0
 	}
 
 	for i := range 1000001 {
 		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
-			return
+			return 0
 		}
 		
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
 		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
-			return
+			return 0
 		}
 		
 		if i% 100000 == 0 {
@@ -316,7 +316,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
-			return
+			return 0
 		}
 		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
 		if err != nil {
@@ -325,6 +325,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) {
 		}
 		
 	}
+	return root
 }
 
 

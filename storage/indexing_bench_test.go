@@ -7,21 +7,15 @@ import (
 )
 func BenchmarkIndexSearch(b *testing.B) {
 	// Initialize the storage engine and insert 100,000 BigInt keys into the index
-	engine, err := InitializeStorageEngine("database.bin")
-	if err != nil {
-		fmt.Println("Error initializing storage engine:", err)
-		return
-	}
-	defer engine.Bp.File.Close()
-	engine.TestWriteandReadDatabase()
-	engine, err = InitializeStorageEngine("database.bin")
+	filename := "database.bin"
+	engine, err := InitializeStorageEngine(filename)
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
+	defer engine.Bp.File.Close()
 
-	engine.TestIndexInsertRoot(0)// insert 1000,000 BigInt keys into the index
-	var root uint32 = 346 // root page id after inserting 1000,000 BigInt keys
+	root := engine.TestIndexInsertRoot(0)// insert 1,000,000 BigInt keys into the index
 	b.ResetTimer()
 	//search 
 	for  b.Loop() {
@@ -36,24 +30,19 @@ func BenchmarkIndexSearch(b *testing.B) {
 			return
 		}
 	}
+	engine.db.File.Truncate(0)
 }
 func BenchmarkLinearSearch(b *testing.B) {
 	// Initialize the storage engine and insert 100,000 BigInt keys into the index
-	engine, err := InitializeStorageEngine("database.bin")
-	if err != nil {
-		fmt.Println("Error initializing storage engine:", err)
-		return
-	}
-	defer engine.Bp.File.Close()
-	engine.TestWriteandReadDatabase()
-	engine, err = InitializeStorageEngine("database.bin")
+	filename := "database.bin"
+	engine, err := InitializeStorageEngine(filename)
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
+	defer engine.Bp.File.Close()
 
-	engine.TestIndexInsertRoot(0)// insert 1000,000 BigInt keys into the index
-	var root uint32 = 346 // root page id after inserting 1000,000 BigInt keys
+	root := engine.TestIndexInsertRoot(0)// insert 1,000,000 BigInt keys into the index
 	b.ResetTimer()
 	//search 
 	for b.Loop()  {
@@ -68,4 +57,5 @@ func BenchmarkLinearSearch(b *testing.B) {
 			return
 		}
 	}
+	engine.db.File.Truncate(0)
 }
