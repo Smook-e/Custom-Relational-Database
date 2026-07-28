@@ -26,6 +26,14 @@ func (engine *StorageEngine) Commit() error {
 	return nil
 }
 
+// PrintMetaData prints database metadata by delegating to the Database printer.
+func (engine *StorageEngine) PrintMetaData() error {
+	if engine == nil || engine.db == nil {
+		return fmt.Errorf("storage engine or database not initialized")
+	}
+	engine.db.PrintDatabase()
+	return nil
+}
 
 func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	engine := &StorageEngine{}
