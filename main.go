@@ -28,16 +28,8 @@ func main(){
 	}
 	defer engine.Bp.File.Close()
 	
-	engine.TestIndexInsertMiddleRoot(0)
-	engine.Commit()
-	engine.Bp.File.Close()
-	engine, err = storage.InitializeStorageEngine(filename)
-	if err != nil {
-		fmt.Print(err)
-		return
-	}
-	
-	
+	// engine.TestIndexInsertMiddleRoot(0)
+	// engine.Commit()
 	// engine.TestSearch(347)
 
     
