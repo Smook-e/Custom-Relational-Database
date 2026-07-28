@@ -15,7 +15,7 @@ A recursive, type-agnostic B+Tree supporting O(log n) key lookups, built to inde
 - **Page-splitting with median propagation:** on overflow, a page splits and its median key propagates to the parent — internal nodes push the median up and out, leaf nodes copy it up while retaining it, matching standard B+Tree semantics.
 - **Linked leaf pages:** every leaf holds a pointer to its right sibling, enabling full table scans and range queries to walk the leaf layer directly without re-traversing the tree.
 - **Multi-level tree growth:** when a root page overflows, a new root is created above it, growing the tree by a level — confirmed by the 100,000-key test below, which produces a multi-level tree.
-- **Verified at scale:** tested with 100,000 sequential `BigInt` keys across 690 total pages (~291 entries per leaf page), and with interleaved insertion patterns that exercise mid-page splits and boundary conditions.
+- **Verified at scale:** tested with 1,000,000 sequential `BigInt` keys across 1350 total pages (~292 entries per leaf page), and with interleaved insertion patterns that exercise mid-page splits and boundary conditions.
 ### 2. Slotted Page Architecture
  
 A **slotted page** layout for both table metadata and data rows, using 4KB pages to align with OS and disk page sizes.
