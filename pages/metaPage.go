@@ -24,6 +24,23 @@ var bufferPool = sync.Pool{
         return make([]byte, bufferSize)
     },
 }
+/*
+Meta Page Structure:
+- Next Meta Page Pointer (4 bytes)
+- Free Space Offset (2 bytes)
+- Number of Tables (2 bytes)
+- [List of Table offsets (2 bytes each)]
+At each Table offset:
+	- Table Name Length (1 byte)
+	- Table Name (variable length)
+	- Number of Columns (1 byte)
+	- For each Column:
+		- Column Name Length (1 byte)
+		- Column Name (variable length)
+		- Data Type (1 byte)
+		- Constraints (1 byte)
+		- Size (1 byte)
+*/
 
 func ReadMetaPage(db *entities.Database) error{
 	buffer := bufferPool.Get().([]byte)
@@ -33,12 +50,13 @@ func ReadMetaPage(db *entities.Database) error{
 	var nextPage uint32 = 0
 	
 	for{
-		err := filehandler.ReadFromFile(db.File,nextPage * bufferSize, buffer)
+		err := filehandler.ReadFromFile(db.File,nextPage, buffer)
 		if err != nil {
 			return fmt.Errorf("An Error occured while reading Meta pages: %w", err)
 		}
 		offset := 0
-		nextPage = binary.BigEndian.Uint32(buffer[offset:offset+4]); offset += 4;
+		nextPage = binary.BigEndian.Uint32(buffer[offset:offset+4]);
+		offset += 4;
 		
 		//freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]); 
 		offset += 2;
