@@ -151,7 +151,15 @@ func WriteMetaPage(db *entities.Database) error {
 
 
 		buffer[tableOffset] = uint8(len(table.Indexes)); tableOffset++;
-		for colName, indexPageID := range table.Indexes {
+
+		// Extract and sort index keys deterministically
+		var indexCols []string
+		for colName := range table.Indexes {
+			indexCols = append(indexCols, colName)
+		}
+		sort.Strings(indexCols)
+		for _, colName := range indexCols {
+			indexPageID := table.Indexes[colName]
 			colIndex, err := table.GetColumnIndexByName(colName)
 			if err != nil {
 				return fmt.Errorf("Error getting column index for %s: %v", colName, err)
@@ -159,6 +167,7 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = uint8(colIndex); tableOffset++
 			binary.BigEndian.PutUint32(buffer[tableOffset:tableOffset+4], indexPageID); tableOffset += 4
 		}
+
 		// Sort the column names to ensure consistent order
 		sortedColumnNames := make([]string, 0, len(table.Columns))
 		
@@ -166,7 +175,7 @@ func WriteMetaPage(db *entities.Database) error {
 			sortedColumnNames = append(sortedColumnNames, col.Name)
 		}
 		sort.Strings(sortedColumnNames)
-
+		// write each column's data
 		for _, colName := range sortedColumnNames {
 			col, err := table.GetColumnByName(colName)
 			if err != nil {
