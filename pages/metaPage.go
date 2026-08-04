@@ -9,7 +9,7 @@ import (
 
 	
 	"sync"
-
+	"sort"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 
@@ -148,6 +148,8 @@ func WriteMetaPage(db *entities.Database) error {
 		//Pass 2: write the actual content
 		buffer[tableOffset] = uint8(len(table.Name)); tableOffset++;
 		copy(buffer[tableOffset: tableOffset + len(table.Name)], table.Name); tableOffset+= len(table.Name)
+
+
 		buffer[tableOffset] = uint8(len(table.Indexes)); tableOffset++;
 		for colName, indexPageID := range table.Indexes {
 			colIndex, err := table.GetColumnIndexByName(colName)
@@ -157,7 +159,19 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = uint8(colIndex); tableOffset++
 			binary.BigEndian.PutUint32(buffer[tableOffset:tableOffset+4], indexPageID); tableOffset += 4
 		}
+		// Sort the column names to ensure consistent order
+		sortedColumnNames := make([]string, 0, len(table.Columns))
+		
 		for _, col := range cols {
+			sortedColumnNames = append(sortedColumnNames, col.Name)
+		}
+		sort.Strings(sortedColumnNames)
+
+		for _, colName := range sortedColumnNames {
+			col, err := table.GetColumnByName(colName)
+			if err != nil {
+				return fmt.Errorf("Error getting column for %s: %v", colName, err)
+			}
 			buffer[tableOffset] = uint8(len(col.Name));tableOffset++;
 			copy(buffer[tableOffset: tableOffset + len(col.Name)], col.Name); tableOffset+= len(col.Name);
 			buffer[tableOffset] = col.DataType; tableOffset++;
