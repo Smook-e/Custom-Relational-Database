@@ -31,6 +31,7 @@ type Table struct {
 	Name string
 	RootIndex uint32
 	Columns []Column
+	Indexes map[string]uint32 // Map of column name to index page ID
 }
 type Row struct {
 	PageID uint32

@@ -16,6 +16,7 @@ type Database struct {
 	Tables map[string]*Table
 	FreePages	[]FreePage
 	TotalPages uint32
+    
 
 }
 
