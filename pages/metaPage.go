@@ -71,7 +71,17 @@ func ReadMetaPage(db *entities.Database) error{
 			tableOffset := int(binary.BigEndian.Uint16(buffer[offset:offset+2])); offset += 2;
 			nameLength := int(buffer[tableOffset]); tableOffset++;
 			tableName := buffer[tableOffset: tableOffset + nameLength]; tableOffset += nameLength;
-			table.RootIndex = binary.BigEndian.Uint32(buffer[tableOffset:tableOffset+4]); tableOffset += 4;
+			numberOfIndexes := int(buffer[tableOffset]); tableOffset++;
+			table.Indexes = make(map[string]uint32, numberOfIndexes)
+			for range numberOfIndexes {
+				columnIndex := int(buffer[tableOffset]); tableOffset++;
+				indexPageID := binary.BigEndian.Uint32(buffer[tableOffset:tableOffset+4]); tableOffset += 4;
+				if columnIndex < 0 || columnIndex >= len(table.Columns) {
+					return fmt.Errorf("Invalid column index %d for table %s", columnIndex, string(tableName))
+				}
+				columnName := table.Columns[columnIndex].Name
+				table.Indexes[columnName] = indexPageID
+			}
 			
 			numberOfColumns := buffer[tableOffset]; tableOffset++;
 			
