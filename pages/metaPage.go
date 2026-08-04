@@ -128,13 +128,14 @@ func WriteMetaPage(db *entities.Database) error {
 	
 	var cols []entities.Column
 	var table *entities.Table
+
 	for _, name := range keys {
 		size := 0
 		table = db.Tables[name]
 		cols = table.Columns
 		//Pass 1 : Calculate the size of the columns
-		//length of name + name + root index
-		size += 1 + len(table.Name) + 4 +1
+		//length of name + name + indexes 
+		size += 1 + len(table.Name) +1 + len(table.Indexes) * 5
 		for _, col := range cols {
 			// length of name + name + datatype + constraints + size
 			size += 1 + len(col.Name) + 1 + 1 + 1
@@ -147,8 +148,15 @@ func WriteMetaPage(db *entities.Database) error {
 		//Pass 2: write the actual content
 		buffer[tableOffset] = uint8(len(table.Name)); tableOffset++;
 		copy(buffer[tableOffset: tableOffset + len(table.Name)], table.Name); tableOffset+= len(table.Name)
-		binary.BigEndian.PutUint32(buffer[tableOffset:tableOffset+4], table.RootIndex); tableOffset += 4
-		buffer[tableOffset] = uint8(len(cols)); tableOffset++;
+		buffer[tableOffset] = uint8(len(table.Indexes)); tableOffset++;
+		for colName, indexPageID := range table.Indexes {
+			colIndex, err := table.GetColumnIndexByName(colName)
+			if err != nil {
+				return fmt.Errorf("Error getting column index for %s: %v", colName, err)
+			}
+			buffer[tableOffset] = uint8(colIndex); tableOffset++
+			binary.BigEndian.PutUint32(buffer[tableOffset:tableOffset+4], indexPageID); tableOffset += 4
+		}
 		for _, col := range cols {
 			buffer[tableOffset] = uint8(len(col.Name));tableOffset++;
 			copy(buffer[tableOffset: tableOffset + len(col.Name)], col.Name); tableOffset+= len(col.Name);
