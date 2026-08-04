@@ -20,7 +20,7 @@ const bufferSize = 4096
 
 var bufferPool = sync.Pool{
     New: func() any{
-        // This ensures every buffer produced by the pool is 4KB
+        // This returns a reusable buffer of the specified size. 
         return make([]byte, bufferSize)
     },
 }
