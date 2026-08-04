@@ -125,6 +125,8 @@ func WriteMetaPage(db *entities.Database) error {
 	for name := range db.Tables {
 		keys = append(keys, name)
 	}
+	// Sort the keys to ensure deterministic order
+	sort.Strings(keys)
 	
 	var cols []entities.Column
 	var table *entities.Table
