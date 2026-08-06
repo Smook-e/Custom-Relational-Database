@@ -160,7 +160,7 @@ func WriteMetaPage(db *entities.Database) error {
 		for _, col := range cols {
 			sortedColumnNames = append(sortedColumnNames, col.Name)
 		}
-		sort.Strings(sortedColumnNames)
+		// sort.Strings(sortedColumnNames)
 		// write each column's data
 		for _, colName := range sortedColumnNames {
 			col, err := table.GetColumnByName(colName)
