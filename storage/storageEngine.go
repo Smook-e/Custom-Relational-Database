@@ -72,7 +72,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return nil, fmt.Errorf("failed to create products table: %w", err)
 		}
 		
-
+		engine.db.Tables["products"].Indexes["id"] = 3
 		if err := engine.db.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
 			{Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
@@ -80,7 +80,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create users table: %w", err)
 		}
-
+		engine.db.Tables["users"].Indexes["id"] = 4
 		// ensure FreePages is empty for meta write
 		engine.db.FreePages = []entities.FreePage{}
 
