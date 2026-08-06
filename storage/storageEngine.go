@@ -90,10 +90,9 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		engine.db.Tables["users"].Indexes["id"] = 4
 		// ensure FreePages is empty for meta write
 		engine.db.FreePages = []entities.FreePage{}
-
-		// write meta + free-space pages (pages.WriteMetaPage writes page 0 and page 1)
-		if err := pages.WriteMetaPage(engine.db); err != nil {
-			return nil, fmt.Errorf("failed to write meta pages: %w", err)
+		engine.metaWrite = true
+		if err := engine.Commit(); err != nil {
+			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
 		}
 
 		// update total pages to account for meta + free-space pages
