@@ -174,7 +174,7 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = col.Size; tableOffset++;
 		}
 
-		fmt.Println(tableOffset)
+		
 		buffer[tableOffset] = uint8(len(table.Indexes)); tableOffset++;
 		// Extract and sort index keys deterministically
 		var indexCols []string
