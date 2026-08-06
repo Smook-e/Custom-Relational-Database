@@ -157,12 +157,17 @@ func WriteMetaPage(db *entities.Database) error {
 		table = db.Tables[name]
 		cols = table.Columns
 		//Pass 1 : Calculate the size of the table entry to determine where to write it in the buffer
-		//length of name + name + number of columns + indexes 
-		size += 1 + len(table.Name) + 1 +1 + len(table.Indexes) * 5
-		
+		//length of name + name + number of columns + number of ForeignKeys + number of indexes +  indexes * 5 
+		size += 1 + len(table.Name) + 1 + 1 + 1 + len(table.Indexes) * 5
+		// calculate the size of each column entry
 		for _, col := range cols {
 			// length of name + name + datatype + constraints + size
 			size += 1 + len(col.Name) + 1 + 1 + 1
+		}
+		// calculate the size of each foreign key entry
+		for _, fk := range table.ForeignKeys {
+			// column index + referenced table name length + referenced table name + referenced column index
+			size += 1 + 1 + len(fk.ReferencedTableName) + 1
 		}
 		tableOffset := freeSpaceOffset - size
 		freeSpaceOffset = tableOffset
