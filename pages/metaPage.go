@@ -76,10 +76,11 @@ func ReadMetaPage(db *entities.Database) error{
 			table := &entities.Table{}
 			tableOffset := int(binary.BigEndian.Uint16(buffer[offset:offset+2])); offset += 2;
 			nameLength := int(buffer[tableOffset]); tableOffset++;
-			tableName := buffer[tableOffset: tableOffset + nameLength]; tableOffset += nameLength;
-			
+			tableName := string(buffer[tableOffset: tableOffset + nameLength]); tableOffset += nameLength;
+			table.Name = tableName
+			db.Tables[tableName] = table
 			numberOfColumns := buffer[tableOffset]; tableOffset++;
-			
+
 			for range numberOfColumns {
 				columnNameLength := buffer[tableOffset]; tableOffset++;
 				
@@ -102,8 +103,7 @@ func ReadMetaPage(db *entities.Database) error{
 				columnName := table.Columns[columnIndex].Name
 				table.Indexes[columnName] = indexPageID
 			}
-			table.Name = string(tableName)
-			db.Tables[string(tableName)] = table
+			
 	
 		}
 		err = ReadFreeSpacePage(db)
