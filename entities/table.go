@@ -201,6 +201,7 @@ func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (erro
 		})
 	}
 	db.Tables[tableName] = table
+	db.Tables[tableName].Indexes = make(map[string]uint32)
 	return nil
 }
 

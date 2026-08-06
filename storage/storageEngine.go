@@ -71,6 +71,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create products table: %w", err)
 		}
+		
 
 		if err := engine.db.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
