@@ -33,7 +33,7 @@ func (db *Database) PrintTables() {
         fmt.Println("No tables were found in the database.")
     } else {
         for name, table := range db.Tables {
-            fmt.Printf("Table: %s | Columns: %d\n", name, len(table.Columns))
+            fmt.Printf("******************************\nTable: %s | Columns: %d\n", name, len(table.Columns))
 
             for _, col := range table.Columns {
                 fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
@@ -41,6 +41,10 @@ func (db *Database) PrintTables() {
             fmt.Println(" Indexes:")
             for indexName, indexID := range table.Indexes {
                 fmt.Printf("  Index: %s | Page ID: %d\n", indexName, indexID)
+            }
+            fmt.Println("Foreign Keys:")
+            for fkName, fk := range table.ForeignKeys {
+                fmt.Printf("  Foreign Key: %s | Referenced Column: %s.%s\n", fkName, fk.ReferencedTableName, db.Tables[fk.ReferencedTableName].Columns[fk.ReferencedColumnIndex].Name)
             }
         }
     }
