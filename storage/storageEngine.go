@@ -15,12 +15,19 @@ const bufferSize = 4096
 type StorageEngine struct {
 	db *entities.Database
 	Bp *bufferpool.BufferPool
+	metaWrite bool
 }
 
 func (engine *StorageEngine) Commit() error {
 	err := engine.Bp.Flush()
 	if err != nil {
 		return fmt.Errorf("An error occured while commiting to disk: %w", err)
+	}
+	if engine.metaWrite {
+		if err := pages.WriteMetaPage(engine.db); err != nil {
+			return fmt.Errorf("An error occured while writing meta page to disk: %w", err)
+		}
+		engine.metaWrite = false
 	}
 	fmt.Println("Committed Changes to disk successfully")
 	return nil
