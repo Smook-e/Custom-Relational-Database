@@ -32,6 +32,7 @@ type Table struct {
 	RootIndex uint32
 	Columns []Column
 	Indexes map[string]uint32 // Map of column name to index page ID
+	ForeignKeys map[string]ForeignKeyReference // Map of column name to foreign key reference
 }
 type Row struct {
 	PageID uint32
@@ -47,6 +48,10 @@ type ColumnDefinition struct {
 	Name string
 	DataType string
 	Constraints []string
+}
+type ForeignKeyReference struct {
+	ReferencedTableName string
+	ReferencedColumnIndex uint8
 }
 
 func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
