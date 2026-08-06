@@ -72,18 +72,18 @@ func ReadMetaPage(db *entities.Database) error{
 		offset += 2;
 		
 		numberOfTables := binary.BigEndian.Uint16(buffer[offset:offset+2]); offset += 2;
+		// Loop through each table and read its metadata
 		for range numberOfTables {
 			table := &entities.Table{}
-			tableOffset := int(binary.BigEndian.Uint16(buffer[offset:offset+2])); offset += 2;
+			tableOffset := int(binary.BigEndian.Uint16(buffer[offset:offset+2])); offset += 2;// read the table offset then jump to that offset to read the table data
 			nameLength := int(buffer[tableOffset]); tableOffset++;
 			tableName := string(buffer[tableOffset: tableOffset + nameLength]); tableOffset += nameLength;
 			table.Name = tableName
 			db.Tables[tableName] = table
 			numberOfColumns := buffer[tableOffset]; tableOffset++;
-
+			// Loop through each column and read its metadata
 			for range numberOfColumns {
 				columnNameLength := buffer[tableOffset]; tableOffset++;
-				
 				columnName :=  buffer[tableOffset: tableOffset + int(columnNameLength)]; tableOffset += int(columnNameLength);
 				column := &entities.Column{Name: string(columnName)}
 				column.DataType = buffer[tableOffset]; tableOffset++;
@@ -92,8 +92,10 @@ func ReadMetaPage(db *entities.Database) error{
 				table.Columns = append(table.Columns, *column)
 				
 			}
+			
 			numberOfIndexes := int(buffer[tableOffset]); tableOffset++;
 			table.Indexes = make(map[string]uint32, numberOfIndexes)
+			// Loop through each index and read its metadata
 			for range numberOfIndexes {
 				columnIndex := int(buffer[tableOffset]); tableOffset++;
 				indexPageID := binary.BigEndian.Uint32(buffer[tableOffset:tableOffset+4]); tableOffset += 4;
@@ -103,8 +105,10 @@ func ReadMetaPage(db *entities.Database) error{
 				columnName := table.Columns[columnIndex].Name
 				table.Indexes[columnName] = indexPageID
 			}
+
 			numberOfForeignKeys := int(buffer[tableOffset]); tableOffset++;
 			table.ForeignKeys = make(map[string]entities.ForeignKeyReference, numberOfForeignKeys)
+			// Loop through each foreign key and read its metadata
 			for range numberOfForeignKeys {
 				columnIndex := int(buffer[tableOffset]); tableOffset++;
 				referencedTableNameLength := int(buffer[tableOffset]); tableOffset++;
