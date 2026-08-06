@@ -25,7 +25,7 @@ const (
 	ConstraintNotNull    uint8 = 1 << 1 // 2
 	ConstraintUnique     uint8 = 1 << 2 // 4
 	ConstraintIndex      uint8 = 1 << 3 // 8
-	ConstraintSerial      uint8 = 1 << 4 // 16
+	ConstraintSerial     uint8 = 1 << 4 // 16
 )
 
 type Table struct {
