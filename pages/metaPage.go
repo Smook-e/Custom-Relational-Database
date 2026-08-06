@@ -103,7 +103,18 @@ func ReadMetaPage(db *entities.Database) error{
 				columnName := table.Columns[columnIndex].Name
 				table.Indexes[columnName] = indexPageID
 			}
-			
+			numberOfForeignKeys := int(buffer[tableOffset]); tableOffset++;
+			table.ForeignKeys = make(map[string]entities.ForeignKeyReference, numberOfForeignKeys)
+			for range numberOfForeignKeys {
+				columnIndex := int(buffer[tableOffset]); tableOffset++;
+				referencedTableNameLength := int(buffer[tableOffset]); tableOffset++;
+				referencedTableName := string(buffer[tableOffset: tableOffset + referencedTableNameLength]); tableOffset += referencedTableNameLength;
+				referencedColumnIndex := uint8(buffer[tableOffset]); tableOffset++;
+				table.ForeignKeys[table.Columns[columnIndex].Name] = entities.ForeignKeyReference{
+					ReferencedTableName: referencedTableName,
+					ReferencedColumnIndex: referencedColumnIndex,
+				}
+			}
 	
 		}
 		err = ReadFreeSpacePage(db)
