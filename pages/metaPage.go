@@ -135,9 +135,10 @@ func WriteMetaPage(db *entities.Database) error {
 		size := 0
 		table = db.Tables[name]
 		cols = table.Columns
-		//Pass 1 : Calculate the size of the columns
-		//length of name + name + indexes 
-		size += 1 + len(table.Name) +1 + len(table.Indexes) * 5
+		//Pass 1 : Calculate the size of the table entry to determine where to write it in the buffer
+		//length of name + name + number of columns + indexes 
+		size += 1 + len(table.Name) + 1 +1 + len(table.Indexes) * 5
+		
 		for _, col := range cols {
 			// length of name + name + datatype + constraints + size
 			size += 1 + len(col.Name) + 1 + 1 + 1
@@ -152,7 +153,7 @@ func WriteMetaPage(db *entities.Database) error {
 		copy(buffer[tableOffset: tableOffset + len(table.Name)], table.Name); tableOffset+= len(table.Name)
 
 
-		buffer[tableOffset] = uint8(len(cols)); tableOffset++;
+		buffer[tableOffset] = uint8(len(table.Columns)); tableOffset++;
 		// Sort the column names to ensure consistent order
 		sortedColumnNames := make([]string, 0, len(table.Columns))
 		
@@ -173,7 +174,7 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = col.Size; tableOffset++;
 		}
 
-
+		fmt.Println(tableOffset)
 		buffer[tableOffset] = uint8(len(table.Indexes)); tableOffset++;
 		// Extract and sort index keys deterministically
 		var indexCols []string
