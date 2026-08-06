@@ -217,6 +217,26 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = uint8(colIndex); tableOffset++
 			binary.BigEndian.PutUint32(buffer[tableOffset:tableOffset+4], indexPageID); tableOffset += 4
 		}
+
+		buffer[tableOffset] = uint8(len(table.ForeignKeys)); tableOffset++;
+		// Extract and sort foreign key columns deterministically
+		var fkCols []string
+		for colName := range table.ForeignKeys {
+			fkCols = append(fkCols, colName)
+		}
+		sort.Strings(fkCols)
+		
+		for _, colName := range fkCols {
+			fk := table.ForeignKeys[colName]
+			colIndex, err := table.GetColumnIndexByName(colName)
+			if err != nil {
+				return fmt.Errorf("Error getting column index for %s: %v", colName, err)
+			}
+			buffer[tableOffset] = uint8(colIndex); tableOffset++
+			buffer[tableOffset] = uint8(len(fk.ReferencedTableName)); tableOffset++
+			copy(buffer[tableOffset: tableOffset + len(fk.ReferencedTableName)], fk.ReferencedTableName); tableOffset+= len(fk.ReferencedTableName);
+			buffer[tableOffset] = fk.ReferencedColumnIndex; tableOffset++
+		}
 	}
 	
 	binary.BigEndian.PutUint16(buffer[freeSpaceOffsetOffset: freeSpaceOffsetOffset + 2], uint16(freeSpaceOffset))// assign the final Free space offset
