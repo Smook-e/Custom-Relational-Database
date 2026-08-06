@@ -326,3 +326,22 @@ func Compare(val1, val2 []byte, dataType uint8) (int, error) {
 		return 0, fmt.Errorf("Unsupported data type for comparison")
 	}
 }
+func (db *Database) PrintConstraints(constraints uint8) string {
+	var result string
+	if constraints&ConstraintPrimaryKey != 0 {
+		result += "PRIMARY KEY, "
+	}
+	if constraints&ConstraintUnique != 0 {
+		result += "UNIQUE, "
+	}
+	if constraints&ConstraintNotNull != 0 {
+		result += "NOT NULL, "
+	}
+	if constraints&ConstraintIndex != 0 {
+		result += "INDEX, "
+	}
+	if constraints&ConstraintSerial != 0 {
+		result += "SERIAL, "
+	}
+	return result
+}
