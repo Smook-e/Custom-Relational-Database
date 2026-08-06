@@ -38,6 +38,10 @@ func (db *Database) PrintTables() {
             for _, col := range table.Columns {
                 fmt.Printf(" Column: %s | Type: %d | Constraints: %v\n", col.Name, col.DataType, col.Constraints)
             }
+            fmt.Println(" Indexes:")
+            for indexName, indexID := range table.Indexes {
+                fmt.Printf("  Index: %s | Page ID: %d\n", indexName, indexID)
+            }
         }
     }
 }
