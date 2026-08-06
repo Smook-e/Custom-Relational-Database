@@ -44,6 +44,7 @@ type Column struct {
 	DataType uint8
 	Constraints uint8
 	Size uint8
+	Default any
 }
 type ColumnDefinition struct {
 	Name string
