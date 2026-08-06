@@ -33,10 +33,6 @@ Meta Page Structure:
 At each Table offset:
 	- Table Name Length (1 byte)
 	- Table Name (variable length)
-	- Number of Indexes (1 byte)
-	- For each Index:
-		- Column index in Columns array (1 byte)
-		- Index Page ID (4 bytes)
 	- Number of Columns (1 byte)
 	- For each Column:
 		- Column Name Length (1 byte)
@@ -44,6 +40,10 @@ At each Table offset:
 		- Data Type (1 byte)
 		- Constraints (1 byte)
 		- Size (1 byte)
+	- Number of Indexes (1 byte)
+	- For each Index:
+		- Column index in Columns array (1 byte)
+		- Index Page ID (4 bytes)
 */
 
 func ReadMetaPage(db *entities.Database) error{
