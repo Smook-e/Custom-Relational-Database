@@ -44,6 +44,12 @@ At each Table offset:
 	- For each Index:
 		- Column index in Columns array (1 byte)
 		- Index Page ID (4 bytes)
+	- Number of Foreign Keys (1 byte)
+	- For each Foreign Key:
+		- Column index in Columns array (1 byte)
+		- Referenced Table Name Length (1 byte)
+		- Referenced Table Name (variable length)
+		- Referenced Column index in Referenced Table's Columns array (1 byte)
 */
 
 func ReadMetaPage(db *entities.Database) error{
