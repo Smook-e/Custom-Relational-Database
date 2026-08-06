@@ -345,3 +345,19 @@ func (db *Database) PrintConstraints(constraints uint8) string {
 	}
 	return result
 }
+func (db *Database) PrintDataType(dataType uint8) string {
+	switch dataType {
+	case TypeTinyInt:
+		return "TINYINT"
+	case TypeSmallInt:
+		return "SMALLINT"
+	case TypeInt:
+		return "INT"
+	case TypeBigInt:
+		return "BIGINT"
+	case TypeVarChar:
+		return "VARCHAR"
+	default:
+		return "UNKNOWN"
+	}
+}
