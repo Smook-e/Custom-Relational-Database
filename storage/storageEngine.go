@@ -97,6 +97,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}
 		engine.db.Tables["orders"].Indexes["user_id"] = 5
 		engine.db.Tables["orders"].Indexes["product_id"] = 6
+		engine.db.Tables["orders"].ForeignKeys = make(map[string]entities.ForeignKeyReference)
 		engine.db.Tables["orders"].ForeignKeys["user_id"] = entities.ForeignKeyReference{
 			ReferencedTableName: "users",
 			ReferencedColumnIndex: 0, // Assuming 'id' is the first column in 'users'
@@ -107,7 +108,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}
 		// ensure FreePages is empty for meta write
 		engine.db.FreePages = []entities.FreePage{}
-		
+
 		engine.metaWrite = true
 		if err := engine.Commit(); err != nil {
 			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
