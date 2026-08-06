@@ -88,8 +88,26 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return nil, fmt.Errorf("failed to create users table: %w", err)
 		}
 		engine.db.Tables["users"].Indexes["id"] = 4
+		if err := engine.db.CreateTable("orders", []entities.ColumnDefinition{
+			{Name: "user_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
+			{Name: "product_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
+			{Name: "quantity", DataType: "int", Constraints: []string{"notnull"}},
+		}); err != nil {
+			return nil, fmt.Errorf("failed to create orders table: %w", err)
+		}
+		engine.db.Tables["orders"].Indexes["user_id"] = 5
+		engine.db.Tables["orders"].Indexes["product_id"] = 6
+		engine.db.Tables["orders"].ForeignKeys["user_id"] = entities.ForeignKeyReference{
+			ReferencedTableName: "users",
+			ReferencedColumnIndex: 0, // Assuming 'id' is the first column in 'users'
+		}
+		engine.db.Tables["orders"].ForeignKeys["product_id"] = entities.ForeignKeyReference{
+			ReferencedTableName: "products",
+			ReferencedColumnIndex: 0, // Assuming 'id' is the first column in 'products'
+		}
 		// ensure FreePages is empty for meta write
 		engine.db.FreePages = []entities.FreePage{}
+		
 		engine.metaWrite = true
 		if err := engine.Commit(); err != nil {
 			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
