@@ -110,10 +110,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// ensure FreePages is empty for meta write
 		engine.db.FreePages = []entities.FreePage{}
 
-		engine.metaWrite = true
-		if err := engine.Commit(); err != nil {
-			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
-		}
+		
 
 		
 
@@ -130,11 +127,11 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _, _, err := engine.InsertRow([]string{"2", "Macbook", "1200", "3", "apple"}, "products"); err != nil {
 			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
-
-		// persist updated meta + free-space pages after inserts
-		if err := pages.WriteMetaPage(engine.db); err != nil {
-			return nil, fmt.Errorf("failed to write meta pages after inserts: %w", err)
+		engine.metaWrite = true
+		if err := engine.Commit(); err != nil {
+			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
 		}
+
 	} else {
 		// existing database, attempt to read meta pages to populate tables/free list
 		if err := pages.ReadMetaPage(engine.db); err != nil {
@@ -142,6 +139,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}
 	}
 
+	
 	return engine, nil
 }
 func (engine *StorageEngine) NewPage() (uint32, error) {
