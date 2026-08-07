@@ -112,6 +112,21 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			offset += uint16(len(v))
 		}
 	}
+	//Get the primary key column name
+	primaryKeyColumnName := table.PrimaryKeyColumn
+	// Get the index of the primary key column
+	primaryKeyColumnIndex, err := table.GetColumnIndexByName(primaryKeyColumnName)
+	if err != nil {
+		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+	}
+	// Get the actual primary key column
+	primaryKeyColumn := table.Columns[primaryKeyColumnIndex]
+	// Serialize the primary key value into a byte slice to use for indexing
+	serializedKey,err := engine.db.Serialize(vals[primaryKeyColumnIndex], primaryKeyColumn.DataType)
+	if err != nil {
+		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+	}
+	engine.InsertIntoIndex(table.Indexes[primaryKeyColumnName], serializedKey, pageID, slot, primaryKeyColumn.DataType)
 	
 	return pageID, slot, nil
 }
