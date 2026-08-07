@@ -34,6 +34,7 @@ type Table struct {
 	Columns []Column
 	Indexes map[string]uint32 // Map of column name to index page ID
 	ForeignKeys map[string]ForeignKeyReference // Map of column name to foreign key reference
+	PrimaryKeyColumn string // Name of the primary key column
 }
 type Row struct {
 	PageID uint32
@@ -137,12 +138,14 @@ func GetDataType(datatype string) (uint8, error) {
 			return 0, fmt.Errorf("Data type %s not supported", datatype)
 		}
 }
-func GetConstraint(Constraints []string) (uint8, error) {
+func GetConstraint(Constraints []string) (uint8,bool, error) {
 	result := uint8(0)
+	isPrimaryKey := false
 	for _, constraint := range Constraints {
 			switch strings.ToLower(constraint) {
 			case "primarykey":
 				result |= ConstraintPrimaryKey
+				isPrimaryKey = true
 			case "notnull":
 				result |= ConstraintNotNull
 			case "unique":
@@ -150,10 +153,10 @@ func GetConstraint(Constraints []string) (uint8, error) {
 			case "index":
 				result |= ConstraintIndex
 			default:
-				return 0, fmt.Errorf("Constraint %s not supported", constraint)
+				return 0, false, fmt.Errorf("Constraint %s not supported", constraint)
 			}
 	}
-	return result, nil
+	return result, isPrimaryKey, nil
 }
 
 func (t *Table) GetColumnByName(name string) (*Column, error) {

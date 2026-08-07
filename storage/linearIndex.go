@@ -63,3 +63,5 @@ func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, dataType uint
 	
 	return 0,0, fmt.Errorf("Key not found")
 }
+
+// func (engine *StorageEngine) LinearSearch()
