@@ -27,7 +27,14 @@ func main(){
 	}
 	defer engine.Bp.File.Close()
 	engine.PrintMetaData()
-	
+	rows , err := engine.LinearSearch("products", nil)
+	if err != nil {
+		fmt.Printf("failed to perform linear search on products table: %v", err)
+	}
+	fmt.Println("Sample rows in products table:")
+	for _, row := range rows {
+		fmt.Println(row)
+	}
 
     
 }

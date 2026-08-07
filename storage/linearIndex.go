@@ -76,6 +76,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCon
 	}
 	// Get the Primary Key Column Name to start searching
 	rootId, ok := table.Indexes[table.PrimaryKeyColumn]
+	fmt.Println(table.PrimaryKeyColumn)
 	if !ok {
 		return nil, fmt.Errorf("Primary key index not found for table %s", tableName)
 	}
