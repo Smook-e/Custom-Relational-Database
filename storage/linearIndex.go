@@ -103,11 +103,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCon
 		offset = LeafPageHeaderSize
 		for range numKeys {
 			//skip the key bytes
-			col,err := table.GetColumnByName(table.PrimaryKeyColumn)
-			if err != nil {
-				return nil, fmt.Errorf("An Error Occured %w", err)
-			}
-			offset += int(col.Size)
+			offset += int(primaryKeyColumn.Size)
 			//check the condition
 			if condition == nil {
 				// read all rows if no condition is provided
