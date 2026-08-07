@@ -127,6 +127,18 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _, _, err := engine.InsertRow([]string{"2", "Macbook", "1200", "3", "apple"}, "products"); err != nil {
 			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
+		if _, _, err := engine.InsertRow([]string{"3", "Samsung Galaxy", "800", "1", "samsung"}, "products"); err != nil {
+			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+		}
+		if _, _, err := engine.InsertRow([]string{"4", "Google Pixel", "600", "2", "google"}, "products"); err != nil {
+			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+		}
+		if _, _, err := engine.InsertRow([]string{"5", "OnePlus", "400", "1", "oneplus"}, "products"); err != nil {
+			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+		}
+		if _, _, err := engine.InsertRow([]string{"6", "Xiaomi", "600", "3", "Xiaomi"}, "products"); err != nil {
+			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+		}
 		engine.metaWrite = true
 		if err := engine.Commit(); err != nil {
 			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
