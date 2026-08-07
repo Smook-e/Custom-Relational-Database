@@ -68,4 +68,21 @@ func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, dataType uint
 	return 0,0, fmt.Errorf("Key not found")
 }
 
-func (engine *StorageEngine) LinearSearch(tableName string, condition interface{}) (uint32, uint16, error) {
+func (engine *StorageEngine) LinearSearch(tableName string, condition SearchCondition) ([][]any, error) {
+	// Get the table object from the database
+	table, ok := engine.db.Tables[tableName]
+	if !ok {
+		return nil, fmt.Errorf("Table %s not found", tableName)
+	}
+	// Get the Primary Key Column Name to start searching
+	rootId, ok := table.Indexes[table.PrimaryKeyColumn]
+	if !ok {
+		return nil, fmt.Errorf("Primary key index not found for table %s", tableName)
+	}
+	// Get the first leaf page of the B+ tree (linked list of leaf pages)
+	leafId, err := engine.GetFirstLeafPage(rootId)
+	if err != nil {
+		return nil, fmt.Errorf("An Error Occured %w", err)
+	}
+	
+}
