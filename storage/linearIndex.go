@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 )
-
+type SearchCondition struct {
+	ColumnName string
+	Operator string
+	Value any
+}
 
 func (engine *StorageEngine) GetFirstLeafPage(rootId uint32) (uint32, error) {
 	//load page
@@ -64,4 +68,4 @@ func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, dataType uint
 	return 0,0, fmt.Errorf("Key not found")
 }
 
-// func (engine *StorageEngine) LinearSearch()
+func (engine *StorageEngine) LinearSearch(tableName string, condition interface{}) (uint32, uint16, error) {
