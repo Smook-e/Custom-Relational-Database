@@ -76,7 +76,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			{Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
 			{Name: "price", DataType: "int", Constraints: []string{"notnull"}},
 			{Name: "quantity", DataType: "int", Constraints: []string{"notnull"}},
-			{Name: "seller", DataType: "varchar", Constraints: []string{"notnull"}},
+			{Name: "seller", DataType: "varchar", Constraints: []string{"notnull", "index"}},
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create products table: %w", err)
 		}
