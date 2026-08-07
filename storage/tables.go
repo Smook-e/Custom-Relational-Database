@@ -8,7 +8,7 @@ import (
 	
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
-	
+	"strings"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 
@@ -130,16 +130,16 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	
 	return pageID, slot, nil
 }
-func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (error) {
+func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition) (error) {
 
-	table := &Table{Name: tableName}
+	table := &entities.Table{Name: tableName}
 	for _, col := range cols{
 		cleanst := strings.ToLower(col.DataType)
-		dataType, err := GetDataType(cleanst)
+		dataType, err := entities.GetDataType(cleanst)
 		if err != nil {
 			return  err
 		}
-		constraints,isPrimaryKey, err  := GetConstraint(col.Constraints)
+		constraints,isPrimaryKey, err  := entities.GetConstraint(col.Constraints)
 		if err != nil {
 			return  err
 		}
@@ -147,18 +147,18 @@ func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (erro
 			table.PrimaryKeyColumn = col.Name
 		}
 
-		size, err := GetSize(dataType)
+		size, err := entities.GetSize(dataType)
 		if err != nil {
 			return  err
 		}
-		table.Columns = append(table.Columns, Column{
+		table.Columns = append(table.Columns, entities.Column{
 			Name:        col.Name,
 			DataType:    dataType,
 			Constraints: constraints,
 			Size:        size,
 		})
 	}
-	db.Tables[tableName] = table
-	db.Tables[tableName].Indexes = make(map[string]uint32)
+	engine.db.Tables[tableName] = table
+	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
 	return nil
 }
