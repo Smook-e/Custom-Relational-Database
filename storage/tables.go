@@ -130,3 +130,35 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	
 	return pageID, slot, nil
 }
+func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (error) {
+
+	table := &Table{Name: tableName}
+	for _, col := range cols{
+		cleanst := strings.ToLower(col.DataType)
+		dataType, err := GetDataType(cleanst)
+		if err != nil {
+			return  err
+		}
+		constraints,isPrimaryKey, err  := GetConstraint(col.Constraints)
+		if err != nil {
+			return  err
+		}
+		if isPrimaryKey {
+			table.PrimaryKeyColumn = col.Name
+		}
+
+		size, err := GetSize(dataType)
+		if err != nil {
+			return  err
+		}
+		table.Columns = append(table.Columns, Column{
+			Name:        col.Name,
+			DataType:    dataType,
+			Constraints: constraints,
+			Size:        size,
+		})
+	}
+	db.Tables[tableName] = table
+	db.Tables[tableName].Indexes = make(map[string]uint32)
+	return nil
+}
