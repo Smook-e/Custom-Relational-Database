@@ -34,7 +34,6 @@ type Table struct {
 	Columns []Column
 	Indexes map[string]uint32 // Map of column name to index page ID
 	ForeignKeys map[string]ForeignKeyReference // Map of column name to foreign key reference
-	PrimaryKeyColumn string // Name of the primary key column
 }
 type Row struct {
 	PageID uint32
