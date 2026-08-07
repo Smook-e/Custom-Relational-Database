@@ -72,6 +72,22 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	// Validate constraints for each column
+	for i, col := range table.Columns {
+		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {
+			return 0,0, fmt.Errorf("Error: Column %s cannot be null", col.Name)
+		}
+		if col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex) {
+			// Check for uniqueness in the existing rows
+			serializedKey, err := engine.db.Serialize(vals[i], col.DataType)
+			if err != nil {
+				return 0,0, fmt.Errorf("An error occurred while serializing key: %w", err)
+			}
+			root := table.Indexes[col.Name]
+			if pageID, _, _ := engine.IndexSearch(root, serializedKey, col.DataType); pageID != 0 {
+				return 0,0, fmt.Errorf("Error: Column %s must be unique. Value %v already exists.", col.Name, data[i])
+			}
+		}
+	}
 	//Get a suitable data page and slot to insert into
 	pageID, err := pages.FindFreePage(engine.db, size)
 	if err != nil {
