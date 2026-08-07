@@ -188,7 +188,6 @@ func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (error) {
 
 	table := &Table{Name: tableName}
-	var constraints uint8
 	for _, col := range cols{
 		cleanst := strings.ToLower(col.DataType)
 		dataType, err := GetDataType(cleanst)
