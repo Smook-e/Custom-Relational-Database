@@ -51,7 +51,7 @@ func BenchmarkLinearSearch(b *testing.B) {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		_, _, err = engine.LinearSearch(root, key, entities.TypeBigInt)
+		_, _, err = engine.LinearTree(root, key, entities.TypeBigInt)
 		if err != nil {
 			fmt.Println("Error searching for key 999999 ","Error:", err)
 			return

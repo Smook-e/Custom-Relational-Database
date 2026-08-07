@@ -22,7 +22,7 @@ func (engine *StorageEngine) GetFirstLeafPage(rootId uint32) (uint32, error) {
 	return engine.GetFirstLeafPage(firstChildId)
 }
 
-func (engine *StorageEngine) LinearSearch(rootId uint32, key []byte, dataType uint8) (uint32, uint16, error) {
+func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, dataType uint8) (uint32, uint16, error) {
 	leafId, err := engine.GetFirstLeafPage(rootId)
 	if err != nil {
 		return 0,0, fmt.Errorf("An Error Occured %w", err)
