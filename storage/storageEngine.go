@@ -69,7 +69,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	// example tables and a few rows.
 	if engine.db.TotalPages == 0 {
 		// create example tables
-		if err := engine.db.CreateTable("products", []entities.ColumnDefinition{
+		if err := engine.CreateTable("products", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
 			{Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
 			{Name: "price", DataType: "int", Constraints: []string{"notnull"}},
@@ -80,7 +80,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}
 		
 		engine.db.Tables["products"].Indexes["id"] = 3
-		if err := engine.db.CreateTable("users", []entities.ColumnDefinition{
+		if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
 			{Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
 			{Name: "age", DataType: "int", Constraints: []string{}},
@@ -88,7 +88,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return nil, fmt.Errorf("failed to create users table: %w", err)
 		}
 		engine.db.Tables["users"].Indexes["id"] = 4
-		if err := engine.db.CreateTable("orders", []entities.ColumnDefinition{
+		if err := engine.CreateTable("orders", []entities.ColumnDefinition{
 			{Name: "user_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
 			{Name: "product_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
 			{Name: "quantity", DataType: "int", Constraints: []string{"notnull"}},

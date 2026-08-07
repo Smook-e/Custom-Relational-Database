@@ -74,7 +74,7 @@ func (engine *StorageEngine) TestWriteandReadDatabase() error {
     engine.Bp.File.Truncate(0) // Clear the file before testing
     // initialize tables
     
-    err := engine.db.CreateTable("products", []entities.ColumnDefinition{
+    err := engine.CreateTable("products", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
@@ -87,7 +87,7 @@ func (engine *StorageEngine) TestWriteandReadDatabase() error {
     // engine.db.Tables[t1.Name] = t1
 
     // Table 2
-    err = engine.db.CreateTable("users", []entities.ColumnDefinition{
+    err = engine.CreateTable("users", []entities.ColumnDefinition{
         {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "age", DataType: "int", Constraints: []string{}},
