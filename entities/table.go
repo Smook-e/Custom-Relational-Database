@@ -195,11 +195,14 @@ func (db *Database) CreateTable(tableName string, cols []ColumnDefinition) (erro
 		if err != nil {
 			return  err
 		}
-		constraints, err  = GetConstraint(col.Constraints)
+		constraints,isPrimaryKey, err  := GetConstraint(col.Constraints)
 		if err != nil {
 			return  err
 		}
-		
+		if isPrimaryKey {
+			table.PrimaryKeyColumn = col.Name
+		}
+
 		size, err := GetSize(dataType)
 		if err != nil {
 			return  err
