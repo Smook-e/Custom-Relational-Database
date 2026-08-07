@@ -142,7 +142,8 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		if err != nil {
 			return  fmt.Errorf("Error getting constraint:%w", err)
 		}
-		if constraints & entities.ConstraintPrimaryKey != 0 {
+		// If the column has a primary key, unique, or index constraint, create an index for it
+		if constraints & entities.ConstraintPrimaryKey != 0 || constraints & entities.ConstraintUnique != 0 || constraints & entities.ConstraintIndex != 0 {
 			// Create an index for the primary key column
 			// Create a new page for the index root
 			root, err := engine.NewPage()
