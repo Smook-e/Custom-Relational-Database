@@ -23,7 +23,6 @@ func main(){
 	engine, err := storage.InitializeStorageEngine(filename)
 	if err != nil {
 		fmt.Print(err)
-		return
 	}
 	defer engine.Bp.File.Close()
 	engine.PrintMetaData()
