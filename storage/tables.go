@@ -139,12 +139,32 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		if err != nil {
 			return  err
 		}
-		constraints,isPrimaryKey, err  := entities.GetConstraint(col.Constraints)
+		constraints, err  := entities.GetConstraint(col.Constraints)
 		if err != nil {
 			return  err
 		}
-		if isPrimaryKey {
+		if constraints & entities.ConstraintPrimaryKey != 0 {
+			// Set the primary key column name in the table
 			table.PrimaryKeyColumn = col.Name
+			// Create an index for the primary key column
+			// Create a new page for the index root
+			root, err := engine.NewPage()
+			if err != nil {
+				return fmt.Errorf("Error creating new page:%w", err)
+			}
+			buffer , err := engine.Bp.Get(root)
+			if err != nil {
+				return fmt.Errorf("Error getting buffer for new page:%w", err)
+			}
+			// Initialize the index root page as a leaf page
+			err =pages.InitializeLeafPage([]pages.LeafEntry{}, buffer)
+			if err != nil {
+				return fmt.Errorf("Error initializing leaf page:%w", err)
+			}
+			// Mark the page as dirty so it will be written to disk
+			engine.Bp.MarkDirty(root)
+			// Store the root page ID in the table's index map
+			table.Indexes[col.Name] = root
 		}
 
 		size, err := entities.GetSize(dataType)
