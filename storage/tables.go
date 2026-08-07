@@ -113,7 +113,10 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		}
 	}
 	//Get the primary key column name
-	primaryKeyColumnName := table.PrimaryKeyColumn
+	primaryKeyColumn, err := table.GetPrimaryKeyColumn()
+	if err != nil {
+		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+	}
 	// Get the index of the primary key column
 	primaryKeyColumnIndex, err := table.GetColumnIndexByName(primaryKeyColumnName)
 	if err != nil {
@@ -126,7 +129,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	if err != nil {
 		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
 	}
-	engine.InsertIntoIndex(table.Indexes[primaryKeyColumnName], serializedKey, pageID, slot, primaryKeyColumn.DataType)
+	engine.InsertIntoIndex(table.Indexes[primaryKeyColumn.Name], serializedKey, pageID, slot, primaryKeyColumn.DataType)
 
 	return pageID, slot, nil
 }
@@ -146,8 +149,6 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			return  fmt.Errorf("Error getting constraint:%w", err)
 		}
 		if constraints & entities.ConstraintPrimaryKey != 0 {
-			// Set the primary key column name in the table
-			table.PrimaryKeyColumn = col.Name
 			// Create an index for the primary key column
 			// Create a new page for the index root
 			root, err := engine.NewPage()

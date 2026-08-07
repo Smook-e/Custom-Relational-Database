@@ -333,11 +333,11 @@ func (db *Database) PrintDataType(dataType uint8) string {
 	}
 }
 
-func (table *Table) GetPrimaryKeyColumn() (*Column, error) {
-	for _, col := range table.Columns {
+func (table *Table) GetPrimaryKeyColumn() (*Column, int, error) {
+	for i, col := range table.Columns {
 		if col.Constraints&ConstraintPrimaryKey != 0 {
-			return &col, nil
+			return &col, i, nil
 		}
 	}
-	return nil, fmt.Errorf("No primary key column found in table %s", table.Name)
+	return nil, -1, fmt.Errorf("No primary key column found in table %s", table.Name)
 }
