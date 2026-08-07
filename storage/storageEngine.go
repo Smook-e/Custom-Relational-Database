@@ -68,6 +68,8 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	// If the file is empty, create a Database with a meta page, free-space page, and
 	// example tables and a few rows.
 	if engine.db.TotalPages == 0 {
+		// update total pages to account for meta + free-space pages
+		engine.db.TotalPages = 2
 		// create example tables
 		if err := engine.CreateTable("products", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
@@ -79,7 +81,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return nil, fmt.Errorf("failed to create products table: %w", err)
 		}
 		
-		engine.db.Tables["products"].Indexes["id"] = 3
+		
 		if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
 			{Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
@@ -87,7 +89,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create users table: %w", err)
 		}
-		engine.db.Tables["users"].Indexes["id"] = 4
+		
 		if err := engine.CreateTable("orders", []entities.ColumnDefinition{
 			{Name: "user_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
 			{Name: "product_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
@@ -95,8 +97,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create orders table: %w", err)
 		}
-		engine.db.Tables["orders"].Indexes["user_id"] = 5
-		engine.db.Tables["orders"].Indexes["product_id"] = 6
+		
 		engine.db.Tables["orders"].ForeignKeys = make(map[string]entities.ForeignKeyReference)
 		engine.db.Tables["orders"].ForeignKeys["user_id"] = entities.ForeignKeyReference{
 			ReferencedTableName: "users",
@@ -114,8 +115,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
 		}
 
-		// update total pages to account for meta + free-space pages
-		engine.db.TotalPages = 2
+		
 
 		// insert a few sample rows to make the DB testable (FindFreePage will create data pages)
 		if _, _, err := engine.InsertRow([]string{"1", "joe", "20"}, "users"); err != nil {

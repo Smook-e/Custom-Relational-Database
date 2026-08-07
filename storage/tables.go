@@ -127,21 +127,23 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	engine.InsertIntoIndex(table.Indexes[primaryKeyColumnName], serializedKey, pageID, slot, primaryKeyColumn.DataType)
-	
+
 	return pageID, slot, nil
 }
 func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition) (error) {
 
 	table := &entities.Table{Name: tableName}
+	engine.db.Tables[tableName] = table
+	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
 	for _, col := range cols{
 		cleanst := strings.ToLower(col.DataType)
 		dataType, err := entities.GetDataType(cleanst)
 		if err != nil {
-			return  err
+			return  fmt.Errorf("Error getting data type:%w", err)
 		}
 		constraints, err  := entities.GetConstraint(col.Constraints)
 		if err != nil {
-			return  err
+			return  fmt.Errorf("Error getting constraint:%w", err)
 		}
 		if constraints & entities.ConstraintPrimaryKey != 0 {
 			// Set the primary key column name in the table
@@ -178,7 +180,6 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			Size:        size,
 		})
 	}
-	engine.db.Tables[tableName] = table
-	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
+	
 	return nil
 }
