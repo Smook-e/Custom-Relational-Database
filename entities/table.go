@@ -56,6 +56,9 @@ type ForeignKeyReference struct {
 	ReferencedTableName string
 	ReferencedColumnIndex uint8
 }
+func (col *Column) HasConstraint(constraint uint8) bool {
+	return col.Constraints&constraint != 0
+}
 
 func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
 	values := make([]any, len(vals))

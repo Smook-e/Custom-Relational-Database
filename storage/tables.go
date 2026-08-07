@@ -71,6 +71,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
+	// Validate constraints for each column
 	//Get a suitable data page and slot to insert into
 	pageID, err := pages.FindFreePage(engine.db, size)
 	if err != nil {
@@ -127,6 +128,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 
 	return pageID, slot, nil
 }
+
 func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition) (error) {
 
 	table := &entities.Table{Name: tableName}
