@@ -101,9 +101,10 @@ func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
 				if len(val) > int(col.Size) {
 					return nil, 0, fmt.Errorf("Error: Value %s exceeds maximum length of %d for column %s", val, col.Size, col.Name)
 				}
-				size += uint16(len(val)) + 1 //string length
+				size += uint16(col.Size) + 1 //string length + 1 byte for length prefix
+			}else {
+				size += uint16(len(val)) + 1 //string length + 1 byte for length prefix
 			}
-			size += uint16(len(val)) + 1 //string length + 1 byte for length prefix
 			values[i] = val
 		default:
 			return nil, 0, fmt.Errorf("Unsupported data type for column %s", col.Name)
