@@ -189,16 +189,15 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
+		
+		col := &entities.Column{DataType: entities.TypeBigInt, Size: 8}
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), col)
 		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
 			return
 		}
 		
-		if i % 100000 == 0 {
-			fmt.Println(root)
-		}
 		
 	}
 	for i:= 1; i <= 1000000; i += 2 {
@@ -207,6 +206,10 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 			fmt.Println("Error serializing key:", err)
 			return
 		}
+		
+		// if (i - 1) % 100 == 0 {
+		// 	continue
+		// }
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		
 		if err != nil {
@@ -214,9 +217,6 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 			return
 		}
 		
-		if (i - 1) % 100000 == 0 {
-			fmt.Println("root:", root)
-		}
 		
 	}
 	//search
@@ -291,6 +291,10 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) uint32 {
 			fmt.Println("Error serializing key:", err)
 			return 0
 		}
+		if i% 100000 == 0 {
+			// fmt.Println("key:", i, "root:", root)
+			continue
+		}
 		
 		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		
@@ -299,9 +303,6 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) uint32 {
 			return 0
 		}
 		
-		if i% 100000 == 0 {
-			fmt.Println("key:", i, "root:", root)
-		}
 		
 	}
 	// page, err := engine.Bp.Get(541)

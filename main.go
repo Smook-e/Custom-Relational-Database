@@ -34,6 +34,7 @@ func main(){
 	for _, row := range rows {
 		fmt.Println(row)
 	}
+	// engine.TestIndexInsertMiddleRoot(0)
 
     
 }
