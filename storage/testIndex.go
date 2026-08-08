@@ -11,7 +11,7 @@ import (
 )
 func ( engine *StorageEngine) TestSearch(RootPageID uint32) {
 	for i := range 10000 {
-		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -39,7 +39,7 @@ func (engine *StorageEngine) TestIndexSearchPageRoot() {
 	leaf1_keys := []int32{10, 20, 30}
 	leaf1_entries := make([]pages.LeafEntry, len(leaf1_keys))
 	for i, val := range leaf1_keys {
-		key, err := engine.db.Serialize(val, entities.TypeInt)
+		key, err := engine.db.Serialize(val, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -66,7 +66,7 @@ func (engine *StorageEngine) TestIndexSearchPageRoot() {
 	leaf2_keys := []int32{40, 50, 60}
 	leaf2_entries := make([]pages.LeafEntry, len(leaf2_keys))
 	for i, val := range leaf2_keys {
-		key, err := engine.db.Serialize(val, entities.TypeInt)
+		key, err := engine.db.Serialize(val, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -101,7 +101,7 @@ func (engine *StorageEngine) TestIndexSearchPageRoot() {
 	fmt.Println("Initialized root internal page with entries:", root_entries)
 	// search for keys in the index
 	for _, val := range append(leaf1_keys, leaf2_keys...) {
-		key, err := engine.db.Serialize(val, entities.TypeInt)
+		key, err := engine.db.Serialize(val, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -129,7 +129,7 @@ func (engine *StorageEngine) TestIndexSearchPage() {
 	keys := []int32{10,20,30,40,50}
 	entries := make([]pages.LeafEntry, len(keys))
 	for i, val := range keys {
-		key,err := engine.db.Serialize(val, entities.TypeInt)
+		key,err := engine.db.Serialize(val, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -143,7 +143,7 @@ func (engine *StorageEngine) TestIndexSearchPage() {
 	pages.InitializeLeafPage(entries, buffer)
 	fmt.Println("Initialized leaf page with entries:", keys)
 	for _, val := range keys {
-		key,err := engine.db.Serialize(val, entities.TypeInt)
+		key,err := engine.db.Serialize(val, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -184,7 +184,7 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 	}
 
 	for i:= 0; i <= 1000000; i += 2 {
-		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -202,7 +202,7 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 		
 	}
 	for i:= 1; i <= 1000000; i += 2 {
-		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -221,7 +221,7 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 	}
 	//search
 	for i := range 1000001 {
-		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -286,7 +286,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) uint32 {
 	}
 
 	for i := range 1000001 {
-		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return 0
@@ -313,7 +313,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) uint32 {
 	// search
 	engine.Commit()
 	for i := 0; i <= 1000000; i++ {
-		key, err := engine.db.Serialize(int64(i), entities.TypeBigInt)
+		key, err := engine.db.Serialize(int64(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return 0
@@ -349,7 +349,7 @@ func (engine *StorageEngine) TestIndexInsert() {
 		return
 	}
 	for i := 1; i <= 10; i++ {
-		key, err := engine.db.Serialize(int32(i), entities.TypeInt)
+		key, err := engine.db.Serialize(int32(i), &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -364,7 +364,7 @@ func (engine *StorageEngine) TestIndexInsert() {
 	}
 	// search for keys in the index
 	for i := 1; i <= 10; i++ {
-		key, err := engine.db.Serialize(int32(i), entities.TypeInt)
+		key, err := engine.db.Serialize(int32(i), &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return

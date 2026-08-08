@@ -262,8 +262,8 @@ func (db *Database) Serialize(val any, col *Column) ([]byte, error) {
 		return nil, fmt.Errorf("Unsupported data type for serialization")
 	}
 }
-func Deserialize(data []byte, col *Column) (any, error) {
-	switch col.DataType {
+func Deserialize(data []byte, dataType uint8) (any, error) {
+	switch dataType {
 	case TypeTinyInt:
 		return int8(data[0]), nil
 	case TypeSmallInt:
