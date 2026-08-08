@@ -97,6 +97,12 @@ func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
 			size += uint16(col.Size)
 			values[i] = int64(n)
 		case TypeVarChar:
+			if col.Size > 0 {
+				if len(val) > int(col.Size) {
+					return nil, 0, fmt.Errorf("Error: Value %s exceeds maximum length of %d for column %s", val, col.Size, col.Name)
+				}
+				size += uint16(len(val)) + 1 //string length
+			}
 			size += uint16(len(val)) + 1 //string length + 1 byte for length prefix
 			values[i] = val
 		default:
