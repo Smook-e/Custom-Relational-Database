@@ -78,7 +78,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		}
 		if col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex) {
 			// Check for uniqueness in the existing rows
-			serializedKey, err := engine.db.Serialize(vals[i], col.DataType)
+			serializedKey, err := engine.db.Serialize(vals[i], &col)
 			if err != nil {
 				return 0,0, fmt.Errorf("An error occurred while serializing key: %w", err)
 			}
@@ -136,7 +136,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	}
 	
 	// Serialize the primary key value into a byte slice to use for indexing
-	serializedKey,err := engine.db.Serialize(vals[primaryKeyColumnIndex], primaryKeyColumn.DataType)
+	serializedKey,err := engine.db.Serialize(vals[primaryKeyColumnIndex], primaryKeyColumn)
 	if err != nil {
 		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
 	}
