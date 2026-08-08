@@ -152,7 +152,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
 	for _, col := range cols{
 		cleanst := strings.ToLower(col.DataType)
-		dataType, err := entities.GetDataType(cleanst)
+		dataType,size, err := entities.GetDataTypeAndSize(cleanst)
 		if err != nil {
 			return  fmt.Errorf("Error getting data type:%w", err)
 		}
@@ -183,10 +183,10 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			table.Indexes[col.Name] = root
 		}
 
-		size, err := entities.GetSize(dataType)
-		if err != nil {
-			return  err
-		}
+		// size, err := entities.GetSize(dataType)
+		// if err != nil {
+		// 	return  err
+		// }
 		table.Columns = append(table.Columns, entities.Column{
 			Name:        col.Name,
 			DataType:    dataType,

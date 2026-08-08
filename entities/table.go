@@ -124,20 +124,20 @@ func GetSize(Type uint8) (uint8, error) {
 
 }
 
-func GetDataType(datatype string) (uint8, error) {
+func GetDataTypeAndSize(datatype string) (uint8, uint8, error) {
 	switch datatype {
 		case "tinyint":
-			return TypeTinyInt, nil
+			return TypeTinyInt, 1, nil
 		case "smallint":
-			return TypeSmallInt, nil
+			return TypeSmallInt, 2, nil
 		case "bigint":
-			return TypeBigInt, nil
+			return TypeBigInt, 8, nil
 		case "int":
-			return TypeInt, nil
+			return TypeInt, 4, nil
 		case "varchar":
-			return TypeVarChar, nil
+			return TypeVarChar, 0, nil
 		default:
-			return 0, fmt.Errorf("Data type %s not supported", datatype)
+			return 0, 0, fmt.Errorf("Data type %s not supported", datatype)
 		}
 }
 func GetConstraint(Constraints []string) (uint8, error) {
