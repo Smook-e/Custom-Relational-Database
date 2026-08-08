@@ -26,7 +26,7 @@ func (engine *StorageEngine) GetFirstLeafPage(rootId uint32) (uint32, error) {
 	return engine.GetFirstLeafPage(firstChildId)
 }
 
-func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, dataType uint8) (uint32, uint16, error) {
+func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, col *entities.Column) (uint32, uint16, error) {
 	leafId, err := engine.GetFirstLeafPage(rootId)
 	if err != nil {
 		return 0,0, fmt.Errorf("An Error Occured %w", err)
@@ -45,7 +45,7 @@ func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, dataType uint
 		numKeys := binary.BigEndian.Uint16(buffer[leafPageNumEntriesOffset:leafPageNumEntriesOffset + 2])
 		offset = LeafPageHeaderSize
 		for range numKeys {
-			comp , err := entities.Compare(key, buffer[offset: offset + len(key)], dataType)
+			comp , err := entities.Compare(key, buffer[offset: offset + len(key)], col)
 			if err != nil {
 				return 0,0, fmt.Errorf("An Error Occured %w", err)
 			}

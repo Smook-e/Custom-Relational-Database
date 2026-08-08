@@ -282,8 +282,8 @@ func Deserialize(data []byte, dataType uint8) (any, error) {
 		return nil, fmt.Errorf("Unsupported data type for deserialization")
 	}
 }
-func Compare(val1, val2 []byte, dataType uint8) (int, error) {
-	switch dataType {
+func Compare(val1, val2 []byte, col *Column) (int, error) {
+	switch col.DataType {
 	case TypeTinyInt:
 		v1 := int8(val1[0])
 		v2 := int8(val2[0])
@@ -321,6 +321,11 @@ func Compare(val1, val2 []byte, dataType uint8) (int, error) {
 		}
 		return 0, nil
 	case TypeVarChar:
+		if col.Size > 0 {
+			val1Size := int(val1[0])
+			val2Size := int(val2[0])
+			return strings.Compare(string(val1[1:1+val1Size]), string(val2[1:1+val2Size])), nil
+		}
 		return strings.Compare(string(val1[1:]), string(val2[1:])), nil
 	default:
 		return 0, fmt.Errorf("Unsupported data type for comparison")
