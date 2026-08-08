@@ -491,3 +491,77 @@ func (engine *StorageEngine) TestIndexInsertStringRoot() {
 	
 
 }
+func (engine *StorageEngine) TestIndexInsertStringMiddleRoot(){
+	root, err := engine.NewPage()
+	if err != nil {
+		fmt.Println("Error creating new page:", err)
+		return
+	}
+	
+	buffer, err := engine.Bp.Get(root)
+	if err != nil {
+		fmt.Println("Error retrieving page from buffer pool:", err)
+		return
+	}
+	err =pages.InitializeLeafPage([]pages.LeafEntry{
+
+	}, buffer)
+	if err != nil {
+		fmt.Println("Error initializing leaf page:", err)
+		return
+	}
+	col := &entities.Column{DataType: entities.TypeVarChar, Size: 20}
+	
+	for i := 0; i <= 10000; i+=2 {
+		str := fmt.Sprintf("string_%d", i)
+		key, err := engine.db.Serialize(str, col)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), col)
+		
+		if err != nil {
+			fmt.Println("Error inserting key:", str, "Error:", err)
+			return
+		}
+		if i % 100 == 0 {
+			fmt.Printf("Inserted key %s at PageID: %d\n", str, root)
+		}
+	}
+	for i := 1; i <= 10000; i+=2 {
+		str := fmt.Sprintf("string_%d", i)
+		key, err := engine.db.Serialize(str, col)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), col)
+		
+		if err != nil {
+			fmt.Println("Error inserting key:", str, "Error:", err)
+			return
+		}
+		if (i - 1) % 100 == 0 {
+			fmt.Printf("Inserted key %s at PageID: %d\n", str, root)
+		}
+	}
+	// search for keys in the index
+	for i := range 10001 {
+		str := fmt.Sprintf("string_%d", i)
+		key, err := engine.db.Serialize(str, col)
+		if err != nil {
+			fmt.Println("Error serializing key:", err)
+			return
+		}
+		pageID, slot, err := engine.IndexSearch(root, key, col)
+		if err != nil {
+			fmt.Println("Error searching for key:", str, "Error:", err)
+			continue
+		}
+		if i % 100 == 0 {
+			fmt.Printf("Found key %s at PageID: %d, Slot: %d\n", str, pageID, slot)
+		}
+	}
+	
+}
