@@ -13,8 +13,8 @@ const (
 	LeafPageHeaderSize     = 1 + 4 + 2 // isLeaf + nextLeafPage + numberOfEntries
 	InternalPageHeaderSize = 1 + 2   // isLeaf + numberOfEntries
 )
-func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, error) {
-	newRoot, newKey, err := IndexInsert(engine, root, key, pageID, slot, dataType)
+func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uint32, slot uint16, col *entities.Column) (uint32, error) {
+	newRoot, newKey, err := IndexInsert(engine, root, key, pageID, slot, col)
 	if err != nil {
 		
 		return 0, fmt.Errorf("failed to insert into index: %w", err)
@@ -48,7 +48,7 @@ func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uin
 }
 
 // Recursive function to insert a key into the index starting from the root page, and split the page if necessary. Returns the new root page ID and the new key to be inserted into the parent page if a split occurs.
-func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, slot uint16, dataType uint8) (uint32, []byte, error) {
+func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, slot uint16, col *entities.Column) (uint32, []byte, error) {
 
 	buffer , err := engine.Bp.Get(root)
 	
@@ -70,14 +70,14 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 		for i := range numberOfEntries {
 			leftptr := binary.BigEndian.Uint32(buffer[offset : offset+4]) // left PageID
 			offset += 4
-			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
+			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], col)
 			if err != nil {
 				return 0, nil, fmt.Errorf("comparison error: %w", err)
 			}
 			if comp < 0 {
 				// Key is less than the current entry's key, so we should go to the left pointer
 				found = int(i)
-				newRoot, newKey, err = IndexInsert(engine, leftptr, key, pageID, slot, dataType)
+				newRoot, newKey, err = IndexInsert(engine, leftptr, key, pageID, slot, col)
 				if err != nil {
 					return 0, nil, err
 				}
@@ -89,7 +89,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 		if found == -1 {
 			found = int(numberOfEntries)
 			rightptr := binary.BigEndian.Uint32(buffer[offset : offset+4])
-			newRoot, newKey, err = IndexInsert(engine, rightptr, key, pageID, slot, dataType)
+			newRoot, newKey, err = IndexInsert(engine, rightptr, key, pageID, slot, col)
 			if err != nil {
 				return 0, nil, err
 			}
@@ -190,7 +190,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 		if numberOfEntries < uint16(maxEntries) {
 			// Insert the new key, pageID, and slot into this leaf page
 			for range numberOfEntries {
-				comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
+				comp, err := entities.Compare(key, buffer[offset:offset+len(key)], col)
 				if err != nil {
 					return 0, nil, fmt.Errorf("comparison error: %w", err)
 				}
@@ -237,7 +237,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 				existingKey := buffer[offset : offset+len(key)]
 
 				if !inserted {
-					comp, err := entities.Compare(key, existingKey, dataType)
+					comp, err := entities.Compare(key, existingKey, col)
 					if err != nil {
 						return 0, nil, fmt.Errorf("comparison error: %w", err)
 					}
@@ -308,7 +308,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 
 
 
-func (engine *StorageEngine) IndexSearch(root uint32, key []byte, dataType uint8) (uint32, uint16, error) {
+func (engine *StorageEngine) IndexSearch(root uint32, key []byte, col *entities.Column) (uint32, uint16, error) {
 	buffer , err := engine.Bp.Get(root)
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to get buffer for page %d: %w", root, err)
@@ -324,26 +324,26 @@ func (engine *StorageEngine) IndexSearch(root uint32, key []byte, dataType uint8
 		for range numberOfEntries {
 			leftptr := binary.BigEndian.Uint32(buffer[offset : offset+4])// left PageID
 			offset += 4
-			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
+			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], col)
 			if err != nil {
 				return 0, 0, fmt.Errorf("comparison error: %w", err)
 			}
 			if comp < 0 {
 				// Key is less than the current entry's key, so we should go to the left pointer
-				return engine.IndexSearch(leftptr, key, dataType)
+				return engine.IndexSearch(leftptr, key, col)
 			}
 			offset += len(key)
 		}
 		// If we reach here, it means the key is greater than all entries, so we should go to the right pointer
 		rightptr := binary.BigEndian.Uint32(buffer[offset : offset+4])
-		return engine.IndexSearch(rightptr, key, dataType)
+		return engine.IndexSearch(rightptr, key, col)
 	} else {
 		// Leaf page
 		offset += 1 + 4 // Skip isLeaf and nextLeafPage
 		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
 		offset += 2
 		for range numberOfEntries {
-			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], dataType)
+			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], col)
 			if err != nil {
 				return 0, 0, fmt.Errorf("comparison error: %w", err)
 			}
