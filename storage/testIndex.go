@@ -454,7 +454,7 @@ func (engine *StorageEngine) TestIndexInsertStringRoot() {
 	}
 	col := &entities.Column{DataType: entities.TypeVarChar, Size: 20}
 	
-	for i := range 1000 {
+	for i := range 10001 {
 		str := fmt.Sprintf("string_%d", i)
 		key, err := engine.db.Serialize(str, col)
 		if err != nil {
@@ -467,10 +467,12 @@ func (engine *StorageEngine) TestIndexInsertStringRoot() {
 			fmt.Println("Error inserting key:", str, "Error:", err)
 			return
 		}
-		fmt.Printf("Inserted key %s at PageID: %d\n", str, root)
+		if i % 100 == 0 {
+			fmt.Printf("Inserted key %s at PageID: %d\n", str, root)
+		}
 	}
 	// search for keys in the index
-	for i := range 1000 {
+	for i := range 10001 {
 		str := fmt.Sprintf("string_%d", i)
 		key, err := engine.db.Serialize(str, col)
 		if err != nil {
@@ -482,7 +484,9 @@ func (engine *StorageEngine) TestIndexInsertStringRoot() {
 			fmt.Println("Error searching for key:", str, "Error:", err)
 			continue
 		}
-		fmt.Printf("Found key %s at PageID: %d, Slot: %d\n", str, pageID, slot)
+		if i % 100 == 0 {
+			fmt.Printf("Found key %s at PageID: %d, Slot: %d\n", str, pageID, slot)
+		}
 	}
 	
 

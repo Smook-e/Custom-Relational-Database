@@ -105,7 +105,6 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 					offset = InternalPageHeaderSize + int(numberOfEntries)*(len(key) + 4) + 4 // 4 bytes for the right pointer
 				} else {
 					offset = InternalPageHeaderSize + int(found)*(len(key) + 4) + 4// 4 bytes for the left pointer of the found entry
-					fmt.Println(int(found)*(len(key) + 4))
 				}
 				
 				// Shift entries to make space for the new entry
