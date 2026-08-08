@@ -401,7 +401,7 @@ func (engine *StorageEngine) TestIndexInsertString() {
 		return
 	}
 	col := &entities.Column{DataType: entities.TypeVarChar, Size: 20}
-	strings := []string{"apple", "banana", "cherry", "date", "elderberry"}
+	strings := []string{"apple", "Apple", "banana", "cherry", "date", "elderberry", "Cat", "Catalog"}
 	for i, str := range strings {
 		key, err := engine.db.Serialize(str, col)
 		if err != nil {
@@ -430,5 +430,6 @@ func (engine *StorageEngine) TestIndexInsertString() {
 		}
 		fmt.Printf("Found key %s at PageID: %d, Slot: %d\n", str, pageID, slot)
 	}
+	PrintLeafPageEntries(buffer, int(col.Size) + 1, col.DataType)
 
 }
