@@ -16,7 +16,7 @@ func ( engine *StorageEngine) TestSearch(RootPageID uint32) {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		_, _, err = engine.IndexSearch(RootPageID, key, entities.TypeBigInt)
+		_, _, err = engine.IndexSearch(RootPageID, key, &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error searching for key:", i, "Error:", err)
 			continue
@@ -106,7 +106,7 @@ func (engine *StorageEngine) TestIndexSearchPageRoot() {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		pageID, slot, err := engine.IndexSearch(pageID3, key, entities.TypeInt)
+		pageID, slot, err := engine.IndexSearch(pageID3, key, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error searching for key:", val, "Error:", err)
 			continue
@@ -148,7 +148,7 @@ func (engine *StorageEngine) TestIndexSearchPage() {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		pageID, slot, err := engine.IndexSearch(pageID, key, entities.TypeInt)
+		pageID, slot, err := engine.IndexSearch(pageID, key, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error searching for key:", val, "Error:", err)
 			continue
@@ -189,7 +189,7 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
@@ -207,7 +207,7 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
@@ -226,7 +226,7 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
+		_, _, err = engine.IndexSearch(root, key, &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error searching for key:", i, "Error:", err)
 			continue
@@ -292,7 +292,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) uint32 {
 			return 0
 		}
 		
-		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), entities.TypeBigInt)
+		root, err = engine.InsertIntoIndex(root, key, uint32(i), uint16(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
@@ -318,7 +318,7 @@ func (engine *StorageEngine) TestIndexInsertRoot(rootPageID uint32) uint32 {
 			fmt.Println("Error serializing key:", err)
 			return 0
 		}
-		_, _, err = engine.IndexSearch(root, key, entities.TypeBigInt)
+		_, _, err = engine.IndexSearch(root, key, &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error searching for key:", i, "Error:", err)
 			continue
@@ -354,7 +354,7 @@ func (engine *StorageEngine) TestIndexInsert() {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		_, err = engine.InsertIntoIndex(pageID, key, uint32(i), uint16(i), entities.TypeInt)
+		_, err = engine.InsertIntoIndex(pageID, key, uint32(i), uint16(i), &entities.Column{DataType: entities.TypeInt, Size: 4})
 		
 		if err != nil {
 			fmt.Println("Error inserting key:", i, "Error:", err)
@@ -369,7 +369,7 @@ func (engine *StorageEngine) TestIndexInsert() {
 			fmt.Println("Error serializing key:", err)
 			return
 		}
-		pageID, slot, err := engine.IndexSearch(pageID, key, entities.TypeInt)
+		pageID, slot, err := engine.IndexSearch(pageID, key, &entities.Column{DataType: entities.TypeInt, Size: 4})
 		if err != nil {
 			fmt.Println("Error searching for key:", i, "Error:", err)
 			continue
