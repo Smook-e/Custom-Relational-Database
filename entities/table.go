@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"regexp"
 	"encoding/binary"
 
 )
@@ -123,18 +124,28 @@ func GetSize(Type uint8) (uint8, error) {
 	}
 
 }
-
+var varcharRegex = regexp.MustCompile(`(?i)^varchar(?:[(](\d+)[)])?$`)
 func GetDataTypeAndSize(datatype string) (uint8, uint8, error) {
-	switch datatype {
-		case "tinyint":
+	switch  {
+		case datatype == "tinyint":
 			return TypeTinyInt, 1, nil
-		case "smallint":
+		case datatype == "smallint":
 			return TypeSmallInt, 2, nil
-		case "bigint":
+		case datatype == "bigint":
 			return TypeBigInt, 8, nil
-		case "int":
+		case datatype == "int":
 			return TypeInt, 4, nil
-		case "varchar":
+		case varcharRegex.MatchString(datatype):
+			matches := varcharRegex.FindStringSubmatch(datatype)
+			 // Index 1 holds the digits if they were provided
+			if matches[1] != "" {
+				// Parse into uint8 
+				length, err := strconv.ParseUint(matches[1], 10, 8)
+				if err != nil {
+					return 0, 0, fmt.Errorf("Invalid VARCHAR length: %s", matches[1])
+				}
+				return TypeVarChar, uint8(length), nil
+			}
 			return TypeVarChar, 0, nil
 		default:
 			return 0, 0, fmt.Errorf("Data type %s not supported", datatype)
