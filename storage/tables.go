@@ -83,7 +83,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 				return 0,0, fmt.Errorf("An error occurred while serializing key: %w", err)
 			}
 			root := table.Indexes[col.Name]
-			if pageID, _, _ := engine.IndexSearch(root, serializedKey, col.DataType); pageID != 0 {
+			if pageID, _, _ := engine.IndexSearch(root, serializedKey, &col); pageID != 0 {
 				return 0,0, fmt.Errorf("Error: Column %s must be unique. Value %v already exists.", col.Name, data[i])
 			}
 		}
@@ -140,7 +140,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	if err != nil {
 		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
 	}
-	engine.InsertIntoIndex(table.Indexes[primaryKeyColumn.Name], serializedKey, pageID, slot, primaryKeyColumn.DataType)
+	engine.InsertIntoIndex(table.Indexes[primaryKeyColumn.Name], serializedKey, pageID, slot, primaryKeyColumn)
 
 	return pageID, slot, nil
 }
