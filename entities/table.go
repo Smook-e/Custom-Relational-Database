@@ -205,9 +205,9 @@ func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 
 
 
-func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
+func (db *Database) Serialize(val any, col *Column) ([]byte, error) {
 
-	switch dataType {
+	switch col.DataType {
 	case TypeTinyInt:
 		v, ok := val.(int8)
 		if !ok {
@@ -246,7 +246,15 @@ func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
 		if len(strVal) > 255 {
 			return nil, fmt.Errorf("String length exceeds maximum of 255 characters")
 		}
-		buf := make([]byte, len(strVal)+1)
+		var buf []byte
+		if col.Size > 0 {
+			if len(strVal) > int(col.Size) {
+				return nil, fmt.Errorf("String length exceeds maximum of %d characters", col.Size)
+			}
+			buf = make([]byte, col.Size+1)
+		}else{
+			buf = make([]byte, len(strVal)+1)
+		}
 		buf[0] = byte(len(strVal))
 		copy(buf[1:], strVal)
 		return buf, nil
@@ -254,8 +262,8 @@ func (db *Database) Serialize(val any, dataType uint8) ([]byte, error) {
 		return nil, fmt.Errorf("Unsupported data type for serialization")
 	}
 }
-func Deserialize(data []byte, dataType uint8) (any, error) {
-	switch dataType {
+func Deserialize(data []byte, col *Column) (any, error) {
+	switch col.DataType {
 	case TypeTinyInt:
 		return int8(data[0]), nil
 	case TypeSmallInt:
