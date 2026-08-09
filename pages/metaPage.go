@@ -39,6 +39,7 @@ At each Table offset:
 		- Column Name (variable length)
 		- Data Type (1 byte)
 		- Constraints (1 byte)
+		- Default Value (variable length, if applicable)
 		- Size (1 byte)
 	- Number of Indexes (1 byte)
 	- For each Index:
