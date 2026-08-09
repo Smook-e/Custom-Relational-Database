@@ -160,6 +160,12 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		if err != nil {
 			return  fmt.Errorf("Error getting constraint:%w", err)
 		}
+		newCol := entities.Column{
+			Name:        col.Name,
+			DataType:    dataType,
+			Constraints: constraints,
+			Size:        size,
+		}
 		// If the column has a primary key, unique, or index constraint, create an index for it
 		if constraints & entities.ConstraintPrimaryKey != 0 || constraints & entities.ConstraintUnique != 0 || constraints & entities.ConstraintIndex != 0 {
 			// Create an index for the primary key column
@@ -182,17 +188,17 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			// Store the root page ID in the table's index map
 			table.Indexes[col.Name] = root
 		}
+		// Set the default value for the column if it has a default constraint
+		if constraints & entities.ConstraintDefault != 0 {
+			newCol.Default = col.Default
+		}
+		
 
 		// size, err := entities.GetSize(dataType)
 		// if err != nil {
 		// 	return  err
 		// }
-		table.Columns = append(table.Columns, entities.Column{
-			Name:        col.Name,
-			DataType:    dataType,
-			Constraints: constraints,
-			Size:        size,
-		})
+		table.Columns = append(table.Columns, newCol)
 	}
 	
 	return nil
