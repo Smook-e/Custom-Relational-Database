@@ -70,6 +70,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
+	
 	// Validate constraints for each column
 	for i, col := range table.Columns {
 		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {

@@ -62,13 +62,21 @@ func (col *Column) HasConstraint(constraint uint8) bool {
 	return col.Constraints&constraint != 0
 }
 
-func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
+func (t *Table) GetValues(vals []string) ([]any,uint16, []byte, error) {
 	values := make([]any, len(vals))
 	var col *Column
 	var size uint16 = 0
+	nullBitmapSize := (len(t.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
+	size += uint16(nullBitmapSize)
+	nullBitmap := make([]byte, nullBitmapSize)
 	for i, val := range vals {
 		if val == "" {
 			values[i] = nil
+			byteIndex := i / 8
+			bitIndex := i % 8
+			nullBitmap[byteIndex] |= (1 << bitIndex)
+			continue
+		}
 			continue
 		}
 		col = &t.Columns[i]
