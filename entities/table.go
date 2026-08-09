@@ -252,7 +252,7 @@ func (db *Database) Serialize(val any, col *Column) ([]byte, error) {
 			return nil, fmt.Errorf("String length exceeds maximum of 255 characters")
 		}
 		var buf []byte
-		if col.Size > 0 {
+		if col.Size > 0 {// fixed size varchar
 			if len(strVal) > int(col.Size) {
 				return nil, fmt.Errorf("String length exceeds maximum of %d characters", col.Size)
 			}
@@ -379,4 +379,30 @@ func (table *Table) GetPrimaryKeyColumn() (*Column, int, error) {
 		}
 	}
 	return nil, -1, fmt.Errorf("No primary key column found in table %s", table.Name)
+}
+// SetDefaultValue reads the buffer and sets the default value for the column based on its data type. it returns the number of bytes read from the buffer and an error
+func (col *Column) SetDefaultValue(buffer []byte, offset int) (int,error) {
+	switch col.DataType {
+	case TypeTinyInt:
+		col.Default = int8(buffer[offset])
+		return 1, nil
+	case TypeSmallInt:
+		col.Default = int16(binary.BigEndian.Uint16(buffer[offset : offset+2]))
+		return 2, nil
+	case TypeInt:
+		col.Default = int32(binary.BigEndian.Uint32(buffer[offset : offset+4]))
+		return 4, nil
+	case TypeBigInt:
+		col.Default = int64(binary.BigEndian.Uint64(buffer[offset : offset+8]))
+		return 8, nil
+	case TypeVarChar:
+		length := int(buffer[offset])
+		col.Default = string(buffer[offset+1 : offset+1+length])
+		if col.Size > 0 {// fixed size varchar
+			return int(col.Size) + 1, nil // Return the size of the column + 1 for the length byte
+		}
+		return length + 1, nil // Return the length of the string + 1 for the length byte
+	default:
+		return 0, fmt.Errorf("Unsupported data type for setting default value")
+	}
 }
