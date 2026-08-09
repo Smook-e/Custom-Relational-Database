@@ -406,3 +406,41 @@ func (col *Column) SetDefaultValue(buffer []byte, offset int) (int,error) {
 		return 0, fmt.Errorf("Unsupported data type for setting default value")
 	}
 }
+func (col *Column) GetDefaultValue(value string) (any, error) {
+	switch col.DataType {
+	case TypeTinyInt:
+		n, err := strconv.ParseInt(value, 10, 8)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to TinyInt: %w", value, err)
+		}
+		return int8(n), nil
+	case TypeSmallInt:
+		n, err := strconv.ParseInt(value, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to SmallInt: %w", value, err)
+		}
+		return int16(n), nil
+	case TypeInt:
+		n, err := strconv.ParseInt(value, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to Int: %w", value, err)
+		}
+		return int32(n), nil
+	case TypeBigInt:
+		n, err := strconv.ParseInt(value,	 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to BigInt: %w", value, err)
+		}
+		return int64(n), nil
+	case TypeVarChar:
+		if len(value) > 255 {
+			return nil, fmt.Errorf("String length exceeds maximum of 255 characters")
+		}
+		if col.Size > 0 && len(value) > int(col.Size) {
+			return nil, fmt.Errorf("String length exceeds maximum of %d characters", col.Size)
+		}
+		return value, nil
+	default:
+		return nil, fmt.Errorf("Unsupported data type for default value")
+	}
+}
