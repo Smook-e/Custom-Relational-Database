@@ -27,7 +27,18 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 	}
 	offset := tableOffset
+	// read the null bitmap first
+	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
+	nullBitmap := buffer[offset : offset+uint16(nullBitmapSize)]
+	offset += uint16(nullBitmapSize)
 	for i, col := range table.Columns {
+		// Check if the column is null using the null bitmap
+		byteIndex := i / 8
+		bitIndex := uint(i % 8)
+		if nullBitmap[byteIndex]&(1<<bitIndex) != 0 {
+			Row[i] = nil
+			continue
+		}
 		switch col.DataType {
 		case entities.TypeTinyInt://int8
 			Row[i] = int8(buffer[offset])
