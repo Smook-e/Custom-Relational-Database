@@ -210,6 +210,14 @@ func WriteMetaPage(db *entities.Database) error {
 			copy(buffer[tableOffset: tableOffset + len(col.Name)], col.Name); tableOffset+= len(col.Name);
 			buffer[tableOffset] = col.DataType; tableOffset++;
 			buffer[tableOffset] = col.Constraints; tableOffset++;
+			if col.HasConstraint(entities.ConstraintDefault) {
+				DefaultBytes, err := db.Serialize(col.Default, col)
+				if err != nil {
+					return fmt.Errorf("Error serializing default value for column %s: %w", col.Name, err)
+				}
+				copy(buffer[tableOffset:tableOffset+len(DefaultBytes)], DefaultBytes)
+				tableOffset += len(DefaultBytes)
+			}
 			buffer[tableOffset] = col.Size; tableOffset++;
 		}
 
