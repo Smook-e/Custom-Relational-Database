@@ -190,8 +190,11 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		}
 		// Set the default value for the column if it has a default constraint
 		if constraints & entities.ConstraintDefault != 0 {
-			
-			newCol.Default = col.Default.(int)
+			defaultValue, err := newCol.GetDefaultValue(col.Default)
+			if err != nil {
+				return fmt.Errorf("Error getting default value for column %s: %w", col.Name, err)
+			}
+			newCol.Default = defaultValue
 		}
 		
 

@@ -52,7 +52,7 @@ type ColumnDefinition struct {
 	Name string
 	DataType string
 	Constraints []string
-	Default any
+	Default string
 }
 type ForeignKeyReference struct {
 	ReferencedTableName string
