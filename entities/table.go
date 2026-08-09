@@ -134,6 +134,7 @@ func GetSize(Type uint8) (uint8, error) {
 }
 var varcharRegex = regexp.MustCompile(`(?i)^varchar(?:[(](\d+)[)])?$`)
 func GetDataTypeAndSize(datatype string) (uint8, uint8, error) {
+	datatype = strings.ToLower(datatype)
 	switch  {
 		case datatype == "tinyint":
 			return TypeTinyInt, 1, nil

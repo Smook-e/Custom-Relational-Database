@@ -73,9 +73,9 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// create example tables
 		if err := engine.CreateTable("products", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
-			{Name: "name", DataType: "varchar", Constraints: []string{"notnull"}, Default: "unknown"},
-			{Name: "price", DataType: "int", Constraints: []string{"notnull"}, Default: "100"},
-			{Name: "quantity", DataType: "int", Constraints: []string{"notnull"}, Default: "0"},
+			{Name: "name", DataType: "varchar", Constraints: []string{"notnull", "default"}, Default: "unknown"},
+			{Name: "price", DataType: "int", Constraints: []string{"notnull", "default"}, Default: "100"},
+			{Name: "quantity", DataType: "int", Constraints: []string{"notnull", "default"}, Default: "0"},
 			{Name: "seller", DataType: "varchar", Constraints: []string{"notnull", "index"}},
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create products table: %w", err)
@@ -84,7 +84,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		
 		if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
-			{Name: "name", DataType: "varchar", Constraints: []string{"notnull"}, Default: "unknown"},
+			{Name: "name", DataType: "varchar", Constraints: []string{"notnull", "default"}, Default: "unknown"},
 			{Name: "age", DataType: "int", Constraints: []string{}},
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create users table: %w", err)

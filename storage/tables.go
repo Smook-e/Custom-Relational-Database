@@ -8,7 +8,6 @@ import (
 	
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
-	"strings"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 
@@ -151,8 +150,8 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 	engine.db.Tables[tableName] = table
 	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
 	for _, col := range cols{
-		cleanst := strings.ToLower(col.DataType)
-		dataType,size, err := entities.GetDataTypeAndSize(cleanst)
+		
+		dataType,size, err := entities.GetDataTypeAndSize(col.DataType)
 		if err != nil {
 			return  fmt.Errorf("Error getting data type:%w", err)
 		}
