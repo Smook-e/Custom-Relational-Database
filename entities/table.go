@@ -171,6 +171,10 @@ func GetConstraint(Constraints []string) (uint8, error) {
 				result |= ConstraintUnique
 			case "index":
 				result |= ConstraintIndex
+			case "serial":
+				result |= ConstraintSerial
+			case "default":
+				result |= ConstraintDefault
 			default:
 				return 0, fmt.Errorf("Constraint %s not supported", constraint)
 			}
