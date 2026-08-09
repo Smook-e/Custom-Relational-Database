@@ -73,9 +73,9 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// create example tables
 		if err := engine.CreateTable("products", []entities.ColumnDefinition{
 			{Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
-			{Name: "name", DataType: "varchar", Constraints: []string{"notnull", "default"}, Default: "unknown"},
-			{Name: "price", DataType: "int", Constraints: []string{"notnull", "default"}, Default: "100"},
-			{Name: "quantity", DataType: "int", Constraints: []string{"notnull", "default"}, Default: "0"},
+			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "unknown"},
+			{Name: "price", DataType: "bigint", Constraints: []string{"notnull", "default"}, Default: "100"},
+			{Name: "quantity", DataType: "smallint", Constraints: []string{"notnull", "default"}, Default: "0"},
 			{Name: "seller", DataType: "varchar", Constraints: []string{"notnull", "index"}},
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create products table: %w", err)
