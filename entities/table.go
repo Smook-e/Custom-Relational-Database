@@ -77,42 +77,40 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, []byte, error) {
 			nullBitmap[byteIndex] |= (1 << bitIndex)
 			continue
 		}
-			continue
-		}
 		col = &t.Columns[i]
 		switch col.DataType {
 		case TypeTinyInt:
 			n, err := strconv.ParseInt(val, 10, 8)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to TinyInt: %w", val, err)
+				return nil, 0,nil, fmt.Errorf("Error converting %s to TinyInt: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int8(n)
 		case TypeSmallInt:
 			n, err := strconv.ParseInt(val, 10, 16)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to SmallInt: %w", val, err)
+				return nil, 0,nil, fmt.Errorf("Error converting %s to SmallInt: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int16(n)
 		case TypeInt:
 			n, err := strconv.ParseInt(val, 10, 32)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to Int: %w", val, err)
+				return nil, 0,nil, fmt.Errorf("Error converting %s to Int: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int32(n)
 		case TypeBigInt:
 			n, err := strconv.ParseInt(val, 10, 64)
 			if err != nil {
-				return nil, 0, fmt.Errorf("Error converting %s to BigInt: %w", val, err)
+				return nil, 0,nil, fmt.Errorf("Error converting %s to BigInt: %w", val, err)
 			}
 			size += uint16(col.Size)
 			values[i] = int64(n)
 		case TypeVarChar:
 			if col.Size > 0 {
 				if len(val) > int(col.Size) {
-					return nil, 0, fmt.Errorf("Error: Value %s exceeds maximum length of %d for column %s", val, col.Size, col.Name)
+					return nil, 0, nil, fmt.Errorf("Error: Value %s exceeds maximum length of %d for column %s", val, col.Size, col.Name)
 				}
 				size += uint16(col.Size) + 1 //string length + 1 byte for length prefix
 			}else {
@@ -120,10 +118,10 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, []byte, error) {
 			}
 			values[i] = val
 		default:
-			return nil, 0, fmt.Errorf("Unsupported data type for column %s", col.Name)
+			return nil, 0, nil, fmt.Errorf("Unsupported data type for column %s", col.Name)
 		}
 	}
-	return values, size, nil
+	return values, size, nullBitmap, nil
 
 }
 
