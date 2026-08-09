@@ -67,6 +67,10 @@ func (t *Table) GetValues(vals []string) ([]any,uint16 ,  error) {
 	var col *Column
 	var size uint16 = 0
 	for i, val := range vals {
+		if val == "" {
+			values[i] = nil
+			continue
+		}
 		col = &t.Columns[i]
 		switch col.DataType {
 		case TypeTinyInt:
