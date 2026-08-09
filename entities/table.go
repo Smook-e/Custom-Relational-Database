@@ -362,7 +362,7 @@ func (col *Column) PrintConstraints(constraints uint8) string {
 	}
 	return result
 }
-func (db *Database) PrintDataType(dataType uint8) string {
+func (col *Column) PrintDataType(dataType uint8) string {
 	switch dataType {
 	case TypeTinyInt:
 		return "TINYINT"
@@ -373,6 +373,9 @@ func (db *Database) PrintDataType(dataType uint8) string {
 	case TypeBigInt:
 		return "BIGINT"
 	case TypeVarChar:
+		if col.Size > 0 {
+			return fmt.Sprintf("VARCHAR(%d)", col.Size)
+		}
 		return "VARCHAR"
 	default:
 		return "UNKNOWN"
