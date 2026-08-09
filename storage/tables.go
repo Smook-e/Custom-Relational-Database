@@ -66,7 +66,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	if len(table.Columns) != len(data){
 		return 0,0, fmt.Errorf("Error: Invalid input size. Please enter %d Fields", len(table.Columns))
 	}
-	vals, size, err := table.GetValues(data)
+	vals, size, nullBitmap, err := table.GetValues(data)
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
@@ -106,8 +106,17 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	
 	offset := freeSpaceOffset
 	//Pass 2: write the values into the page
+	// Write the null bitmap first
+	copy(buffer[offset:offset+uint16(len(nullBitmap))], nullBitmap)
+	offset += uint16(len(nullBitmap))
 	for _, val := range vals {
-		//cast the value into its type first
+		if val == nil {
+			continue
+		}
+		// Write the value based on its type
+		// Use a type switch to determine the type of the value and write it accordingly
+		// Use binary.BigEndian to write multi-byte values in big-endian order
+		// For strings, write the length first as a single byte, then write the string bytes
 		switch v := val.(type) {
 		case int8:
 			buffer[offset] = byte(v)
