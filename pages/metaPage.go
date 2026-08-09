@@ -81,6 +81,8 @@ func ReadMetaPage(db *entities.Database) error{
 			tableName := string(buffer[tableOffset: tableOffset + nameLength]); tableOffset += nameLength;
 			table.Name = tableName
 			db.Tables[tableName] = table
+
+			// Columns
 			numberOfColumns := buffer[tableOffset]; tableOffset++;
 			// Loop through each column and read its metadata
 			for range numberOfColumns {
@@ -89,11 +91,15 @@ func ReadMetaPage(db *entities.Database) error{
 				column := &entities.Column{Name: string(columnName)}
 				column.DataType = buffer[tableOffset]; tableOffset++;
 				column.Constraints = buffer[tableOffset]; tableOffset++;
+				if column.HasConstraint(entities.ConstraintDefault) {
+					// Read the default value for the column
+				}
 				column.Size, _ = entities.GetSize(column.DataType); tableOffset++;
 				table.Columns = append(table.Columns, *column)
 				
 			}
-			
+
+			//Indexes
 			numberOfIndexes := int(buffer[tableOffset]); tableOffset++;
 			table.Indexes = make(map[string]uint32, numberOfIndexes)
 			// Loop through each index and read its metadata
@@ -107,6 +113,7 @@ func ReadMetaPage(db *entities.Database) error{
 				table.Indexes[columnName] = indexPageID
 			}
 
+			// Foreign Keys
 			numberOfForeignKeys := int(buffer[tableOffset]); tableOffset++;
 			table.ForeignKeys = make(map[string]entities.ForeignKeyReference, numberOfForeignKeys)
 			// Loop through each foreign key and read its metadata
