@@ -93,6 +93,11 @@ func ReadMetaPage(db *entities.Database) error{
 				column.Constraints = buffer[tableOffset]; tableOffset++;
 				if column.HasConstraint(entities.ConstraintDefault) {
 					// Read the default value for the column
+					bytesRead, err := column.SetDefaultValue(buffer, tableOffset)
+					if err != nil {
+						return fmt.Errorf("Error setting default value for column %s: %w", column.Name, err)
+					}
+					tableOffset += bytesRead
 				}
 				column.Size, _ = entities.GetSize(column.DataType); tableOffset++;
 				table.Columns = append(table.Columns, *column)
