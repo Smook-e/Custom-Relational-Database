@@ -36,7 +36,7 @@ func (db *Database) PrintTables() {
             fmt.Printf("******************************\nTable: %s | Columns: %d\n", name, len(table.Columns))
 
             for _, col := range table.Columns {
-                fmt.Printf(" Column: %s | Type: %s | Constraints: %s\n", col.Name, db.PrintDataType(col.DataType), db.PrintConstraints(col.Constraints))
+                fmt.Printf(" Column: %s | Type: %s | Constraints: %s\n", col.Name, db.PrintDataType(col.DataType), col.PrintConstraints(col.Constraints))
             }
             fmt.Println(" Indexes:")
             for indexName, indexID := range table.Indexes {

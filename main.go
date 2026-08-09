@@ -35,7 +35,7 @@ func main(){
 		fmt.Println(row)
 	}
 	// engine.TestIndexInsertMiddleRoot(0)
-	engine.TestIndexInsertStringMiddleRoot()
+	// engine.TestIndexInsertStringMiddleRoot()
 	
 
     
