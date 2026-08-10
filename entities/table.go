@@ -101,6 +101,8 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, []byte, error) {
 			}
 			size += uint16(col.Size)
 			values[i] = int32(n)
+		case TypeSerial:// same as TypeInt
+			return nil, 0,nil, errors.New("Error: Serial type should not be provided by user. It is auto-incremented.")
 		case TypeBigInt:
 			n, err := strconv.ParseInt(val, 10, 64)
 			if err != nil {
