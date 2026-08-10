@@ -141,7 +141,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			}
 			root := referencedTable.Indexes[referencedCol.Name]
 			if pageID, _, _ := engine.IndexSearch(root, serializedKey, &referencedCol); pageID == 0 {
-				return 0,0, fmt.Errorf("Error: Foreign key constraint violation on column %s. Value %v does not exist in referenced table %s.", col.Name, data[i], fk.ReferencedTableName)
+				return 0,0, fmt.Errorf("Error: Foreign key constraint violation on column '%s'. Value %v does not exist in Column '%s' of referenced table '%s'.", col.Name, data[i], referencedCol.Name, fk.ReferencedTableName)
 			}
 		}
 	}

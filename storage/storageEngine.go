@@ -149,6 +149,20 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _, _, err := engine.InsertRow([]string{"", "Xiaomi", "600", "3", ""}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
+
+
+		if _,_, err := engine.InsertRow([]string{"1", "1", "2"}, "orders"); err != nil {
+			fmt.Printf("failed to insert sample order row: %v", err)
+		}
+		if _,_, err := engine.InsertRow([]string{"2", "2", "2"}, "orders"); err != nil {
+			fmt.Printf("failed to insert sample order row: %v", err)
+		}
+		if _,_, err := engine.InsertRow([]string{"5", "3", "2"}, "orders"); err != nil {
+			fmt.Printf("failed to insert sample order row: %v", err)
+		}
+		if _,_, err := engine.InsertRow([]string{"4", "4", "2"}, "orders"); err != nil {
+			fmt.Printf("failed to insert sample order row: %v", err)
+		}
 		// for _, table := range engine.db.Tables {
 		// 	var buf []byte
 		// 	for colName, root := range table.Indexes {

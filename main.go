@@ -42,6 +42,14 @@ func main(){
 	for _, row := range rows {
 		fmt.Println(row)
 	}
+	rows , err = engine.LinearSearch("orders", nil)
+	if err != nil {
+		fmt.Printf("failed to perform linear search on orders table: %v", err)
+	}
+	fmt.Println("Sample rows in orders table:")
+	for _, row := range rows {
+		fmt.Println(row)
+	}
 	// engine.TestIndexInsertMiddleRoot(0)
 	// engine.TestIndexInsertStringMiddleRoot()
 	
