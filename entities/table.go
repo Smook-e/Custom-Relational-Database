@@ -200,6 +200,7 @@ func GetConstraint(Constraints []string) (uint8, error) {
 				result |= ConstraintIndex // Unique implies an index
 			case "index":
 				result |= ConstraintIndex
+				result |= ConstraintUnique // Index implies unique
 			case "serial":
 				result |= ConstraintSerial
 			case "default":
