@@ -218,12 +218,12 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	return pageID, slot, nil
 }
 
-func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition) (error) {
+func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition, foreignKeys []entities.ForeignKeyDefinition) (error) {
 
 	table := &entities.Table{Name: tableName}
 	engine.db.Tables[tableName] = table
 	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
-	for _, col := range cols{
+	for i, col := range cols{
 		
 		dataType,size, err := entities.GetDataTypeAndSize(col.DataType)
 		if err != nil {
@@ -282,6 +282,25 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		// 	return  err
 		// }
 		table.Columns = append(table.Columns, newCol)
+	}
+	table.ForeignKeys = make(map[string]entities.ForeignKeyReference)
+	for _, fk := range foreignKeys {
+		// Validate that the column exists in the current table
+		if _, err := table.GetColumnByName(fk.ColumnName); err != nil {
+			return fmt.Errorf("Error: Column %s not found in table %s for foreign key constraint", fk.ColumnName, tableName)
+		}
+		referencedTable, ok := engine.db.Tables[fk.ReferencedTableName]
+		if !ok {
+			return fmt.Errorf("Error: Referenced table %s not found for foreign key constraint on column %s", fk.ReferencedTableName, fk.ColumnName)
+		}
+		referencedColIndex, err := referencedTable.GetColumnIndexByName(fk.ReferencedColumnName)
+		if err != nil {
+			return fmt.Errorf("Error getting referenced column index for foreign key: %w", err)
+		}
+		table.ForeignKeys[fk.ColumnName] = entities.ForeignKeyReference{
+			ReferencedTableName: fk.ReferencedTableName,
+			ReferencedColumnIndex: uint8(referencedColIndex),
+		}
 	}
 	
 	return nil
