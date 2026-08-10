@@ -254,6 +254,14 @@ func (db *Database) Serialize(val any, col *Column) ([]byte, error) {
 		}
 		binary.BigEndian.PutUint32(buf, uint32(v))
 		return buf, nil
+	case TypeSerial:
+		buf := make([]byte, 4)
+		v, ok := val.(int32)
+		if !ok {
+			return nil, fmt.Errorf("Expected int32 for TypeSerial, got %T", val)
+		}
+		binary.BigEndian.PutUint32(buf, uint32(v))
+		return buf, nil
 	case TypeBigInt:
 		buf := make([]byte, 8)
 		v, ok := val.(int64)
