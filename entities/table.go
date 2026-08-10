@@ -441,6 +441,9 @@ func (col *Column) SetDefaultValue(buffer []byte, offset int) (int,error) {
 	case TypeInt:
 		col.Default = int32(binary.BigEndian.Uint32(buffer[offset : offset+4]))
 		return 4, nil
+	case TypeSerial:// same as TypeInt
+		col.Default = int32(binary.BigEndian.Uint32(buffer[offset : offset+4]))
+		return 4, nil
 	case TypeBigInt:
 		col.Default = int64(binary.BigEndian.Uint64(buffer[offset : offset+8]))
 		return 8, nil
