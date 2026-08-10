@@ -193,6 +193,7 @@ func GetConstraint(Constraints []string) (uint8, error) {
 				result |= ConstraintPrimaryKey
 				result |= ConstraintNotNull // Primary key implies NOT NULL
 				result |= ConstraintUnique // Primary key implies UNIQUE
+				result |= ConstraintIndex // Primary key implies an index
 			case "notnull":
 				result |= ConstraintNotNull
 			case "unique":
