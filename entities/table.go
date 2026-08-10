@@ -170,6 +170,8 @@ func GetDataTypeAndSize(datatype string) (uint8, uint8, error) {
 				return TypeVarChar, uint8(length), nil
 			}
 			return TypeVarChar, 0, nil
+		case datatype == "serial":
+			return TypeSerial, 4, nil
 		default:
 			return 0, 0, fmt.Errorf("Data type %s not supported", datatype)
 		}
