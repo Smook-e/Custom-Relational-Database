@@ -89,7 +89,24 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	// Validate constraints for each column
 	for i, col := range table.Columns {
 		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {
-			
+			if col.HasConstraint(entities.ConstraintDefault) {
+				// If the column has a default constraint, use the default value instead of returning an error
+				vals[i] = col.Default
+				// Clear the null bit from the null bitmap since we are using a default value
+				byteIndex := i / 8
+				bitIndex := uint(i % 8)
+				nullBitmap[byteIndex] &^= (1 << bitIndex) // Clear the bit for this column
+				// Update the size to account for the default value
+				defaultSize, err := entities.GetSize(&col)
+				if err != nil {
+					return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+				}
+				if defaultSize == 0 {// Varchar with no size specified, use the length of the default value
+					size += uint16(len(col.Default.(string))) + 1 // +1 for length prefix
+				}
+			}else {
+				return 0,0, fmt.Errorf("Error: Column '%s' cannot be null", col.Name)
+			}
 		}
 		if col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex) {
 			// Check for uniqueness in the existing rows
