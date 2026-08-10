@@ -407,6 +407,8 @@ func (col *Column) PrintDataType(dataType uint8) string {
 		return "SMALLINT"
 	case TypeInt:
 		return "INT"
+	case TypeSerial:
+		return "SERIAL"
 	case TypeBigInt:
 		return "BIGINT"
 	case TypeVarChar:
