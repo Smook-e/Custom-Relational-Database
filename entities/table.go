@@ -351,29 +351,29 @@ func Compare(val1, val2 []byte, col *Column) (int, error) {
 	}
 }
 func (col *Column) PrintConstraints(constraints uint8) string {
-	var result string
+	var result []string
 	if constraints == 0 {
 		return "None"
 	}
 	if constraints&ConstraintPrimaryKey != 0 {
-		result += "PRIMARY KEY, "
+		result = append(result, "PRIMARY KEY")
 	}
 	if constraints&ConstraintUnique != 0 {
-		result += "UNIQUE, "
+		result = append(result, "UNIQUE")
 	}
 	if constraints&ConstraintNotNull != 0 {
-		result += "NOT NULL, "
+		result = append(result, "NOT NULL")
 	}
 	if constraints&ConstraintIndex != 0 {
-		result += "INDEX, "
+		result = append(result, "INDEX")
 	}
 	if constraints&ConstraintSerial != 0 {
-		result += "SERIAL, "
+		result = append(result, "SERIAL")
 	}
 	if constraints&ConstraintDefault != 0 {
-		result += "DEFAULT = " + fmt.Sprintf("%v", col.Default) + ", "
+		result = append(result, "DEFAULT = "+fmt.Sprintf("%v", col.Default))
 	}
-	return result
+	return strings.Join(result, ", ")
 }
 func (col *Column) PrintDataType(dataType uint8) string {
 	switch dataType {
