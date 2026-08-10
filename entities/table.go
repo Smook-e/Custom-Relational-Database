@@ -141,6 +141,8 @@ func GetSize(col *Column) (uint8, error) {
 			return col.Size + 1, nil // +1 for length prefix
 		}
 		return 0, nil
+	case TypeSerial:
+		return 4, nil // Serial is stored as a 4-byte integer
 	default:
 		return 0, errors.New("unknown DataType")
 	}
