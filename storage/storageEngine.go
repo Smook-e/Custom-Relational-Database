@@ -123,10 +123,10 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _, _, err := engine.InsertRow([]string{"", "emily", "emily@example.com", "098-765-4321", "25"}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"", "alice", "alice@example.com", "098-765-4321", "30"}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "alice", "alice@example.com", "098-765-4320", "30"}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"", "bob", "bob@example.com", "098-765-4321", "35"}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "bob", "bob@example.com", "098-761-4321", "35"}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 
