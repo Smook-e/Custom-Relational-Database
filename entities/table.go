@@ -17,6 +17,7 @@ const (
 	TypeInt     uint8 = 2 // 4 bytes
 	TypeBigInt  uint8 = 3 // 8 bytes
 	TypeVarChar uint8 = 4 
+	TypeSerial uint8 = 5 // 4 bytes, auto incrementing integer
 )
 
 // Constraint identifiers 
