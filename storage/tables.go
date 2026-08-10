@@ -128,6 +128,22 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 				return 0,0, fmt.Errorf("Error: Column %s must be unique. Value %v already exists.", col.Name, data[i])
 			}
 		}
+		// Check for foreign key constraints
+		if fk, exists := table.ForeignKeys[col.Name]; exists {
+			referencedTable, ok := engine.db.Tables[fk.ReferencedTableName]
+			if !ok {
+				return 0,0, fmt.Errorf("Error: Referenced table %s not found for foreign key constraint on column %s", fk.ReferencedTableName, col.Name)
+			}
+			referencedCol := referencedTable.Columns[fk.ReferencedColumnIndex]
+			serializedKey, err := engine.db.Serialize(vals[i], &col)
+			if err != nil {
+				return 0,0, fmt.Errorf("An error occurred while serializing key for foreign key check: %w", err)
+			}
+			root := referencedTable.Indexes[referencedCol.Name]
+			if pageID, _, _ := engine.IndexSearch(root, serializedKey, &referencedCol); pageID == 0 {
+				return 0,0, fmt.Errorf("Error: Foreign key constraint violation on column %s. Value %v does not exist in referenced table %s.", col.Name, data[i], fk.ReferencedTableName)
+			}
+		}
 	}
 	//Get a suitable data page and slot to insert into
 	pageID, err := pages.FindFreePage(engine.db, size)
