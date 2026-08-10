@@ -117,7 +117,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 				return 0,0, fmt.Errorf("Error: Column '%s' cannot be null", col.Name)
 			}
 		}
-		if col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex) {
+		if vals[i] != nil && (col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex)) {
 			// Check for uniqueness in the existing rows
 			serializedKey, err := engine.db.Serialize(vals[i], &col)
 			if err != nil {
