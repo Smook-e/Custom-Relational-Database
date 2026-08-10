@@ -254,6 +254,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			// Set the default value for a serial column to 1 and mark it as not null
 			newCol.Default = int32(1)
 			newCol.Constraints |= entities.ConstraintNotNull
+			newCol.Constraints |= entities.ConstraintDefault
 		}
 		
 
