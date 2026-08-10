@@ -34,14 +34,16 @@ func (db *Database) PrintTables() {
     } else {
         for name, table := range db.Tables {
             fmt.Printf("******************************\nTable: %s | Columns: %d\n", name, len(table.Columns))
-
+            
             for _, col := range table.Columns {
                 fmt.Printf(" Column: %s | Type: %s | Constraints: %s | Size: %d\n", col.Name, col.PrintDataType(col.DataType), col.PrintConstraints(col.Constraints), col.Size)
             }
+            fmt.Println("==================================")
             fmt.Println(" Indexes:")
             for indexName, indexID := range table.Indexes {
                 fmt.Printf("  Index: %s | Page ID: %d\n", indexName, indexID)
             }
+            fmt.Println("==================================")
             fmt.Println("Foreign Keys:")
             for fkName, fk := range table.ForeignKeys {
                 fmt.Printf("  Foreign Key: %s | Referenced Column: %s.%s\n", fkName, fk.ReferencedTableName, db.Tables[fk.ReferencedTableName].Columns[fk.ReferencedColumnIndex].Name)
