@@ -89,8 +89,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	// Validate constraints for each column
 	for i, col := range table.Columns {
 		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {
-			if col.HasConstraint(entities.ConstraintDefault) {}
-			return 0,0, fmt.Errorf("Error: Column '%s' cannot be null", col.Name)
+			
 		}
 		if col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex) {
 			// Check for uniqueness in the existing rows

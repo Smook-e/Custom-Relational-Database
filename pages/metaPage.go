@@ -99,7 +99,7 @@ func ReadMetaPage(db *entities.Database) error{
 					}
 					tableOffset += bytesRead
 				}
-				column.Size, _ = entities.GetSize(column.DataType); tableOffset++;
+				column.Size, _ = entities.GetSize(column); tableOffset++;
 				table.Columns = append(table.Columns, *column)
 				
 			}

@@ -125,8 +125,8 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, []byte, error) {
 
 }
 
-func GetSize(Type uint8) (uint8, error) {
-	switch Type {
+func GetSize(col *Column) (uint8, error) {
+	switch col.DataType {
 	case TypeTinyInt:
 		return 1, nil
 	case TypeSmallInt:
@@ -136,6 +136,9 @@ func GetSize(Type uint8) (uint8, error) {
 	case TypeBigInt:
 		return 8, nil
 	case TypeVarChar:
+		if col.Size > 0 {
+			return col.Size + 1, nil // +1 for length prefix
+		}
 		return 0, nil
 	default:
 		return 0, errors.New("unknown DataType")
