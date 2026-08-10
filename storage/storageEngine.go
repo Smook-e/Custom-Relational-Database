@@ -115,47 +115,47 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		
 
 		// insert a few sample rows to make the DB testable (FindFreePage will create data pages)
-		if _, _, err := engine.InsertRow([]string{"1", "joe", "20"}, "users"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample user row: %w", err)
+		if _, _, err := engine.InsertRow([]string{"1", "", "20"}, "users"); err != nil {
+			fmt.Printf("failed to insert sample user row: %v", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"2", "emily", "25"}, "users"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample user row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"3", "alice", ""}, "users"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample user row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"4", "bob", ""}, "users"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample user row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 
 
 		if _, _, err := engine.InsertRow([]string{"1", "IPhone", "1000", "2", "apple"}, "products"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"2", "Macbook", "1200", "3", "apple"}, "products"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"3", "Samsung Galaxy", "800", "1", "samsung"}, "products"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"4", "Google Pixel", "600", "2", "google"}, "products"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"5", "OnePlus", "400", "1", "oneplus"}, "products"); err != nil {
-			return nil, fmt.Errorf("failed to insert sample product row: %w", err)
+			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"6", "Xiaomi", "600", "3", ""}, "products"); err != nil {
-			fmt.Printf("failed to insert sample product row: %v", err)
+			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		engine.metaWrite = true
 		if err := engine.Commit(); err != nil {
-			return nil, fmt.Errorf("failed to commit initial database state: %w", err)
+			return engine, fmt.Errorf("failed to commit initial database state: %w", err)
 		}
 
 	} else {
 		// existing database, attempt to read meta pages to populate tables/free list
 		if err := pages.ReadMetaPage(engine.db); err != nil {
-			return nil, fmt.Errorf("failed to read meta pages: %w", err)
+			return engine, fmt.Errorf("failed to read meta pages: %w", err)
 		}
 	}
 
