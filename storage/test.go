@@ -80,7 +80,7 @@ func (engine *StorageEngine) TestWriteandReadDatabase() error {
         {Name: "price", DataType: "int", Constraints: []string{"notnull"}},
         {Name: "quantity", DataType: "int", Constraints: []string{"notnull"}},
         {Name: "seller", DataType: "varchar", Constraints: []string{"notnull"}},
-    })
+    }, []entities.ForeignKeyDefinition{})
     if err != nil {
         return err
     }
@@ -91,7 +91,7 @@ func (engine *StorageEngine) TestWriteandReadDatabase() error {
         {Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
         {Name: "name", DataType: "varchar", Constraints: []string{"notnull"}},
         {Name: "age", DataType: "int", Constraints: []string{}},
-    })
+    }, []entities.ForeignKeyDefinition{})
     if err != nil {
         return err
     }
