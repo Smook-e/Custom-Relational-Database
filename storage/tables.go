@@ -94,6 +94,11 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			if col.HasConstraint(entities.ConstraintDefault) {
 				// If the column has a default constraint, use the default value instead of returning an error
 				vals[i] = col.Default
+				if col.DataType == entities.TypeSerial {
+					// If the column is of type Serial, increment the default value for the next insertion
+					col.Default = vals[i].(int32) + 1
+					table.Columns[i].Default = col.Default // Update the column in the table with the new default value
+				}
 				// Clear the null bit from the null bitmap since we are using a default value
 				byteIndex := i / 8
 				bitIndex := uint(i % 8)
