@@ -345,6 +345,15 @@ func Compare(val1, val2 []byte, col *Column) (int, error) {
 			return 1, nil
 		}
 		return 0, nil
+	case TypeSerial:// same as TypeInt
+		v1 := int32(binary.BigEndian.Uint32(val1))
+		v2 := int32(binary.BigEndian.Uint32(val2))
+		if v1 < v2 {
+			return -1, nil
+		} else if v1 > v2 {
+			return 1, nil
+		}
+		return 0, nil
 	case TypeBigInt:
 		v1 := int64(binary.BigEndian.Uint64(val1))
 		v2 := int64(binary.BigEndian.Uint64(val2))
