@@ -183,18 +183,21 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			}
 		}
 	}
-	//Get the primary key column name
-	primaryKeyColumn,primaryKeyColumnIndex, err := table.GetPrimaryKeyColumn()
-	if err != nil {
-		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+	//Insert indexes
+	for colName, root := range table.Indexes {
+		colIndex, err := table.GetColumnIndexByName(colName)
+		if err != nil {
+			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+		}
+		serializedKey, err := engine.db.Serialize(vals[colIndex], &table.Columns[colIndex])
+		if err != nil {
+			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+		}
+		table.Indexes[colName] , err = engine.InsertIntoIndex(root, serializedKey, pageID, slot, &table.Columns[colIndex])
+		if err != nil {
+			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+		}
 	}
-	
-	// Serialize the primary key value into a byte slice to use for indexing
-	serializedKey,err := engine.db.Serialize(vals[primaryKeyColumnIndex], primaryKeyColumn)
-	if err != nil {
-		return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
-	}
-	engine.InsertIntoIndex(table.Indexes[primaryKeyColumn.Name], serializedKey, pageID, slot, primaryKeyColumn)
 
 	return pageID, slot, nil
 }
