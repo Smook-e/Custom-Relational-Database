@@ -73,7 +73,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// create example tables
 		if err := engine.CreateTable("products", []entities.ColumnDefinition{
 			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
-			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "unknown"},
+			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull"}},
 			{Name: "price", DataType: "bigint", Constraints: []string{"notnull"}},
 			{Name: "quantity", DataType: "smallint", Constraints: []string{"notnull", "default"}, Default: "1"},
 			{Name: "seller", DataType: "varchar", Constraints: []string{}},
@@ -84,7 +84,9 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		
 		if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
-			{Name: "name", DataType: "varchar", Constraints: []string{"notnull", "default"}, Default: "unknown"},
+			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "anonymous"},
+			{Name: "email", DataType: "varchar(30)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
+			{Name: "phone_number", DataType: "varchar(15)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
 			{Name: "age", DataType: "int", Constraints: []string{}},
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create users table: %w", err)
@@ -115,16 +117,16 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		
 
 		// insert a few sample rows to make the DB testable (FindFreePage will create data pages)
-		if _, _, err := engine.InsertRow([]string{"", "", "20"}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "","email@example.com","123-456-7890", "20"}, "users"); err != nil {
 			fmt.Printf("failed to insert sample user row: %v", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"", "emily", "25"}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "emily", "emily@example.com", "098-765-4321", "25"}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"", "alice", ""}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "alice", "alice@example.com", "098-765-4321", "30"}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"", "", ""}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "bob", "bob@example.com", "098-765-4321", "35"}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 
