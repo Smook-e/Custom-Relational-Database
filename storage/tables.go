@@ -243,6 +243,11 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			}
 			newCol.Default = defaultValue
 		}
+		if dataType == entities.TypeSerial {
+			// Set the default value for a serial column to 1 and mark it as not null
+			newCol.Default = int32(1)
+			newCol.Constraints |= entities.ConstraintNotNull
+		}
 		
 
 		// size, err := entities.GetSize(dataType)
