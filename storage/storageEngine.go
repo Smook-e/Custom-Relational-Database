@@ -77,7 +77,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			{Name: "price", DataType: "bigint", Constraints: []string{"notnull"}},
 			{Name: "quantity", DataType: "smallint", Constraints: []string{"notnull", "default"}, Default: "1"},
 			{Name: "seller", DataType: "varchar", Constraints: []string{}},
-		}); err != nil {
+		}, []entities.ForeignKeyDefinition{}); err != nil {
 			return nil, fmt.Errorf("failed to create products table: %w", err)
 		}
 		
@@ -88,7 +88,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			{Name: "email", DataType: "varchar(30)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
 			{Name: "phone_number", DataType: "varchar(15)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
 			{Name: "age", DataType: "int", Constraints: []string{}},
-		}); err != nil {
+		}, []entities.ForeignKeyDefinition{}); err != nil {
 			return nil, fmt.Errorf("failed to create users table: %w", err)
 		}
 		
@@ -96,19 +96,13 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			{Name: "user_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
 			{Name: "product_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
 			{Name: "quantity", DataType: "int", Constraints: []string{"notnull"}},
+		}, []entities.ForeignKeyDefinition{
+			{ColumnName: "user_id", ReferencedTableName: "users", ReferencedColumnName: "id"},
+			{ColumnName: "product_id", ReferencedTableName: "products", ReferencedColumnName: "id"},
 		}); err != nil {
 			return nil, fmt.Errorf("failed to create orders table: %w", err)
 		}
 		
-		engine.db.Tables["orders"].ForeignKeys = make(map[string]entities.ForeignKeyReference)
-		engine.db.Tables["orders"].ForeignKeys["user_id"] = entities.ForeignKeyReference{
-			ReferencedTableName: "users",
-			ReferencedColumnIndex: 0, // Assuming 'id' is the first column in 'users'
-		}
-		engine.db.Tables["orders"].ForeignKeys["product_id"] = entities.ForeignKeyReference{
-			ReferencedTableName: "products",
-			ReferencedColumnIndex: 0, // Assuming 'id' is the first column in 'products'
-		}
 		// ensure FreePages is empty for meta write
 		engine.db.FreePages = []entities.FreePage{}
 
@@ -157,7 +151,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _,_, err := engine.InsertRow([]string{"2", "2", "2"}, "orders"); err != nil {
 			fmt.Printf("failed to insert sample order row: %v", err)
 		}
-		if _,_, err := engine.InsertRow([]string{"5", "3", "2"}, "orders"); err != nil {
+		if _,_, err := engine.InsertRow([]string{"3", "3", "2"}, "orders"); err != nil {
 			fmt.Printf("failed to insert sample order row: %v", err)
 		}
 		if _,_, err := engine.InsertRow([]string{"4", "4", "2"}, "orders"); err != nil {
