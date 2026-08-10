@@ -47,7 +47,9 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 			Row[i] = int16(binary.BigEndian.Uint16(buffer[offset:offset+2]))
 			offset += 2
 		case entities.TypeInt:
-			
+			Row[i] = int32(binary.BigEndian.Uint32(buffer[offset:offset+4]))
+			offset += 4
+		case entities.TypeSerial:// same as TypeInt
 			Row[i] = int32(binary.BigEndian.Uint32(buffer[offset:offset+4]))
 			offset += 4
 		case entities.TypeBigInt:
