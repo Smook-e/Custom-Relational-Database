@@ -478,6 +478,12 @@ func (col *Column) GetDefaultValue(value string) (any, error) {
 			return nil, fmt.Errorf("Error converting %s to Int: %w", value, err)
 		}
 		return int32(n), nil
+	case TypeSerial:// same as TypeInt
+		n, err := strconv.ParseInt(value, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to Int: %w", value, err)
+		}
+		return int32(n), nil
 	case TypeBigInt:
 		n, err := strconv.ParseInt(value,	 10, 64)
 		if err != nil {
