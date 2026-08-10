@@ -2,18 +2,17 @@ package pages
 
 import (
 	// "os"
-	
+
 	"encoding/binary"
 	"fmt"
+
 	// "sort"
 
-	
-	"sync"
 	"sort"
+	"sync"
+
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
-
-	
 )
 
 const bufferSize = 4096
@@ -39,8 +38,8 @@ At each Table offset:
 		- Column Name (variable length)
 		- Data Type (1 byte)
 		- Constraints (1 byte)
-		- Default Value (variable length, if applicable)
 		- Size (1 byte)
+		- Default Value (variable length, if applicable)
 	- Number of Indexes (1 byte)
 	- For each Index:
 		- Column index in Columns array (1 byte)
@@ -91,15 +90,16 @@ func ReadMetaPage(db *entities.Database) error{
 				column := &entities.Column{Name: string(columnName)}
 				column.DataType = buffer[tableOffset]; tableOffset++;
 				column.Constraints = buffer[tableOffset]; tableOffset++;
+				column.Size = buffer[tableOffset]; tableOffset++;
 				if column.HasConstraint(entities.ConstraintDefault) {
 					// Read the default value for the column
 					bytesRead, err := column.SetDefaultValue(buffer, tableOffset)
 					if err != nil {
 						return fmt.Errorf("Error setting default value for column %s: %w", column.Name, err)
 					}
+					fmt.Println(bytesRead, column.Size)
 					tableOffset += bytesRead
 				}
-				column.Size, _ = entities.GetSize(column); tableOffset++;
 				table.Columns = append(table.Columns, *column)
 				
 			}
@@ -170,18 +170,27 @@ func WriteMetaPage(db *entities.Database) error {
 		table = db.Tables[name]
 		cols = table.Columns
 		//Pass 1 : Calculate the size of the table entry to determine where to write it in the buffer
-		//length of name + name + number of columns + number of ForeignKeys + number of indexes +  indexes * 5 
-		size += 1 + len(table.Name) + 1 + 1 + 1 + len(table.Indexes) * 5
+		//length of name + name + number of columns
+		size += 1 + len(table.Name) + 1 
 		// calculate the size of each column entry
 		for _, col := range cols {
 			// length of name + name + datatype + constraints + size
 			size += 1 + len(col.Name) + 1 + 1 + 1
+			if col.HasConstraint(entities.ConstraintDefault) {
+				DefaultBytes, err := db.Serialize(col.Default, &col)
+				if err != nil {
+					return fmt.Errorf("Error serializing default value for column %s: %w", col.Name, err)
+				}
+				size += len(DefaultBytes)
+			}
 		}
+		size += 1 // for number of foreign keys
 		// calculate the size of each foreign key entry
 		for _, fk := range table.ForeignKeys {
 			// column index + referenced table name length + referenced table name + referenced column index
 			size += 1 + 1 + len(fk.ReferencedTableName) + 1
 		}
+		size += 1 + len(table.Indexes) * 5 // for number of indexes and each index entry
 		tableOffset := freeSpaceOffset - size
 		freeSpaceOffset = tableOffset
 		numberOfTables++
@@ -210,15 +219,16 @@ func WriteMetaPage(db *entities.Database) error {
 			copy(buffer[tableOffset: tableOffset + len(col.Name)], col.Name); tableOffset+= len(col.Name);
 			buffer[tableOffset] = col.DataType; tableOffset++;
 			buffer[tableOffset] = col.Constraints; tableOffset++;
+			buffer[tableOffset] = col.Size; tableOffset++;
 			if col.HasConstraint(entities.ConstraintDefault) {
 				DefaultBytes, err := db.Serialize(col.Default, col)
+				fmt.Println(col.Size)
 				if err != nil {
 					return fmt.Errorf("Error serializing default value for column %s: %w", col.Name, err)
 				}
 				copy(buffer[tableOffset:tableOffset+len(DefaultBytes)], DefaultBytes)
 				tableOffset += len(DefaultBytes)
 			}
-			buffer[tableOffset] = col.Size; tableOffset++;
 		}
 
 		

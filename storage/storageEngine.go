@@ -72,7 +72,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		engine.db.TotalPages = 2
 		// create example tables
 		if err := engine.CreateTable("products", []entities.ColumnDefinition{
-			{Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
+			{Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull", "default"}, Default: "0"},
 			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "unknown"},
 			{Name: "price", DataType: "bigint", Constraints: []string{"notnull", "default"}, Default: "100"},
 			{Name: "quantity", DataType: "smallint", Constraints: []string{"notnull", "default"}, Default: "0"},
@@ -124,7 +124,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _, _, err := engine.InsertRow([]string{"3", "alice", ""}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"4", "bob", ""}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"4", "", ""}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 
@@ -132,7 +132,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _, _, err := engine.InsertRow([]string{"1", "IPhone", "1000", "2", "apple"}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"2", "Macbook", "1200", "3", "apple"}, "products"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"2", "Macbook", "1200", "1", "apple"}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		if _, _, err := engine.InsertRow([]string{"3", "Samsung Galaxy", "800", "1", "samsung"}, "products"); err != nil {
