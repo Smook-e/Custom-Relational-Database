@@ -103,6 +103,8 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 				}
 				if defaultSize == 0 {// Varchar with no size specified, use the length of the default value
 					size += uint16(len(col.Default.(string))) + 1 // +1 for length prefix
+				}else{
+					size += uint16(defaultSize)
 				}
 			}else {
 				return 0,0, fmt.Errorf("Error: Column '%s' cannot be null", col.Name)
