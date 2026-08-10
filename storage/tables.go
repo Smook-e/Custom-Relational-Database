@@ -72,7 +72,7 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 
 
 
-// Function takesa the array of data as strings, uses a helper function to transform them into their suitable types
+// Function takes the array of data as strings, uses a helper function to transform them into their suitable types
 // then returns the Pageid and slot the row was inserted at
 func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint32, uint16, error) {
 	//Pass 1: Check Validity and calculate size

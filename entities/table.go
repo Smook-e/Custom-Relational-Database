@@ -59,6 +59,11 @@ type ForeignKeyReference struct {
 	ReferencedTableName string
 	ReferencedColumnIndex uint8
 }
+type ForeignKeyDefinition struct {
+	ColumnName string
+	ReferencedTableName string
+	ReferencedColumnName string
+}
 func (col *Column) HasConstraint(constraint uint8) bool {
 	return col.Constraints&constraint != 0
 }
