@@ -57,7 +57,11 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 			length := uint8(buffer[offset])
 			offset++
 			Row[i] = string(buffer[offset:offset+uint16(length)])
-			offset+= uint16(length)
+			if col.Size > 0 {
+				offset += uint16(col.Size)
+			}else {
+				offset+= uint16(length)
+			}
 		}
 	}
 	return Row, nil
@@ -85,6 +89,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	// Validate constraints for each column
 	for i, col := range table.Columns {
 		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {
+			if col.HasConstraint(entities.ConstraintDefault) {}
 			return 0,0, fmt.Errorf("Error: Column '%s' cannot be null", col.Name)
 		}
 		if col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex) {
@@ -120,7 +125,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	// Write the null bitmap first
 	copy(buffer[offset:offset+uint16(len(nullBitmap))], nullBitmap)
 	offset += uint16(len(nullBitmap))
-	for _, val := range vals {
+	for i, val := range vals {
 		if val == nil {
 			continue
 		}
@@ -146,7 +151,11 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			buffer[offset] = uint8(len(v))
 			offset++
 			copy(buffer[offset:], v)
-			offset += uint16(len(v))
+			if table.Columns[i].Size > 0 {
+				offset += uint16(table.Columns[i].Size)
+			} else {
+				offset += uint16(len(v))
+			}
 		}
 	}
 	//Get the primary key column name
