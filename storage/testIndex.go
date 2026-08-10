@@ -237,7 +237,7 @@ func (engine *StorageEngine) TestIndexInsertMiddleRoot(rootPageID uint32){
 	// buffer, _ = engine.Bp.Get(3)
 	// PrintLeafPageEntries(buffer, 8, entities.TypeBigInt)
 }
-func PrintLeafPageEntries(buffer []byte,keySize int, dataType uint8) {
+func PrintLeafPageEntries(buffer []byte,column * entities.Column) {
 	if buffer[0] != uint8(pages.IsLeaf) {
 		fmt.Println("Not a leaf page")
 		return
@@ -245,11 +245,16 @@ func PrintLeafPageEntries(buffer []byte,keySize int, dataType uint8) {
 	nextLeafPage := binary.BigEndian.Uint32(buffer[1:5])
 	fmt.Printf("Next Leaf Page ID: %d\n", nextLeafPage)
 	numberOfEntries := binary.BigEndian.Uint16(buffer[5:7])
-	offset := 7
+	var offset uint8 = 7
 	fmt.Printf("Leaf Page Entries (Total: %d):\n", numberOfEntries)
+	keySize ,err := entities.GetSize(column)
+	if err != nil {
+		fmt.Println("Error getting key size:", err)
+		return
+	}
 	for i := 0; i < int(numberOfEntries); i++ {
 		keyData := buffer[offset : offset+keySize]
-		key, err := entities.Deserialize(keyData, dataType)
+		key, err := entities.Deserialize(keyData, column.DataType)
 		if err != nil {
 			fmt.Println("Error deserializing key:", err)
 			return
@@ -430,7 +435,7 @@ func (engine *StorageEngine) TestIndexInsertString() {
 		}
 		fmt.Printf("Found key %s at PageID: %d, Slot: %d\n", str, pageID, slot)
 	}
-	PrintLeafPageEntries(buffer, int(col.Size) + 1, col.DataType)
+	PrintLeafPageEntries(buffer, col)
 
 }
 func (engine *StorageEngine) TestIndexInsertStringRoot() {

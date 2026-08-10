@@ -149,6 +149,17 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		if _, _, err := engine.InsertRow([]string{"", "Xiaomi", "600", "3", ""}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
+		// for _, table := range engine.db.Tables {
+		// 	var buf []byte
+		// 	for colName, root := range table.Indexes {
+		// 		col, err := table.GetColumnByName(colName)
+		// 		buf, err = engine.Bp.Get(root)
+		// 		if err != nil {
+		// 			return engine, fmt.Errorf("failed to get buffer for index root: %w", err)
+		// 		}
+		// 		PrintLeafPageEntries(buf, col)
+		// 	}
+		// }
 		engine.metaWrite = true
 		if err := engine.Commit(); err != nil {
 			return engine, fmt.Errorf("failed to commit initial database state: %w", err)
