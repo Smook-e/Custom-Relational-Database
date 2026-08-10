@@ -422,7 +422,6 @@ func (col *Column) SetDefaultValue(buffer []byte, offset int) (int,error) {
 		length := int(buffer[offset])
 		col.Default = string(buffer[offset+1 : offset+1+length])
 		if col.Size > 0 {// fixed size varchar
-			fmt.Println("found fixed varchar")
 			return int(col.Size) + 1, nil // Return the size of the column + 1 for the length byte
 		}
 		return length + 1, nil // Return the length of the string + 1 for the length byte

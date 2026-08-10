@@ -97,7 +97,6 @@ func ReadMetaPage(db *entities.Database) error{
 					if err != nil {
 						return fmt.Errorf("Error setting default value for column %s: %w", column.Name, err)
 					}
-					fmt.Println(bytesRead, column.Size)
 					tableOffset += bytesRead
 				}
 				table.Columns = append(table.Columns, *column)
@@ -222,7 +221,6 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = col.Size; tableOffset++;
 			if col.HasConstraint(entities.ConstraintDefault) {
 				DefaultBytes, err := db.Serialize(col.Default, col)
-				fmt.Println(col.Size)
 				if err != nil {
 					return fmt.Errorf("Error serializing default value for column %s: %w", col.Name, err)
 				}
