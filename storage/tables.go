@@ -223,7 +223,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 	table := &entities.Table{Name: tableName}
 	engine.db.Tables[tableName] = table
 	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
-	for i, col := range cols{
+	for _, col := range cols{
 		
 		dataType,size, err := entities.GetDataTypeAndSize(col.DataType)
 		if err != nil {
