@@ -302,6 +302,8 @@ func Deserialize(data []byte, dataType uint8) (any, error) {
 		return int16(binary.BigEndian.Uint16(data)), nil
 	case TypeInt:
 		return int32(binary.BigEndian.Uint32(data)), nil
+	case TypeSerial://same as TypeInt
+		return int32(binary.BigEndian.Uint32(data)), nil
 	case TypeBigInt:
 		return int64(binary.BigEndian.Uint64(data)), nil
 	case TypeVarChar:
