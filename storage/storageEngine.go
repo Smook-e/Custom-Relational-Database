@@ -72,7 +72,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		engine.db.TotalPages = 2
 		// create example tables
 		if err := engine.CreateTable("products", []entities.ColumnDefinition{
-			{Name: "id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
+			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
 			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "unknown"},
 			{Name: "price", DataType: "bigint", Constraints: []string{"notnull"}},
 			{Name: "quantity", DataType: "smallint", Constraints: []string{"notnull", "default"}, Default: "1"},
@@ -83,7 +83,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		
 		
 		if err := engine.CreateTable("users", []entities.ColumnDefinition{
-			{Name: "id", DataType: "int", Constraints: []string{"primarykey"}},
+			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
 			{Name: "name", DataType: "varchar", Constraints: []string{"notnull", "default"}, Default: "unknown"},
 			{Name: "age", DataType: "int", Constraints: []string{}},
 		}); err != nil {
@@ -115,36 +115,36 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		
 
 		// insert a few sample rows to make the DB testable (FindFreePage will create data pages)
-		if _, _, err := engine.InsertRow([]string{"1", "", "20"}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "", "20"}, "users"); err != nil {
 			fmt.Printf("failed to insert sample user row: %v", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"2", "emily", "25"}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "emily", "25"}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"3", "alice", ""}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "alice", ""}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"4", "", ""}, "users"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "", ""}, "users"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 
 
-		if _, _, err := engine.InsertRow([]string{"1", "IPhone", "1000", "2", "apple"}, "products"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "IPhone", "1000", "2", "apple"}, "products"); err != nil {
 			fmt.Printf("failed to insert sample product row: %v", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"2", "Macbook", "1200", "", "apple"}, "products"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "Macbook", "1200", "", "apple"}, "products"); err != nil {
 			fmt.Printf("failed to insert sample product row: %v", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"3", "Samsung Galaxy", "800", "1", "samsung"}, "products"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "Samsung Galaxy", "800", "1", "samsung"}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"4", "Google Pixel", "600", "2", "google"}, "products"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "Google Pixel", "600", "2", "google"}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"5", "OnePlus", "400", "", "oneplus"}, "products"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "OnePlus", "400", "", "oneplus"}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
-		if _, _, err := engine.InsertRow([]string{"6", "Xiaomi", "600", "3", ""}, "products"); err != nil {
+		if _, _, err := engine.InsertRow([]string{"", "Xiaomi", "600", "3", ""}, "products"); err != nil {
 			return engine, fmt.Errorf("failed to insert sample product row: %w", err)
 		}
 		engine.metaWrite = true
