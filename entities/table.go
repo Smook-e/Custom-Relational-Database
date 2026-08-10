@@ -254,7 +254,7 @@ func (db *Database) Serialize(val any, col *Column) ([]byte, error) {
 		}
 		binary.BigEndian.PutUint32(buf, uint32(v))
 		return buf, nil
-	case TypeSerial:
+	case TypeSerial:// Same as TypeInt
 		buf := make([]byte, 4)
 		v, ok := val.(int32)
 		if !ok {
