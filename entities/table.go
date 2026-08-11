@@ -54,16 +54,19 @@ type Column struct {
 	Size uint8
 	Default any
 }
+// ColumnDefinition is used to define a column when creating a table. Every field is a string since it is provided by the user.
 type ColumnDefinition struct {
 	Name string
 	DataType string
 	Constraints []string
 	Default string
 }
+// ForeignKeyReference represents a reference to another table's column, used for foreign key constraints.
 type ForeignKeyReference struct {
 	ReferencedTableName string
 	ReferencedColumnIndex uint8
 }
+// ForeignKeyDefinition is used to define a foreign key when creating a table. Every field is a string since it is provided by the user.
 type ForeignKeyDefinition struct {
 	ColumnName string
 	ReferencedTableName string
