@@ -10,7 +10,11 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+/*
+This file contains functions for inserting and reading rows in the database, as well as creating new tables.
+*/
 
+// ReadRow reads a row from the specified table at the given page ID and slot, returning the row data as a slice of any type.
 func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint16) ([]any, error) {
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
@@ -70,10 +74,10 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 }
 
 
-
-
-// Function takes the array of data as strings, uses a helper function to transform them into their suitable types
-// then returns the Pageid and slot the row was inserted at
+// InsertRow inserts a new row into the specified table with the provided data, returning the page ID and slot of the inserted row.
+// it also checks for constraints such as not null, unique, primary key, and foreign key before inserting the row.
+// and updates the B+Tree index for the table if necessary.
+// it returns an error if any constraint is violated or if the insertion fails for any reason.
 func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint32, uint16, error) {
 	//Pass 1: Check Validity and calculate size
 	table, ok := engine.db.Tables[tableName]
@@ -218,6 +222,8 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	return pageID, slot, nil
 }
 
+// CreateTable creates a new table in the database with the specified name, columns, and foreign keys.
+// It initializes the table's columns, constraints, and indexes, and writes the meta page to disk.
 func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition, foreignKeys []entities.ForeignKeyDefinition) (error) {
 
 	table := &entities.Table{Name: tableName}
