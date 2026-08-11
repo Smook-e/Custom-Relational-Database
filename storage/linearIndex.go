@@ -4,6 +4,12 @@ import (
 	"fmt"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 )
+/*
+Provides a linear search implementation for searching through the B+Tree index in the database.
+The B+Tree Leaf pages are linked together in a linked list, allowing for efficient linear traversal of the keys in the index.
+*/
+
+
 type SearchCondition struct {
 	ColumnName string
 	Operator string
