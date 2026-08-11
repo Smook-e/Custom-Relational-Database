@@ -1,20 +1,21 @@
 package pages
 
 import (
-	// "os"
-	// "container/list"
 	"encoding/binary"
 	"errors"
 	"fmt"
-
-	// "os"
-
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
-	// "github.com/Smook-e/Custom-Relational-Database/storage"
+	
 )
+/*
+This file contains utility functions for managing free space pages in the database.
+It is responsible for reading and writing free space pages, managing free space information, and finding suitable pages for new records.
+Used in the storage layer when inserting new records.
+*/
 
-
+// ReadFreeSpacePage reads the free space page from the database file and populates the FreePages slice in the Database struct.
+// Usually called during the initialization of the storage engine to load the free space information into memory.
 func ReadFreeSpacePage(db *entities.Database) error {
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
@@ -44,6 +45,8 @@ func ReadFreeSpacePage(db *entities.Database) error {
 	return nil
 }
 
+// WriteFreeSpacePage writes the current state of the FreePages slice in the Database struct to the free space page in the database file on disk.
+// Usually called during the commit operation to persist the free space information to disk.
 func WriteFreeSpacePage(db *entities.Database) error {
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
@@ -63,6 +66,9 @@ func WriteFreeSpacePage(db *entities.Database) error {
 
 	return nil
 }
+// FindFreePage searches for a free page in the database that has enough space to accommodate a new record of the specified size.
+// If a suitable page is found, it returns the page ID. If no suitable page is found, it initializes a new data page and returns its page ID.
+// Usually called during the insert operation to find a page for a new record.
 func FindFreePage(db *entities.Database, requiredSpace uint16) (uint32, error) {
 	if requiredSpace > bufferSize - 7 {
 		return 0, errors.New("No page has more than 4089 free bytes")
