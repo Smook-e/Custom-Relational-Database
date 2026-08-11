@@ -260,7 +260,8 @@ func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 
 
 
-
+// Serialize takes a value and a column definition, and returns the serialized byte representation of the value based on the column's data type.
+// This is used when writing data to the database to ensure that values are stored in a consistent binary format.
 func (db *Database) Serialize(val any, col *Column) ([]byte, error) {
 
 	switch col.DataType {
