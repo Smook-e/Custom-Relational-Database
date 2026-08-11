@@ -327,6 +327,7 @@ func (db *Database) Serialize(val any, col *Column) ([]byte, error) {
 		return nil, fmt.Errorf("Unsupported data type for serialization")
 	}
 }
+// Takes the serialized byte representation of a value and a column definition, and returns the deserialized value based on the column's data type.
 func Deserialize(data []byte, dataType uint8) (any, error) {
 	switch dataType {
 	case TypeTinyInt:
