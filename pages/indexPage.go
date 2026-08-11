@@ -4,33 +4,33 @@ import (
 	"encoding/binary"
 	"fmt"
 )
-//LeafPage 
 /*
-isLeaf 1 byte
-nextLeafPage 4 bytes
-numberOfEntries 2 bytes
-key len(buffer)
-pageID 4 bytes
-slot 2 bytes
-.
-.
-.
+This file contains utility functions for Initializing B+ tree pages in the database.
+*/
+
+// Leaf Page Structure
+/*
+- isLeaf (1 byte)
+- nextLeafPage (4 bytes)
+- numberOfEntries (2 bytes)
+- For each entry:
+	- key (serialized key)
+	- pageID (4 bytes)
+	- slot (2 bytes)
 */
 type LeafEntry struct {
     Key    []byte
     PageID uint32
     Slot   uint16
 }
-//InternalPage
+// Internal Page Structure
 /*
-isLeaf 1 byte
-numberOfEntries 2 bytes
-pageID 4 bytes
-key len(buffer)
-pageID 4 bytes
-.
-.
-.
+- isLeaf (1 byte)
+- numberOfEntries (2 bytes)
+- For each entry:
+	- leftPtr (4 bytes)
+	- key (serialized key)
+- rightPtr (4 bytes) after all entries
 */
 type InternalEntry struct {
     Key     []byte
@@ -45,7 +45,7 @@ const (
 	IsLeaf = 1
 	IsInternal = 0
 )
-
+// InitializeLeafPage initializes a leaf page with the given entries and writes it to the provided buffer.
 func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 	if len(entries) == 0 {
 		buffer[0] = uint8(IsLeaf)
@@ -78,7 +78,7 @@ func InitializeLeafPage(entries []LeafEntry, buffer []byte) error {
 	}
 	return nil
 }
-
+// InitializeInternalPage initializes an internal page with the given entries and writes it to the provided buffer.
 func InitializeInternalPage(entries []InternalEntry, buffer []byte, rightPtr uint32) error {
 	if len(entries) == 0 {
 		buffer[0] = uint8(IsInternal)
