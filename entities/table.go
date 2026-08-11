@@ -462,7 +462,8 @@ func (col *Column) PrintDataType(dataType uint8) string {
 		return "UNKNOWN"
 	}
 }
-
+// GetPrimaryKeyColumn returns a pointer to the Column that is the primary key of the table, along with its index.
+// If no primary key is found, it returns an error.
 func (table *Table) GetPrimaryKeyColumn() (*Column, int, error) {
 	for i, col := range table.Columns {
 		if col.Constraints&ConstraintPrimaryKey != 0 {
