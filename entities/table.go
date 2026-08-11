@@ -201,6 +201,8 @@ func GetDataTypeAndSize(datatype string) (uint8, uint8, error) {
 			return 0, 0, fmt.Errorf("Data type %s not supported", datatype)
 		}
 }
+// Returns the Constraint bitmask for a given slice of constraint strings. It converts user-provided constraint strings into internal representations.
+// Typically used when creating a table to convert user-provided constraint strings into internal representations.
 func GetConstraint(Constraints []string) (uint8, error) {
 	result := uint8(0)
 	for _, constraint := range Constraints {
