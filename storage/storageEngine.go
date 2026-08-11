@@ -9,15 +9,20 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+/*
+This file contains the implementation of the StorageEngine struct, which is responsible for managing the database file, buffer pool, and metadata. 
+It provides methods for initializing the storage engine, committing changes to disk, printing metadata, creating new pages, and managing the B+Tree index.
+*/
 
 const bufferSize = 4096
 
 type StorageEngine struct {
 	db *entities.Database
 	Bp *bufferpool.BufferPool
-	metaWrite bool
+	metaWrite bool // Flag to indicate if the meta page needs to be written to disk
 }
 
+// Commit flushes the buffer pool to disk and writes the meta page if necessary.
 func (engine *StorageEngine) Commit() error {
 	err := engine.Bp.Flush()
 	if err != nil {
@@ -42,6 +47,9 @@ func (engine *StorageEngine) PrintMetaData() error {
 	return nil
 }
 
+// Initializes the storage engine based on the given filename. 
+// If the file does not exist, it creates a new database with example tables and sample rows. 
+// If the file exists, it reads the metadata from the file to populate the database structure.
 func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	engine := &StorageEngine{}
 
@@ -183,6 +191,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	
 	return engine, nil
 }
+// NewPage creates a new page in the database file and returns its page ID.
 func (engine *StorageEngine) NewPage() (uint32, error) {
 	newPageID := engine.db.TotalPages
 	engine.db.TotalPages++
