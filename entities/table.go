@@ -145,6 +145,7 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, []byte, error) {
 
 }
 
+// Returns the size in bytes of the serialized value for a given column.
 func GetSize(col *Column) (uint8, error) {
 	switch col.DataType {
 	case TypeTinyInt:
