@@ -5,6 +5,13 @@ import (
 	"fmt"
 	
 )
+
+
+/*
+This file contains benchmark tests for the B+Tree index implementation in the database.
+It provides functions to benchmark the performance of searching for keys in the index using both the B+Tree search and a linear search approach.
+You can find the results of the benchmark tests in the readme.md file.
+*/
 func BenchmarkIndexSearch(b *testing.B) {
 	// Initialize the storage engine and insert 100,000 BigInt keys into the index
 	filename := "database.bin"
