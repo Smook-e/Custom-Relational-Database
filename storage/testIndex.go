@@ -9,6 +9,12 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+/*
+This file was used for testing the B+Tree index implementation.
+It is not part of the final implementation and can be removed or modified as needed.
+*/
+
+
 func ( engine *StorageEngine) TestSearch(RootPageID uint32) {
 	for i := range 10000 {
 		key, err := engine.db.Serialize(int64(i), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
