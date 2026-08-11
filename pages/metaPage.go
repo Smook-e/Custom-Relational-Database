@@ -1,16 +1,10 @@
 package pages
 
 import (
-	// "os"
-
 	"encoding/binary"
 	"fmt"
-
-	// "sort"
-
 	"sort"
 	"sync"
-
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
@@ -23,6 +17,13 @@ var bufferPool = sync.Pool{
         return make([]byte, bufferSize)
     },
 }
+/*
+This file contains utility functions for Reading and Writing the meta page in the database.
+The meta page contains metadata about the database, including information about tables, columns, indexes, and foreign keys.
+Used in the storage layer to read and write the meta page during database initialization and commit operations.
+*/
+
+
 /*
 Meta Page Structure:
 - Next Meta Page Pointer (4 bytes)
@@ -51,7 +52,7 @@ At each Table offset:
 		- Referenced Table Name (variable length)
 		- Referenced Column index in Referenced Table's Columns array (1 byte)
 */
-
+// ReadMetaPage reads the meta page from the database file and populates the Database struct with the metadata information.
 func ReadMetaPage(db *entities.Database) error{
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
@@ -144,7 +145,7 @@ func ReadMetaPage(db *entities.Database) error{
 
 	return nil
 }
-
+// WriteMetaPage writes the current state of the Database struct to the meta page in the database file on disk.
 func WriteMetaPage(db *entities.Database) error {
 	buffer := bufferPool.Get().([]byte)
 	defer bufferPool.Put(buffer)
