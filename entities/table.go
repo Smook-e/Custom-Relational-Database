@@ -231,6 +231,7 @@ func GetConstraint(Constraints []string) (uint8, error) {
 	return result, nil
 }
 
+// returns a pointer to the Column with the specified name in the Table.
 func (t *Table) GetColumnByName(name string) (*Column, error) {
 	for _, col := range t.Columns {
 		if col.Name == name {
@@ -240,6 +241,7 @@ func (t *Table) GetColumnByName(name string) (*Column, error) {
 	return nil, fmt.Errorf("Column %s not found in table %s", name, t.Name)
 }
 
+// returns the index of the Column with the specified name in the Table.
 func (t *Table) GetColumnIndexByName(name string) (int, error) {
 	for i, col := range t.Columns {
 		if col.Name == name {
@@ -248,7 +250,7 @@ func (t *Table) GetColumnIndexByName(name string) (int, error) {
 	}
 	return -1, fmt.Errorf("Column %s not found in table %s", name, t.Name)
 }
-
+// returns a pointer to the Column at the specified index in the Table.
 func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 	if index < 0 || index >= len(t.Columns) {
 		return nil, fmt.Errorf("Index %d out of bounds for table %s", index, t.Name)
