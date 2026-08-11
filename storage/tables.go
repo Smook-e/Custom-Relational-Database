@@ -227,6 +227,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition, foreignKeys []entities.ForeignKeyDefinition) (error) {
 
 	table := &entities.Table{Name: tableName}
+
 	engine.db.Tables[tableName] = table
 	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
 	for _, col := range cols{
@@ -308,6 +309,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			ReferencedColumnIndex: uint8(referencedColIndex),
 		}
 	}
+	engine.metaWrite = true
 	
 	return nil
 }
