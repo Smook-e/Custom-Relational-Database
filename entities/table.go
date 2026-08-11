@@ -350,6 +350,11 @@ func Deserialize(data []byte, dataType uint8) (any, error) {
 		return nil, fmt.Errorf("Unsupported data type for deserialization")
 	}
 }
+// Compare takes two serialized byte representations of values and a column definition, and compares the two values based on the column's data type.
+// returns -1 if val1 < val2
+// returns 0 if val1 == val2
+// returns 1 if val1 > val2
+// This is used for sorting and searching within the database.
 func Compare(val1, val2 []byte, col *Column) (int, error) {
 	switch col.DataType {
 	case TypeTinyInt:
