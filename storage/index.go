@@ -7,12 +7,26 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+/*
+This file contains the main logic behind the B+Tree index implementation in the database. 
+It provides functions to insert keys into the index, search for keys, and handle page splits when necessary.
+The index is implemented as a B+Tree, where internal pages contain keys and pointers to child pages, and leaf pages contain keys and pointers to the actual data records in the database.
+Used in the storage layer to manage indexes for tables, allowing efficient searching and insertion of records based on indexed columns.
+*/
+
 const (
 	nextLeafPageOffset = 1
 	leafPageNumEntriesOffset = 5
 	LeafPageHeaderSize     = 1 + 4 + 2 // isLeaf + nextLeafPage + numberOfEntries
 	InternalPageHeaderSize = 1 + 2   // isLeaf + numberOfEntries
 )
+
+// InsertIntoIndex inserts a key into the B+Tree index starting from the root page.
+// The main function that handles the insertion of a key into the B+Tree index. 
+// it calls the recursive IndexInsert function to perform the actual insertion and handle any necessary page splits, then handles the root split case.
+
+// Returns the new root page ID if a split occurs at the root, or the original root page ID if no split occurs.
+// Function receives the storage engine, the root pageId of the B+Tree, the serialized key to be inserted, the pageId and slot of the row in the data page, and the column metadata for comparison.
 func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uint32, slot uint16, col *entities.Column) (uint32, error) {
 	newRoot, newKey, err := IndexInsert(engine, root, key, pageID, slot, col)
 	if err != nil {
@@ -47,7 +61,11 @@ func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uin
 	return newRoot, nil
 }
 
-// Recursive function to insert a key into the index starting from the root page, and split the page if necessary. Returns the new root page ID and the new key to be inserted into the parent page if a split occurs.
+// Recursive function to insert a key into the B+Tree index starting from the root page, and split the page if necessary. 
+// Returns the new root page ID and the new key to be inserted into the parent page if a split occurs.
+// Function receives the storage engine, the root pageId of the B+Tree, the serialized key to be inserted, the pageId and slot of the row in the data page, and the column metadata for comparison.
+
+// This function shouldn't be called directly, use InsertIntoIndex instead.
 func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, slot uint16, col *entities.Column) (uint32, []byte, error) {
 
 	buffer , err := engine.Bp.Get(root)
@@ -307,7 +325,10 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 
 
 
-
+// Recursive function to search for a key in the B+Tree index starting from the root page.
+// Returns the page ID and slot of the corresponding data record if found, or an error if not found.
+// If the key is not found in the index, the pageId will be set to 0 and the slot will be set to 0, and an error will be returned indicating that the key was not found.
+// Function receives the storage engine, the root pageId of the B+Tree, the serialized key to be searched, and the column metadata for comparison.
 func (engine *StorageEngine) IndexSearch(root uint32, key []byte, col *entities.Column) (uint32, uint16, error) {
 	buffer , err := engine.Bp.Get(root)
 	if err != nil {
