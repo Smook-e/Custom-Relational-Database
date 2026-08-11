@@ -8,7 +8,8 @@ import (
 	"errors"
 )
 
-
+// ReadFromFile reads a page from the database file into the provided buffer. It ensures that the buffer is exactly 4096 bytes and reads the specified page from the file.
+// It receives the pageId and the buffer to read into.
 func ReadFromFile(file *os.File, page uint32, buffer []byte) error{
 
 	if file == nil {
