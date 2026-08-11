@@ -11,7 +11,7 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 
-
+// takes a filename and opens the file, initializes the database struct and populates it with data from the meta page and free space page
 func (engine *StorageEngine) OpenDatabase(filename string) ( error) {
 	filep, err :=  os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
