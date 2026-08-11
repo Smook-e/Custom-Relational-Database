@@ -168,7 +168,10 @@ func GetSize(col *Column) (uint8, error) {
 	}
 
 }
+
 var varcharRegex = regexp.MustCompile(`(?i)^varchar(?:[(](\d+)[)])?$`)
+// Returns the data type and size for a given string representation of a data type. For VARCHAR, it extracts the length if specified.
+// Typically used when creating a table to convert user-provided data type strings into internal representations.
 func GetDataTypeAndSize(datatype string) (uint8, uint8, error) {
 	datatype = strings.ToLower(datatype)
 	switch  {
