@@ -413,6 +413,8 @@ func Compare(val1, val2 []byte, col *Column) (int, error) {
 		return 0, fmt.Errorf("Unsupported data type for comparison")
 	}
 }
+// returns the Constraints of a column as a readable string. 
+// For example, a column with primary key and not null constraints would return "PRIMARY KEY, NOT NULL".
 func (col *Column) PrintConstraints(constraints uint8) string {
 	var result []string
 	if constraints == 0 {
@@ -438,6 +440,7 @@ func (col *Column) PrintConstraints(constraints uint8) string {
 	}
 	return strings.Join(result, ", ")
 }
+// returns the string representation of the column's data type, including size for VARCHAR types.
 func (col *Column) PrintDataType(dataType uint8) string {
 	switch dataType {
 	case TypeTinyInt:
