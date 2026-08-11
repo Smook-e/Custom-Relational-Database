@@ -501,6 +501,7 @@ func (col *Column) SetDefaultValue(buffer []byte, offset int) (int,error) {
 		return 0, fmt.Errorf("Unsupported data type for setting default value")
 	}
 }
+// GetDefaultValue takes a string representation of a value and converts it to the appropriate type based on the column's data type.
 func (col *Column) GetDefaultValue(value string) (any, error) {
 	switch col.DataType {
 	case TypeTinyInt:
