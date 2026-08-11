@@ -6,6 +6,13 @@ import (
 	"fmt"
 	"os"
 )
+/*
+This file contains the implementation of the BufferPool
+Which is an LRU (Least Recently Used) cache for pages in the database file. 
+It manages a fixed-size array of pages, a linked list to track usage order, and a map for quick access to cached pages. 
+The BufferPool supports reading pages from disk, caching them, marking them as dirty, and flushing dirty pages back to disk.
+Every function in the storage layer that needs to read or write a page goes through the BufferPool to ensure efficient caching and management of pages.
+*/
 
 const bufferSize = 4096
 const cacheSize = 512
@@ -35,7 +42,7 @@ func InitializeBufferPool(file *os.File) *BufferPool {
 	}
 	return bp
 }
-
+// Get retrieves a page from the buffer pool. If the page is not in the cache, it reads it from disk and adds it to the cache.
 func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	//Check if page exists in cache
 	
@@ -81,12 +88,8 @@ func (bp *BufferPool) Get(pageId uint32) ([]byte, error) {
 	bp.list.Head.PageID = pageId// set the pageId of the new node
 	return bp.pages[freeindex].buffer[:], nil
 
-
-
-	
-
 }
-
+// MarkDirty marks a page as dirty, indicating that it has been modified and needs to be written back to disk.
 func (bp *BufferPool) MarkDirty(pageId uint32) error {
 	if _, ok := bp.cache[pageId]; !ok {
 		return fmt.Errorf("Page %d not found in cache", pageId)
@@ -94,7 +97,7 @@ func (bp *BufferPool) MarkDirty(pageId uint32) error {
 	bp.dirtyPages[pageId] = struct{}{}
 	return nil
 }
-
+// Flush writes all dirty pages back to disk and clears the dirty pages set.
 func (bp *BufferPool) Flush() error {//writes all dirty pages to disk
 	for pageId := range bp.dirtyPages {
 		node, ok := bp.cache[pageId]
