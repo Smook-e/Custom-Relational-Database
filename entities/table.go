@@ -9,6 +9,11 @@ import (
 	"encoding/binary"
 
 )
+/*
+This file defines the core data structures and constants for the database system,
+including tables, rows, columns, and their associated properties.
+It also provides utility functions Like serialization, deserialization, comparison, and constraint handling.
+*/
 
 // Data type identifiers
 const (
