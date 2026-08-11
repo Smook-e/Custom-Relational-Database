@@ -3,28 +3,28 @@ package entities
 import (
 	"os"
 	"fmt"
-	// "errors"
 	
 )
-
+/*
+This file contains the definition of the Database struct, along with utility methods.
+*/
+// FreePage represents a page in the database file that has free space available for new records.
 type FreePage struct {
 	PageID	uint32
 	FreeSpace	uint16
 }
+// Database represents the Metadata of the database, including the file handle, tables, free pages, and total number of pages.
 type Database struct {
 	File *os.File
 	Tables map[string]*Table
 	FreePages	[]FreePage
 	TotalPages uint32
-    
-
 }
 
 func (db *Database) PrintFreePages() {
 	for _, freePage := range db.FreePages {
         fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
     }
-
 }
 
 func (db *Database) PrintTables() {
