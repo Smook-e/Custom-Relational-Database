@@ -12,7 +12,10 @@ import (
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 )
-
+/*
+This file was used for testing the storage engine and its functionalities.
+It is not part of the final implementation and can be removed or modified as needed.
+*/
 
 
 func (engine *StorageEngine) TestOpenDatabase() error {
