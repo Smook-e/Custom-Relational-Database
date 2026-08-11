@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"syscall"
 )
-
+/*
+This file contains benchmarks for the BufferPool implementation. It benchmarks the performance of cold reads (where pages are not cached) and warm reads (where pages are cached) from the database file.
+You can find the benchmark results in the README.md file
+*/
 
 func BenchmarkColdRead(b *testing.B) {
     // ensure pages aren't cached — e.g. fresh pool each iteration, or evict before each read
