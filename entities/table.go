@@ -72,6 +72,8 @@ type ForeignKeyDefinition struct {
 	ReferencedTableName string
 	ReferencedColumnName string
 }
+
+// returns True if the column has the specified constraint, otherwise returns False
 func (col *Column) HasConstraint(constraint uint8) bool {
 	return col.Constraints&constraint != 0
 }
