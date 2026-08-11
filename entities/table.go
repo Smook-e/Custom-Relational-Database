@@ -80,6 +80,7 @@ func (col *Column) HasConstraint(constraint uint8) bool {
 
 // GetValues takes a slice of string values and converts them to their respective types based on the column definitions of the table. 
 // It returns a slice containing the converted values, the total size in bytes of the serialized data, a null bitmap indicating which columns are null.
+// it returns an error if any value cannot be converted to the appropriate type.
 func (t *Table) GetValues(vals []string) ([]any,uint16, []byte, error) {
 	values := make([]any, len(vals))
 	var col *Column
