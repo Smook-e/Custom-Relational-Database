@@ -3,6 +3,12 @@ package linkedlist
 import (
 	"fmt"
 )
+/*
+This file contains the implementation of a doubly linked list data structure in Go.
+It is used in the buffer pool implementation to manage the pages in memory.
+It is used to implement the LRU (Least Recently Used) page replacement policy in the buffer pool.
+The linked list allows for efficient insertion and removal of nodes, as well as traversal in both directions.
+*/
 
 type Node struct {
 	Value any
