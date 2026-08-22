@@ -104,9 +104,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 					table.Columns[i].Default = col.Default // Update the column in the table with the new default value
 				}
 				// Clear the null bit from the null bitmap since we are using a default value
-				byteIndex := i / 8
-				bitIndex := uint(i % 8)
-				nullBitmap[byteIndex] &^= (1 << bitIndex) // Clear the bit for this column
+				nullBitmap.ClearNull(i)
 				// Update the size to account for the default value
 				defaultSize, err := entities.GetSize(&col)
 				if err != nil {
@@ -168,8 +166,10 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	offset := freeSpaceOffset
 	//Pass 2: write the values into the page
 	// Write the null bitmap first
-	copy(buffer[offset:offset+uint16(len(nullBitmap))], nullBitmap)
-	offset += uint16(len(nullBitmap))
+	offset, err = table.WriteNullBitmap(nullBitmap, buffer, offset)
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
+	}
 	for i, val := range vals {
 		if val == nil {
 			continue

@@ -85,19 +85,24 @@ func (nb *NullBitmap) SetNull(index int) {
 	bitIndex := index % 8
 	nb.Bitmap[byteIndex] |= (1 << bitIndex)
 }
+func (nb *NullBitmap) ClearNull(index int) {
+	byteIndex := index / 8
+	bitIndex := index % 8
+	nb.Bitmap[byteIndex] &^= (1 << bitIndex)
+}
 func (table *Table) InitializeNullBitmap() *NullBitmap {
 	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
 	return &NullBitmap{
 		Bitmap: make([]byte, nullBitmapSize),
 	}
 }
-func (table *Table) WriteNullBitmap(nullBitmap *NullBitmap, buffer []byte, offset int) (int, error) {
+func (table *Table) WriteNullBitmap(nullBitmap *NullBitmap, buffer []byte, offset uint16) (uint16, error) {
 	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
-	if len(buffer) < offset+nullBitmapSize {
+	if len(buffer) < int(offset)+nullBitmapSize {
 		return 0, errors.New("Buffer too small to write null bitmap")
 	}
-	copy(buffer[offset:offset+nullBitmapSize], nullBitmap.Bitmap)
-	return offset + nullBitmapSize, nil
+	copy(buffer[offset:offset+uint16(nullBitmapSize)], nullBitmap.Bitmap)
+	return offset + uint16(nullBitmapSize), nil
 }
 
 func (table *Table) ReadNullBitmap(buffer []byte) (*NullBitmap,int, error) { 
