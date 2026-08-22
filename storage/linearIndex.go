@@ -77,6 +77,48 @@ func (engine *StorageEngine) VerifyCondition(buffer []byte, condition *SearchCon
 	if condition == nil {
 		return true, nil
 	}
+	offset := 0
+	// Read the null bitmap first
+	nullBitmap, err := table.ReadNullBitmap(buffer)
+	if err != nil {
+		return false, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
+	}
+	offset += len(nullBitmap.Bitmap)
+	for i, col := range table.Columns {
+		size := col.Size
+		if size == 0 {// For variable-length types
+			size = buffer[offset] + 1 // First byte indicates the length of the variable-length data
+		}
+		if col.Name == condition.ColumnName {
+			// Check if the column is null using the null bitmap
+			if nullBitmap.IsNull(i) {
+				return false, nil
+			}
+			// Compare the value in the buffer with the condition value
+			comp, err := entities.Compare(buffer[offset:offset+int(size)], condition.Value, &col)
+			if err != nil {
+				return false, fmt.Errorf("An error occurred while comparing values: %w", err)
+			}
+			switch condition.Operator {
+			case "=" , "==":
+				return comp == 0, nil
+			case "!=" , "<>":
+				return comp != 0, nil
+			case "<" :
+				return comp < 0, nil
+			case ">":
+				return comp > 0, nil
+			case "<=":
+				return comp <= 0, nil
+			case ">=":
+				return comp >= 0, nil
+			default:
+				return false, fmt.Errorf("Unsupported operator: %s", condition.Operator)
+			}
+			
+		}
+		offset += int(size)
+	}
 	return false, fmt.Errorf("Condition checking not implemented yet")
 }
 
