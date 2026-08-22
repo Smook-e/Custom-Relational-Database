@@ -34,13 +34,6 @@ func main(){
 	for _, row := range rows {
 		fmt.Println(row)
 	}
-	val , err := engine.
-	searchCondition := &storage.SearchCondition{
-		ColumnName: "name",
-		Operator: "=",
-		Value: []byte("Product 1"),
-	}
-	rows , err = engine.LinearSearch("products", searchCondition)
 	rows , err = engine.LinearSearch("users", nil)
 	if err != nil {
 		fmt.Printf("failed to perform linear search on users table: %v", err)

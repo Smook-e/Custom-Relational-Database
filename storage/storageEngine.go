@@ -187,8 +187,31 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return engine, fmt.Errorf("failed to read meta pages: %w", err)
 		}
 	}
+	// Test Linear Search
+	targetColumn := &engine.db.Tables["products"].Columns[2]
+	val, err := targetColumn.GetDefaultValue("600")
+	if err != nil {
+		return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn.Name, err)
+	}
+	// Serialize the value to match the format stored in the database
+	serializedValue, err := entities.Serialize(val, targetColumn)
+	if err != nil {
+		return engine, fmt.Errorf("failed to serialize value for column %s: %w", targetColumn.Name, err)
+	}
+	searchCondition := &SearchCondition{
+		ColumnName: targetColumn.Name,
+		Operator: "=",
+		Value: serializedValue,
+	}
+	result, err := engine.LinearSearch("products", searchCondition)
+	if err != nil {
+		return engine, fmt.Errorf("failed to perform linear search: %w", err)
+	}
+	fmt.Println("Linear Search results:")
+	for _, row := range result {
+		fmt.Println(row)
+	}
 
-	
 	return engine, nil
 }
 // NewPage creates a new page in the database file and returns its page ID.
