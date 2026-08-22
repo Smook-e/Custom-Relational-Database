@@ -90,7 +90,30 @@ func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, col *entities
 	
 	return 0,0, fmt.Errorf("Key not found")
 }
-func (engine *StorageEngine) VerifyCondition(buffer []byte, condition *SearchCondition, table *entities.Table) (bool, error) {
+func (engine *StorageEngine) EvaluateExpression(buffer []byte, expr *Expression, table *entities.Table) (bool, error) {
+	if expr == nil {
+		return true, nil
+	}
+	switch expr.Type {
+	case NodeCondition:
+		return VerifyCondition(buffer, expr.Condition, table)
+	case NodeAnd:
+		leftResult, _ := engine.EvaluateExpression(buffer, expr.Left, table)
+		if leftResult == false {
+			return false, nil
+		}
+		return engine.EvaluateExpression(buffer, expr.Right, table)
+	case NodeOr:
+		leftResult, _ := engine.EvaluateExpression(buffer, expr.Left, table)
+		if leftResult == true {
+			return true, nil
+		}
+		return engine.EvaluateExpression(buffer, expr.Right, table)	
+	default:
+		return false, fmt.Errorf("Unknown expression type: %v", expr.Type)
+	}
+}
+func VerifyCondition(buffer []byte, condition *SearchCondition, table *entities.Table) (bool, error) {
 	if condition == nil {
 		return true, nil
 	}
@@ -198,7 +221,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCon
 				return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 			}
 			//check the condition
-			conditionMet, err := engine.VerifyCondition(dataBuffer[tableOffset:], condition, table)
+			conditionMet, err := VerifyCondition(dataBuffer[tableOffset:], condition, table)
 			if err != nil {
 				return nil, fmt.Errorf("An Error Occured %w", err)
 			}
