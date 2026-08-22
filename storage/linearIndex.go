@@ -161,7 +161,11 @@ func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCon
 			//skip the key bytes
 			offset += int(primaryKeyColumn.Size)
 			//check the condition
-			if condition == nil {
+			conditionMet, err := engine.VerifyCondition(buffer[offset:], condition, table)
+			if err != nil {
+				return nil, fmt.Errorf("An Error Occured %w", err)
+			}
+			if conditionMet {
 				// read all rows if no condition is provided
 				pageId := binary.BigEndian.Uint32(buffer[offset:offset + 4])
 				offset += 4
