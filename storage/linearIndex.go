@@ -73,6 +73,14 @@ func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, col *entities
 	
 	return 0,0, fmt.Errorf("Key not found")
 }
+func (engine *StorageEngine) VerifyCondition(buffer []byte, condition *SearchCondition, table *entities.Table) (bool, error) {
+	if condition == nil {
+		return true, nil
+	}
+	return false, fmt.Errorf("Condition checking not implemented yet")
+}
+
+
 
 func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCondition) ([][]any, error) {
 	// Get the table object from the database
