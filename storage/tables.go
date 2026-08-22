@@ -171,7 +171,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	offset := freeSpaceOffset
 	//Pass 2: write the values into the page
 	// Write the null bitmap first
-	err = table.WriteNullBitmap(nullBitmap, buffer)
+	err = table.WriteNullBitmap(nullBitmap, buffer[offset:offset+uint16(len(nullBitmap.Bitmap))])
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
