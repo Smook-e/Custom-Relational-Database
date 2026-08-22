@@ -187,9 +187,9 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return engine, fmt.Errorf("failed to read meta pages: %w", err)
 		}
 		// Test Linear Search
-		targetColumn := &engine.db.Tables["products"].Columns[2]
+		targetColumn := &engine.db.Tables["products"].Columns[4]
 		
-		val, err := targetColumn.GetDefaultValue("600")
+		val, err := targetColumn.GetDefaultValue("apple")
 		if err != nil {
 			return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn.Name, err)
 		}
