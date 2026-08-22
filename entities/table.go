@@ -85,6 +85,12 @@ func (nb *NullBitmap) SetNull(index int) {
 	bitIndex := index % 8
 	nb.Bitmap[byteIndex] |= (1 << bitIndex)
 }
+func (table *Table) InitializeNullBitmap() *NullBitmap {
+	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
+	return &NullBitmap{
+		Bitmap: make([]byte, nullBitmapSize),
+	}
+}
 func (table *Table) WriteNullBitmap(nullBitmap *NullBitmap, buffer []byte, offset int) (int, error) {
 	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
 	if len(buffer) < offset+nullBitmapSize {
