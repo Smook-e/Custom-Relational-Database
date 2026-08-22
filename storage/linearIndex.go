@@ -3,6 +3,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
+	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
 /*
 Provides a linear search implementation for searching through the B+Tree index in the database.
@@ -160,18 +161,27 @@ func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCon
 		for range numKeys {
 			//skip the key bytes
 			offset += int(primaryKeyColumn.Size)
+			pageId := binary.BigEndian.Uint32(buffer[offset:offset + 4])
+			offset += 4
+			slot := binary.BigEndian.Uint16(buffer[offset:offset + 2])
+			offset += 2
+			// Find the Row in the table using the pageId and slot
+			dataBuffer, err := engine.Bp.Get(pageId)
+			if err != nil {
+				return nil,err
+			}
+			tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
+			if err != nil {
+				return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+			}
 			//check the condition
-			conditionMet, err := engine.VerifyCondition(buffer[offset:], condition, table)
+			conditionMet, err := engine.VerifyCondition(dataBuffer[tableOffset:], condition, table)
 			if err != nil {
 				return nil, fmt.Errorf("An Error Occured %w", err)
 			}
 			if conditionMet {
 				// Read the pageId and slot from the buffer
-				pageId := binary.BigEndian.Uint32(buffer[offset:offset + 4])
-				offset += 4
-				slot := binary.BigEndian.Uint16(buffer[offset:offset + 2])
-				offset += 2
-				row, err := engine.ReadRow(tableName, pageId, slot)
+				row, err := engine.ReadRow(tableName, dataBuffer, tableOffset)
 				if err != nil {
 					return nil, fmt.Errorf("An Error Occured %w", err)
 				}

@@ -15,22 +15,14 @@ This file contains functions for inserting and reading rows in the database, as 
 */
 
 // ReadRow reads a row from the specified table at the given page ID and slot, returning the row data as a slice of any type.
-func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint16) ([]any, error) {
+func (engine *StorageEngine) ReadRow(tableName string, buffer []byte, offset uint16) ([]any, error) {
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
 	}
 	Row := make([]any, len(table.Columns))
 	
-	buffer, err := engine.Bp.Get(pageID)
-	if err != nil {
-		return nil,err
-	}
-	tableOffset, err  := pages.GetDataPageSlotOffset(buffer, slot)
-	if err != nil {
-		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
-	}
-	offset := tableOffset
+	
 	// read the null bitmap first
 	nullBitmap, err := table.ReadNullBitmap(buffer[offset:])
 	if err != nil {
