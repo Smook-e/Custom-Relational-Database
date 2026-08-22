@@ -86,10 +86,14 @@ func (engine *StorageEngine) VerifyCondition(buffer []byte, condition *SearchCon
 	}
 	offset += len(nullBitmap.Bitmap)
 	for i, col := range table.Columns {
-		size := col.Size
+		size, err := entities.GetSize(&col)
+		if err != nil {
+			return false, fmt.Errorf("An error occurred while getting size of column %s: %w", col.Name, err)
+		}
 		if size == 0 {// For variable-length types
 			size = buffer[offset] + 1 // First byte indicates the length of the variable-length data
 		}
+		
 		if col.Name == condition.ColumnName {
 			// Check if the column is null using the null bitmap
 			if nullBitmap.IsNull(i) {
@@ -100,6 +104,7 @@ func (engine *StorageEngine) VerifyCondition(buffer []byte, condition *SearchCon
 			if err != nil {
 				return false, fmt.Errorf("An error occurred while comparing values: %w", err)
 			}
+			
 			switch condition.Operator {
 			case "=" , "==":
 				return comp == 0, nil
@@ -118,7 +123,9 @@ func (engine *StorageEngine) VerifyCondition(buffer []byte, condition *SearchCon
 			}
 			
 		}
-		offset += int(size)
+		if !nullBitmap.IsNull(i) {
+			offset += int(size)
+		}
 	}
 	return false, fmt.Errorf("Condition checking not implemented yet")
 }
