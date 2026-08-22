@@ -96,25 +96,25 @@ func (table *Table) InitializeNullBitmap() *NullBitmap {
 		Bitmap: make([]byte, nullBitmapSize),
 	}
 }
-func (table *Table) WriteNullBitmap(nullBitmap *NullBitmap, buffer []byte, offset uint16) (uint16, error) {
-	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
-	if len(buffer) < int(offset)+nullBitmapSize {
-		return 0, errors.New("Buffer too small to write null bitmap")
-	}
-	copy(buffer[offset:offset+uint16(nullBitmapSize)], nullBitmap.Bitmap)
-	return offset + uint16(nullBitmapSize), nil
-}
-
-func (table *Table) ReadNullBitmap(buffer []byte) (*NullBitmap,int, error) { 
+func (table *Table) WriteNullBitmap(nullBitmap *NullBitmap, buffer []byte) ( error) {
 	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
 	if len(buffer) < nullBitmapSize {
-		return nil, 0, errors.New("Buffer too small to read null bitmap")
+		return errors.New("Buffer too small to write null bitmap")
+	}
+	copy(buffer[:nullBitmapSize], nullBitmap.Bitmap)
+	return nil
+}
+
+func (table *Table) ReadNullBitmap(buffer []byte) (*NullBitmap, error) { 
+	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
+	if len(buffer) < nullBitmapSize {
+		return nil, errors.New("Buffer too small to read null bitmap")
 	}
 	nullBitmap := &NullBitmap{
 		Bitmap: make([]byte, nullBitmapSize),
 	}
 	copy(nullBitmap.Bitmap, buffer[:nullBitmapSize])
-	return nullBitmap, nullBitmapSize, nil
+	return nullBitmap, nil
 }
 // returns True if the column has the specified constraint, otherwise returns False
 func (col *Column) HasConstraint(constraint uint8) bool {

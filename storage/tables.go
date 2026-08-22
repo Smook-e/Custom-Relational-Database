@@ -32,6 +32,10 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 	}
 	offset := tableOffset
 	// read the null bitmap first
+	nullBitmap, err := table.ReadNullBitmap(buffer[offset:])
+	if err != nil {
+		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+	}
 	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
 	nullBitmap := buffer[offset : offset+uint16(nullBitmapSize)]
 	offset += uint16(nullBitmapSize)
