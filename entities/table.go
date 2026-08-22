@@ -80,7 +80,11 @@ func (nb *NullBitmap) IsNull(index int) bool {
 	bitIndex := index % 8
 	return (nb.Bitmap[byteIndex] & (1 << bitIndex)) != 0
 }
-
+func (nb *NullBitmap) SetNull(index int) {
+	byteIndex := index / 8
+	bitIndex := index % 8
+	nb.Bitmap[byteIndex] |= (1 << bitIndex)
+}
 
 // returns True if the column has the specified constraint, otherwise returns False
 func (col *Column) HasConstraint(constraint uint8) bool {
