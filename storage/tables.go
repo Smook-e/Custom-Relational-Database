@@ -106,6 +106,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 					// If the column is of type Serial, increment the default value for the next insertion
 					col.Default = vals[i].(int32) + 1
 					table.Columns[i].Default = col.Default // Update the column in the table with the new default value
+					engine.metaWrite = true // Mark the meta page for writing since the default value has changed
 				}
 				// Clear the null bit from the null bitmap since we are using a default value
 				nullBitmap.ClearNull(i)
