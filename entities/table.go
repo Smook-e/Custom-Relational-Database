@@ -75,6 +75,11 @@ type ForeignKeyDefinition struct {
 type NullBitmap struct {
 	Bitmap []byte
 }
+func (nb *NullBitmap) IsNull(index int) bool {
+	byteIndex := index / 8
+	bitIndex := index % 8
+	return (nb.Bitmap[byteIndex] & (1 << bitIndex)) != 0
+}
 
 
 // returns True if the column has the specified constraint, otherwise returns False
