@@ -445,12 +445,9 @@ func Compare(val1, val2 []byte, col *Column) (int, error) {
 		}
 		return 0, nil
 	case TypeVarChar:
-		if col.Size > 0 {
-			val1Size := int(val1[0])
-			val2Size := int(val2[0])
-			return strings.Compare(string(val1[1:1+val1Size]), string(val2[1:1+val2Size])), nil
-		}
-		return strings.Compare(string(val1[1:]), string(val2[1:])), nil
+		val1Size := int(val1[0])
+		val2Size := int(val2[0])
+		return strings.Compare(string(val1[1:1+val1Size]), string(val2[1:1+val2Size])), nil
 	default:
 		return 0, fmt.Errorf("Unsupported data type for comparison")
 	}
