@@ -166,7 +166,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCon
 				return nil, fmt.Errorf("An Error Occured %w", err)
 			}
 			if conditionMet {
-				// read all rows if no condition is provided
+				// Read the pageId and slot from the buffer
 				pageId := binary.BigEndian.Uint32(buffer[offset:offset + 4])
 				offset += 4
 				slot := binary.BigEndian.Uint16(buffer[offset:offset + 2])
