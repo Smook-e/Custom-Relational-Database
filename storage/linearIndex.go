@@ -171,7 +171,7 @@ func VerifyCondition(buffer []byte, condition *SearchCondition, table *entities.
 
 
 
-func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCondition) ([][]any, error) {
+func (engine *StorageEngine) LinearSearch(tableName string, expr *Expression) ([][]any, error) {
 	// Get the table object from the database
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
@@ -221,7 +221,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, condition *SearchCon
 				return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 			}
 			//check the condition
-			conditionMet, err := VerifyCondition(dataBuffer[tableOffset:], condition, table)
+			conditionMet, err := engine.EvaluateExpression(dataBuffer[tableOffset:], expr, table)
 			if err != nil {
 				return nil, fmt.Errorf("An Error Occured %w", err)
 			}

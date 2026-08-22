@@ -187,23 +187,49 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return engine, fmt.Errorf("failed to read meta pages: %w", err)
 		}
 		// Test Linear Search
-		targetColumn := &engine.db.Tables["products"].Columns[4]
-		
-		val, err := targetColumn.GetDefaultValue("apple")
+		targetColumn1 := &engine.db.Tables["products"].Columns[3]
+		targetColumn2 := &engine.db.Tables["products"].Columns[2]
+
+		val1, err := targetColumn1.GetDefaultValue("2")
 		if err != nil {
-			return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn.Name, err)
+			return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn1.Name, err)
+		}
+		val2, err := targetColumn2.GetDefaultValue("600")
+		if err != nil {
+			return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn2.Name, err)
 		}
 		// Serialize the value to match the format stored in the database
-		serializedValue, err := entities.Serialize(val, targetColumn)
+		serializedValue1, err := entities.Serialize(val1, targetColumn1)
 		if err != nil {
-			return engine, fmt.Errorf("failed to serialize value for column %s: %w", targetColumn.Name, err)
+			return engine, fmt.Errorf("failed to serialize value for column %s: %w", targetColumn1.Name, err)
 		}
-		searchCondition := &SearchCondition{
-			ColumnName: targetColumn.Name,
+		serializedValue2, err := entities.Serialize(val2, targetColumn2)
+		if err != nil {
+			return engine, fmt.Errorf("failed to serialize value for column %s: %w", targetColumn2.Name, err)
+		}
+
+		searchCondition1 := &SearchCondition{
+			ColumnName: targetColumn1.Name,
 			Operator: "=",
-			Value: serializedValue,
+			Value: serializedValue1,
 		}
-		result, err := engine.LinearSearch("products", searchCondition)
+		searchCondition2 := &SearchCondition{
+			ColumnName: targetColumn2.Name,
+			Operator: "=",
+			Value: serializedValue2,
+		}
+		expression := &Expression{
+			Type: NodeAnd,
+			Left: &Expression{
+				Type: NodeCondition,
+				Condition: searchCondition1,
+			},
+			Right: &Expression{
+				Type: NodeCondition,
+				Condition: searchCondition2,
+			},
+		}
+		result, err := engine.LinearSearch("products", expression)
 		if err != nil {
 			return engine, fmt.Errorf("failed to perform linear search: %w", err)
 		}
