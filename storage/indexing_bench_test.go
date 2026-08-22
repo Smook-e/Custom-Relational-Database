@@ -26,7 +26,7 @@ func BenchmarkIndexSearch(b *testing.B) {
 	b.ResetTimer()
 	//search 
 	for  b.Loop() {
-		key, err := engine.db.Serialize(int64(999999), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
+		key, err := entities.Serialize(int64(999999), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return
@@ -53,7 +53,7 @@ func BenchmarkLinearSearch(b *testing.B) {
 	b.ResetTimer()
 	//search 
 	for b.Loop()  {
-		key, err := engine.db.Serialize(int64(999999), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
+		key, err := entities.Serialize(int64(999999), &entities.Column{DataType: entities.TypeBigInt, Size: 8})
 		if err != nil {
 			fmt.Println("Error serializing key:", err)
 			return

@@ -177,7 +177,7 @@ func WriteMetaPage(db *entities.Database) error {
 			// length of name + name + datatype + constraints + size
 			size += 1 + len(col.Name) + 1 + 1 + 1
 			if col.HasConstraint(entities.ConstraintDefault) {
-				DefaultBytes, err := db.Serialize(col.Default, &col)
+				DefaultBytes, err := entities.Serialize(col.Default, &col)
 				if err != nil {
 					return fmt.Errorf("Error serializing default value for column %s: %w", col.Name, err)
 				}
@@ -221,7 +221,7 @@ func WriteMetaPage(db *entities.Database) error {
 			buffer[tableOffset] = col.Constraints; tableOffset++;
 			buffer[tableOffset] = col.Size; tableOffset++;
 			if col.HasConstraint(entities.ConstraintDefault) {
-				DefaultBytes, err := db.Serialize(col.Default, col)
+				DefaultBytes, err := entities.Serialize(col.Default, col)
 				if err != nil {
 					return fmt.Errorf("Error serializing default value for column %s: %w", col.Name, err)
 				}

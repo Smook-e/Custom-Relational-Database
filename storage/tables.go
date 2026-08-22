@@ -126,7 +126,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		}
 		if vals[i] != nil && (col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex)) {
 			// Check for uniqueness in the existing rows
-			serializedKey, err := engine.db.Serialize(vals[i], &col)
+			serializedKey, err := entities.Serialize(vals[i], &col)
 			if err != nil {
 				return 0,0, fmt.Errorf("An error occurred while serializing key: %w", err)
 			}
@@ -142,7 +142,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 				return 0,0, fmt.Errorf("Error: Referenced table %s not found for foreign key constraint on column %s", fk.ReferencedTableName, col.Name)
 			}
 			referencedCol := referencedTable.Columns[fk.ReferencedColumnIndex]
-			serializedKey, err := engine.db.Serialize(vals[i], &col)
+			serializedKey, err := entities.Serialize(vals[i], &col)
 			if err != nil {
 				return 0,0, fmt.Errorf("An error occurred while serializing key for foreign key check: %w", err)
 			}
@@ -215,7 +215,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		if err != nil {
 			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
 		}
-		serializedKey, err := engine.db.Serialize(vals[colIndex], &table.Columns[colIndex])
+		serializedKey, err := entities.Serialize(vals[colIndex], &table.Columns[colIndex])
 		if err != nil {
 			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
 		}
