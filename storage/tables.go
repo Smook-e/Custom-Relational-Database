@@ -36,14 +36,14 @@ func (engine *StorageEngine) ReadRow(tableName string, pageID uint32, slot uint1
 	if err != nil {
 		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 	}
-	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
-	nullBitmap := buffer[offset : offset+uint16(nullBitmapSize)]
-	offset += uint16(nullBitmapSize)
+	nullBitmap , err = table.ReadNullBitmap(buffer[offset:])
+	if err != nil {
+		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+	}
+	offset += uint16(len(nullBitmap.Bitmap))
 	for i, col := range table.Columns {
 		// Check if the column is null using the null bitmap
-		byteIndex := i / 8
-		bitIndex := uint(i % 8)
-		if nullBitmap[byteIndex]&(1<<bitIndex) != 0 {
+		if nullBitmap.IsNull(i) {
 			Row[i] = nil
 			continue
 		}
@@ -170,10 +170,11 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	offset := freeSpaceOffset
 	//Pass 2: write the values into the page
 	// Write the null bitmap first
-	offset, err = table.WriteNullBitmap(nullBitmap, buffer, offset)
+	err = table.WriteNullBitmap(nullBitmap, buffer)
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
+	offset += uint16(len(nullBitmap.Bitmap))
 	for i, val := range vals {
 		if val == nil {
 			continue
