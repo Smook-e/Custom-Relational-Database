@@ -16,6 +16,22 @@ type SearchCondition struct {
 	Operator string
 	Value []byte
 }
+type NodeType uint8
+
+const (
+	NodeCondition NodeType = 1
+	NodeAnd       NodeType = 2
+	NodeOr        NodeType = 3
+)
+
+type Expression struct {
+	Type NodeType
+	
+	Condition *SearchCondition
+
+	Left  *Expression
+	Right *Expression
+}
 
 func (engine *StorageEngine) GetFirstLeafPage(rootId uint32) (uint32, error) {
 	//load page
