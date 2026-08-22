@@ -189,6 +189,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 	}
 	// Test Linear Search
 	targetColumn := &engine.db.Tables["products"].Columns[2]
+	fmt.Println(targetColumn.Name)
 	val, err := targetColumn.GetDefaultValue("600")
 	if err != nil {
 		return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn.Name, err)
