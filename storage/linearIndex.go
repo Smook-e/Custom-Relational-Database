@@ -13,7 +13,7 @@ The B+Tree Leaf pages are linked together in a linked list, allowing for efficie
 type SearchCondition struct {
 	ColumnName string
 	Operator string
-	Value any
+	Value []byte
 }
 
 func (engine *StorageEngine) GetFirstLeafPage(rootId uint32) (uint32, error) {
