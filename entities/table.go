@@ -85,7 +85,17 @@ func (nb *NullBitmap) SetNull(index int) {
 	bitIndex := index % 8
 	nb.Bitmap[byteIndex] |= (1 << bitIndex)
 }
-
+func (table *Table) ReadNullBitmap(buffer []byte) (*NullBitmap,int, error) { 
+	nullBitmapSize := (len(table.Columns) + 7) / 8 // Calculate the size of the null bitmap in bytes
+	if len(buffer) < nullBitmapSize {
+		return nil, 0, errors.New("Buffer too small to read null bitmap")
+	}
+	nullBitmap := &NullBitmap{
+		Bitmap: make([]byte, nullBitmapSize),
+	}
+	copy(nullBitmap.Bitmap, buffer[:nullBitmapSize])
+	return nullBitmap, nullBitmapSize, nil
+}
 // returns True if the column has the specified constraint, otherwise returns False
 func (col *Column) HasConstraint(constraint uint8) bool {
 	return col.Constraints&constraint != 0
