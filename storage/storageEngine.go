@@ -187,53 +187,58 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return engine, fmt.Errorf("failed to read meta pages: %w", err)
 		}
 		// Test Linear Search
-		targetColumn1 := &engine.db.Tables["products"].Columns[3]
-		targetColumn2 := &engine.db.Tables["products"].Columns[2]
+		targetColumn1 := &engine.db.Tables["users"].Columns[3]
+		// targetColumn2 := &engine.db.Tables["users"].Columns[4]
 
-		val1, err := targetColumn1.GetDefaultValue("2")
+		val1, err := targetColumn1.GetDefaultValue("123-456-7890")
 		if err != nil {
 			return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn1.Name, err)
 		}
-		val2, err := targetColumn2.GetDefaultValue("600")
-		if err != nil {
-			return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn2.Name, err)
-		}
+		// val2, err := targetColumn2.GetDefaultValue("30")
+		// if err != nil {
+		// 	return engine, fmt.Errorf("failed to get default value for column %s: %w", targetColumn2.Name, err)
+		// }
 		// Serialize the value to match the format stored in the database
 		serializedValue1, err := entities.Serialize(val1, targetColumn1)
 		if err != nil {
 			return engine, fmt.Errorf("failed to serialize value for column %s: %w", targetColumn1.Name, err)
 		}
-		serializedValue2, err := entities.Serialize(val2, targetColumn2)
-		if err != nil {
-			return engine, fmt.Errorf("failed to serialize value for column %s: %w", targetColumn2.Name, err)
-		}
+		// serializedValue2, err := entities.Serialize(val2, targetColumn2)
+		// if err != nil {
+		// 	return engine, fmt.Errorf("failed to serialize value for column %s: %w", targetColumn2.Name, err)
+		// }
 
-		searchCondition1 := &SearchCondition{
-			ColumnName: targetColumn1.Name,
-			Operator: "=",
-			Value: serializedValue1,
-		}
-		searchCondition2 := &SearchCondition{
-			ColumnName: targetColumn2.Name,
-			Operator: "=",
-			Value: serializedValue2,
-		}
+		// searchCondition1 := &SearchCondition{
+		// 	ColumnName: targetColumn1.Name,
+		// 	Operator: "=",
+		// 	Value: serializedValue1,
+		// }
+		// searchCondition2 := &SearchCondition{
+		// 	ColumnName: targetColumn2.Name,
+		// 	Operator: "=",
+		// 	Value: serializedValue2,
+		// }
 		expression := &Expression{
-			Type: NodeAnd,
-			Left: &Expression{
-				Type: NodeCondition,
-				Condition: searchCondition1,
+			Type: NodeCondition,
+			Condition: &SearchCondition{
+				ColumnName: targetColumn1.Name,
+				Operator: "=",
+				Value: serializedValue1,
 			},
-			Right: &Expression{
-				Type: NodeCondition,
-				Condition: searchCondition2,
-			},
+			// Left: &Expression{
+			// 	Type: NodeCondition,
+			// 	Condition: searchCondition1,
+			// },
+			// Right: &Expression{
+			// 	Type: NodeCondition,
+			// 	Condition: searchCondition2,
+			// },
 		}
-		result, err := engine.LinearSearch("products", expression)
+		result, err := engine.Search("users", expression)
 		if err != nil {
-			return engine, fmt.Errorf("failed to perform linear search: %w", err)
+			return engine, fmt.Errorf("failed to perform search: %w", err)
 		}
-		fmt.Println("Linear Search results:")
+		fmt.Println("Search results:")
 		for _, row := range result {
 			fmt.Println(row)
 		}
