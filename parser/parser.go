@@ -2,13 +2,18 @@ package parser
 
 import (
 	"fmt"
-	"strings"
+	// "strings"
 	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
 
 type Parser struct {
 	tokens []Token
 	position int
+}
+type SelectStatement struct {
+	Columns []string
+	Tablename string
+	Where *storage.Expression
 }
 
 func NewParser(tokens []Token) *Parser {
