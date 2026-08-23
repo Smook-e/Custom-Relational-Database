@@ -23,6 +23,19 @@ var keywords = map[string]bool{
     "AND": true, "OR": true, "INSERT": true,
     "INTO": true, "VALUES": true,
 }
+func Tokenize(input string) ([]Token, error) {
+	var tokens []Token
+	i := 0
+	runes := []rune(input)
+	for i < len(runes) {
+		ch := runes[i]
+		switch {
+			case ch == ' ' || ch == '\t' || ch == '\n':
+				i++
+		}
+	}
+	return tokens, nil
+}
 
 func isLetter(ch rune) bool {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
