@@ -23,3 +23,7 @@ var keywords = map[string]bool{
     "AND": true, "OR": true, "INSERT": true,
     "INTO": true, "VALUES": true,
 }
+
+func isLetter(ch rune) bool {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+}
