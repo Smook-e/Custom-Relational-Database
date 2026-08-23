@@ -239,3 +239,48 @@ func (engine *StorageEngine) LinearSearch(tableName string, expr *Expression) ([
 
 	return results, nil
 }
+
+
+func (engine *StorageEngine) Search(tableName string, expr *Expression) ([][]any, error) {
+	// Get the table object from the database
+	table, ok := engine.db.Tables[tableName]
+	if !ok {
+		return nil, fmt.Errorf("Table %s not found", tableName)
+	}
+	
+	// If there's only one condition, check if it has an index and use the indexed search
+	if expr != nil && expr.Type == NodeCondition {
+		condition := expr.Condition
+		if condition != nil {
+			rootID, exists := table.Indexes[condition.ColumnName]// Check if the column has an index
+			if exists {
+				// If the column has an index, use the indexed search
+				column, _ := table.GetColumnByName(condition.ColumnName)
+				pageId, slot, _ := engine.IndexSearch(rootID, condition.Value, column)
+				
+				if pageId == 0 && slot == 0 {
+					return [][]any{}, nil
+				}else {
+					// If the key is found, read the row
+					dataBuffer, err := engine.Bp.Get(pageId)
+					if err != nil {
+						return nil, fmt.Errorf("An Error Occured %w", err)
+					}
+					tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
+					if err != nil {
+						return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+					}
+					row, err := engine.ReadRow(tableName, dataBuffer, tableOffset)
+					if err != nil {
+						return nil, fmt.Errorf("An Error Occured %w", err)
+					}
+					return [][]any{row}, nil
+				}
+
+			}
+			
+		}
+	}
+
+	return [][]any{}, nil
+}
