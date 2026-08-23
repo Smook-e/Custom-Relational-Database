@@ -84,6 +84,11 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 		if err != nil {
 			return nil, err
 		}
+		nextExpr := &storage.Expression{
+			Type: storage.NodeCondition,
+			Condition: nextCondition,
+		}
+		// Attach the next condition to the last node based on the logical operator
 		switch logicalOpToken.Value {
 		case "AND":
 			lastNode.Type = storage.NodeAnd
@@ -91,19 +96,13 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 				Type: storage.NodeCondition,
 				Condition: lastNode.Condition,
 			}
-			lastNode.Right = &storage.Expression{
-				Type: storage.NodeCondition,
-				Condition: nextCondition,
-			}
+			lastNode.Right = nextExpr
 			lastNode.Condition = nil
 			lastNode = lastNode.Right
 		case "OR" :
 			newRoot := &storage.Expression{
 				Type: storage.NodeOr,
-				Left: &storage.Expression{
-					Type: storage.NodeCondition,
-					Condition: nextCondition,
-				},
+				Left: nextExpr,
 				Right: root,
 			}
 			root = newRoot
