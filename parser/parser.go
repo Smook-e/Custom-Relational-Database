@@ -73,21 +73,39 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 	root.Condition = Condition
 	lastNode := root
 
-	for p.Peek().Type != TokenEOF && p.Peek().Type != TokenSemicolon {
+	for p.Peek().Type != TokenEOF && p.Peek().Type != TokenSemicolon && p.Peek().Type != TokenRParen {
 		// Parse the logical operator (AND/OR)
 		logicalOpToken, err := p.Expect(TokenIdentifier, "")
 		if err != nil {
 			return nil, err
 		}
-		// Read the next condition
-		nextCondition, err := ParseWhereCondition(p)
-		if err != nil {
-			return nil, err
+		var nextExpr *storage.Expression
+		// Check for parentheses to handle precedence
+		if p.Peek().Type == TokenLParen {
+			p.Get() // consume '('
+			// Treat the expression inside parentheses as a new root
+			subExpr, err := ParseWhereExpression(p)
+			if err != nil {
+				return nil, err
+			}
+			// Expect a closing parenthesis
+			_, err = p.Expect(TokenRParen, "")
+			if err != nil {
+				return nil, err
+			}
+			nextExpr = subExpr
+		}else {
+			// Read the next condition
+			nextCondition, err := ParseWhereCondition(p)
+			if err != nil {
+				return nil, err
+			}
+			nextExpr = &storage.Expression{
+				Type: storage.NodeCondition,
+				Condition: nextCondition,
+			}
 		}
-		nextExpr := &storage.Expression{
-			Type: storage.NodeCondition,
-			Condition: nextCondition,
-		}
+
 		// Attach the next condition to the last node based on the logical operator
 		switch logicalOpToken.Value {
 		case "AND":
