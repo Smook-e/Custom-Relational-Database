@@ -17,12 +17,12 @@ It also provides utility functions Like serialization, deserialization, comparis
 
 // Data type identifiers
 const (
-	TypeTinyInt uint8 = 0 //1 byte
-	TypeSmallInt uint8 = 1 // 2 bytes
-	TypeInt     uint8 = 2 // 4 bytes
-	TypeBigInt  uint8 = 3 // 8 bytes
-	TypeVarChar uint8 = 4 
-	TypeSerial uint8 = 5 // 4 bytes, auto incrementing integer
+	TypeTinyInt uint8 = iota //1 byte
+	TypeSmallInt   			 // 2 bytes
+	TypeInt      			 // 4 bytes
+	TypeBigInt				 // 8 bytes
+	TypeVarChar 			 // Variable length, up to 255 bytes
+	TypeSerial				 // 4 bytes, auto incrementing integer
 )
 
 // Constraint identifiers 
