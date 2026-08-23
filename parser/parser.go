@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	// "strings"
+	"slices"
 	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
 
@@ -32,9 +33,9 @@ func (p *Parser) Get() Token {
 	p.position++
 	return token
 }
-func (p *Parser) Expect(expectedType TokenType, val string) (Token, error) {
+func (p *Parser) Expect(expectedType []TokenType, val string) (Token, error) {
 	token := p.Peek()
-	if token.Type != expectedType {
+	if !slices.Contains(expectedType, token.Type) {
 		return token, fmt.Errorf("expected token of type %v, got %v", expectedType, token.Type)
 	}
 	if val != "" && token.Value != val {
@@ -43,15 +44,15 @@ func (p *Parser) Expect(expectedType TokenType, val string) (Token, error) {
 	return p.Get(), nil
 }
 func ParseWhereCondition(p *Parser) (*storage.SearchCondition, error) {
-	columnNameToken, err := p.Expect(TokenIdentifier, "")
+	columnNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
 	if err != nil {
 		return nil, err
 	}
-	operatorToken, err := p.Expect(TokenOperator, "")
+	operatorToken, err := p.Expect([]TokenType{TokenOperator}, "")
 	if err != nil {
 		return nil, err
 	}
-	valueToken, err := p.Expect(TokenString, "")
+	valueToken, err := p.Expect([]TokenType{TokenString, TokenNumber}, "")
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +73,7 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 			return nil, err
 		}
 		root = subExpr
-		_, err = p.Expect(TokenRParen, "")
+		_, err = p.Expect([]TokenType{TokenRParen}, "")
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +89,7 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 
 	for p.Peek().Type != TokenEOF && p.Peek().Type != TokenSemicolon && p.Peek().Type != TokenRParen {
 		// Parse the logical operator (AND/OR)
-		logicalOpToken, err := p.Expect(TokenIdentifier, "")
+		logicalOpToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +103,7 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 				return nil, err
 			}
 			// Expect a closing parenthesis
-			_, err = p.Expect(TokenRParen, "")
+			_, err = p.Expect([]TokenType{TokenRParen}, "")
 			if err != nil {
 				return nil, err
 			}
