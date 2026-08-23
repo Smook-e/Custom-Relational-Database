@@ -10,6 +10,7 @@ type Parser struct {
 	tokens []Token
 	position int
 }
+
 type SelectStatement struct {
 	Columns []string
 	Tablename string
@@ -40,4 +41,27 @@ func (p *Parser) Expect(expectedType TokenType, val string) (Token, error) {
 		return token, fmt.Errorf("expected token with value %v, got %v", val, token.Value)
 	}
 	return p.Get(), nil
+}
+func ParseWhereCondition(p *Parser) (*storage.SearchCondition, error) {
+	columnNameToken, err := p.Expect(TokenIdentifier, "")
+	if err != nil {
+		return nil, err
+	}
+	operatorToken, err := p.Expect(TokenOperator, "")
+	if err != nil {
+		return nil, err
+	}
+	valueToken, err := p.Expect(TokenString, "")
+	if err != nil {
+		return nil, err
+	}
+	return &storage.SearchCondition{
+		ColumnName: columnNameToken.Value,
+		Operator: operatorToken.Value,
+		Value: []byte(valueToken.Value),
+	}, nil
+}
+
+func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
+	
 }
