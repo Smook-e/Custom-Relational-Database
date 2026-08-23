@@ -249,7 +249,7 @@ func (engine *StorageEngine) Search(tableName string, expr *Expression) ([][]any
 	}
 	
 	// If there's only one condition, check if it has an index and use the indexed search
-	if expr != nil && expr.Type == NodeCondition {
+	if expr != nil && expr.Type == NodeCondition && (expr.Condition.Operator == "=" || expr.Condition.Operator == "==") {
 		condition := expr.Condition
 		if condition != nil {
 			rootID, exists := table.Indexes[condition.ColumnName]// Check if the column has an index
