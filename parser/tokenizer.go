@@ -1,6 +1,8 @@
 package parser
+
 import (
 	"fmt"
+	"strings"
 )
 type TokenType int
 
@@ -63,6 +65,26 @@ func Tokenize(input string) ([]Token, error) {
 				}
 				tokens = append(tokens, Token{Type: TokenString, Value: string(runes[start:i])})
 				i++ // Skip the closing quote
+			case isLetter(ch):
+				start := i
+				for i < len(runes) && (isLetter(runes[i]) || isDigit(runes[i]) || runes[i] == '_') {
+					i++
+				}
+				word := string(runes[start:i])
+				upper := strings.ToUpper(word)
+				if keywords[upper] {
+					tokens = append(tokens, Token{Type: TokenKeyword, Value: upper})
+				} else {
+					tokens = append(tokens, Token{Type: TokenIdentifier, Value: word})
+				}
+			case isDigit(ch):
+				start := i
+				for i < len(runes) && isDigit(runes[i]) {
+					i++
+				}
+				tokens = append(tokens, Token{Type: TokenNumber, Value: string(runes[start:i])})
+			default:
+				return nil, fmt.Errorf("unexpected character: %q at position %d", ch, i)
 		}
 	}
 	return tokens, nil
