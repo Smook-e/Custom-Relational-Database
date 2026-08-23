@@ -1,5 +1,7 @@
 package parser
-
+import (
+	"fmt"
+)
 type TokenType int
 
 // Represents the different types of tokens that can be identified by the tokenizer.
@@ -32,6 +34,35 @@ func Tokenize(input string) ([]Token, error) {
 		switch {
 			case ch == ' ' || ch == '\t' || ch == '\n':
 				i++
+			case ch == ',':
+				tokens = append(tokens, Token{Type: TokenComma, Value: ","})
+				i++
+			case ch == '(':
+				tokens = append(tokens, Token{Type: TokenLParen, Value: "("})
+				i++
+			case ch == ')':
+				tokens = append(tokens, Token{Type: TokenRParen, Value: ")"})
+				i++
+			case ch == '=' || ch == '<' || ch == '>':
+				start := i
+				i++
+				// handle >=, <=, != if next char extends the operator
+				if i < len(runes) && runes[i] == '=' {
+					i++
+				}
+				tokens = append(tokens, Token{TokenOperator, string(runes[start:i])})
+
+			case ch == '\'':// Start of a string literal
+				i++
+				start := i // Skip the opening quote
+				for i < len(runes) && runes[i] != '\'' {
+					i++
+				}
+				if i >= len(runes) {
+					return nil, fmt.Errorf("unterminated string literal")
+				}
+				tokens = append(tokens, Token{Type: TokenString, Value: string(runes[start:i])})
+				i++ // Skip the closing quote
 		}
 	}
 	return tokens, nil
