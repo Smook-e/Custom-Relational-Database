@@ -18,3 +18,8 @@ type Token struct {
     Type  TokenType
     Value string
 }
+var keywords = map[string]bool{
+    "SELECT": true, "FROM": true, "WHERE": true,
+    "AND": true, "OR": true, "INSERT": true,
+    "INTO": true, "VALUES": true,
+}
