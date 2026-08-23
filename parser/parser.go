@@ -75,11 +75,13 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 		root = subExpr
 		_, err = p.Expect([]TokenType{TokenRParen}, "")
 		if err != nil {
+			
 			return nil, err
 		}
 	} else {
 		condition, err := ParseWhereCondition(p)
 		if err != nil {
+			
 			return nil, err
 		}
 		root.Type = storage.NodeCondition
@@ -89,8 +91,8 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 
 	for p.Peek().Type != TokenEOF && p.Peek().Type != TokenSemicolon && p.Peek().Type != TokenRParen {
 		// Parse the logical operator (AND/OR)
-		logicalOpToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
-		if err != nil {
+		logicalOpToken, err := p.Expect([]TokenType{TokenKeyword}, "")
+		if err != nil {	
 			return nil, err
 		}
 		var nextExpr *storage.Expression
@@ -156,4 +158,23 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 	}
 	return root, nil
 	
+}
+func PrintExpression(expr *storage.Expression, indent string) {
+	if expr == nil {
+		return
+	}
+	switch expr.Type {
+	case storage.NodeCondition:
+		fmt.Printf("%sCondition: %s %s %s\n", indent, expr.Condition.ColumnName, expr.Condition.Operator, string(expr.Condition.Value))
+	case storage.NodeAnd:
+		fmt.Printf("%sAND:\n", indent)
+		PrintExpression(expr.Left, indent+"  ")
+		PrintExpression(expr.Right, indent+"  ")
+	case storage.NodeOr:
+		fmt.Printf("%sOR:\n", indent)
+		PrintExpression(expr.Left, indent+"  ")
+		PrintExpression(expr.Right, indent+"  ")
+	default:
+		fmt.Printf("%sUnknown expression type: %v\n", indent, expr.Type)
+	}
 }
