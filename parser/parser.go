@@ -65,12 +65,25 @@ func ParseWhereCondition(p *Parser) (*storage.SearchCondition, error) {
 func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 	root := &storage.Expression{}
 	// Parse the first condition
-	Condition, err := ParseWhereCondition(p)
-	if err != nil {
-		return nil, err
+	if p.Peek().Type == TokenLParen {
+		p.Get() // consume '('
+		subExpr, err := ParseWhereExpression(p)
+		if err != nil {
+			return nil, err
+		}
+		root = subExpr
+		_, err = p.Expect(TokenRParen, "")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		condition, err := ParseWhereCondition(p)
+		if err != nil {
+			return nil, err
+		}
+		root.Type = storage.NodeCondition
+		root.Condition = condition
 	}
-	root.Type = storage.NodeCondition
-	root.Condition = Condition
 	lastNode := root
 
 	for p.Peek().Type != TokenEOF && p.Peek().Type != TokenSemicolon && p.Peek().Type != TokenRParen {
@@ -109,14 +122,25 @@ func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
 		// Attach the next condition to the last node based on the logical operator
 		switch logicalOpToken.Value {
 		case "AND":
-			lastNode.Type = storage.NodeAnd
-			lastNode.Left = &storage.Expression{
-				Type: storage.NodeCondition,
-				Condition: lastNode.Condition,
+			if lastNode.Type == storage.NodeCondition && lastNode.Condition != nil {
+				lastNode.Type = storage.NodeAnd
+				lastNode.Left = &storage.Expression{
+					Type: storage.NodeCondition,
+					Condition: lastNode.Condition,
+				}
+				lastNode.Right = nextExpr
+				lastNode.Condition = nil
+				lastNode = lastNode.Right
+			}else {
+				// If the last node was a sub-expression, we need to create a new AND node
+				newRoot := &storage.Expression{
+					Type: storage.NodeAnd,
+					Left: lastNode,
+					Right: nextExpr,
+				}
+				root = newRoot
+				lastNode = root.Right
 			}
-			lastNode.Right = nextExpr
-			lastNode.Condition = nil
-			lastNode = lastNode.Right
 		case "OR" :
 			newRoot := &storage.Expression{
 				Type: storage.NodeOr,
