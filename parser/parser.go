@@ -63,5 +63,55 @@ func ParseWhereCondition(p *Parser) (*storage.SearchCondition, error) {
 }
 
 func ParseWhereExpression(p *Parser) (*storage.Expression, error) {
+	root := &storage.Expression{}
+	// Parse the first condition
+	Condition, err := ParseWhereCondition(p)
+	if err != nil {
+		return nil, err
+	}
+	root.Type = storage.NodeCondition
+	root.Condition = Condition
+	lastNode := root
+
+	for p.Peek().Type != TokenEOF && p.Peek().Type != TokenSemicolon {
+		// Parse the logical operator (AND/OR)
+		logicalOpToken, err := p.Expect(TokenIdentifier, "")
+		if err != nil {
+			return nil, err
+		}
+		// Read the next condition
+		nextCondition, err := ParseWhereCondition(p)
+		if err != nil {
+			return nil, err
+		}
+		switch logicalOpToken.Value {
+		case "AND":
+			lastNode.Type = storage.NodeAnd
+			lastNode.Left = &storage.Expression{
+				Type: storage.NodeCondition,
+				Condition: lastNode.Condition,
+			}
+			lastNode.Right = &storage.Expression{
+				Type: storage.NodeCondition,
+				Condition: nextCondition,
+			}
+			lastNode.Condition = nil
+			lastNode = lastNode.Right
+		case "OR" :
+			newRoot := &storage.Expression{
+				Type: storage.NodeOr,
+				Left: &storage.Expression{
+					Type: storage.NodeCondition,
+					Condition: nextCondition,
+				},
+				Right: root,
+			}
+			root = newRoot
+			lastNode = root.Left
+		default:
+			return nil, fmt.Errorf("unexpected logical operator: %s", logicalOpToken.Value)		
+		}				
+	}
+	return root, nil
 	
 }
