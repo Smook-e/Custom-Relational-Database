@@ -281,6 +281,11 @@ func (engine *StorageEngine) Search(tableName string, expr *Expression) ([][]any
 			
 		}
 	}
+	// If the condition is more complex or the column doesn't have an index, use linear search
+	results, err := engine.LinearSearch(tableName, expr)
+	if err != nil {
+		return nil, fmt.Errorf("An Error Occured %w", err)
+	}
 
-	return [][]any{}, nil
+	return results, nil
 }
