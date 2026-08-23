@@ -3,3 +3,4 @@
 mem.prof
 *.test
 *.bin
+extra_test/*
