@@ -17,6 +17,7 @@ const (
     TokenLParen
     TokenRParen
     TokenEOF
+	TokenSemicolon
 )
 type Token struct {
     Type  TokenType
@@ -83,6 +84,9 @@ func Tokenize(input string) ([]Token, error) {
 					i++
 				}
 				tokens = append(tokens, Token{Type: TokenNumber, Value: string(runes[start:i])})
+			case ch == ';':
+				tokens = append(tokens, Token{Type: TokenSemicolon, Value: ";"})
+				i++
 			default:
 				return nil, fmt.Errorf("unexpected character: %q at position %d", ch, i)
 		}
