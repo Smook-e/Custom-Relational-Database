@@ -87,6 +87,9 @@ func Tokenize(input string) ([]Token, error) {
 			case ch == ';':
 				tokens = append(tokens, Token{Type: TokenSemicolon, Value: ";"})
 				i++
+			case ch == '*':
+				tokens = append(tokens, Token{TokenIdentifier, "*"})
+				i++
 			default:
 				return nil, fmt.Errorf("unexpected character: %q at position %d", ch, i)
 		}
@@ -95,7 +98,7 @@ func Tokenize(input string) ([]Token, error) {
 }
 
 func isLetter(ch rune) bool {
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch == '_') 
 }
 func isDigit(ch rune) bool {
     return ch >= '0' && ch <= '9'
