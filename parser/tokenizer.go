@@ -81,7 +81,7 @@ var keywords = map[string]bool{
     "INTO": true, "VALUES": true,
 	"INT": true, "SMALLINT": true,"TINYINT": true, "BIGINT": true,"SERIAL": true, "VARCHAR": true,
 	"CREATE": true, "TABLE": true, "PRIMARY": true, "KEY": true,
-	"NOT": true, "NULL": true, "DEFAULT": true,
+	"NOT": true, "NULL": true, "DEFAULT": true,"UNIQUE": true, "INDEX": true,
 	"FOREIGN": true, "REFERENCES": true, "ON": true,
 	"UPDATE": true, "SET": true, "DELETE": true,
 }
