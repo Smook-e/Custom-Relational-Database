@@ -77,7 +77,7 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
         t.Fatalf("expected first row name to be alice, got %v", rows[0][0])
     }
 
-    if rows[0][1] != 30 {
+    if rows[0][1] != int32(30) {
         t.Fatalf("expected first row age to be 30, got %v", rows[0][1])
     }
 }

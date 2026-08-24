@@ -243,7 +243,11 @@ func SerializeSearchExpression(ex *Expression, table *entities.Table) ( error) {
 		if err != nil {
 			return fmt.Errorf("An Error Occured %w", err)
 		}
-		value, err := entities.Serialize(string(ex.Condition.Value), col)
+		val , err := col.GetDefaultValue(string(ex.Condition.Value))
+		if err != nil {
+			return fmt.Errorf("An Error Occured %w", err)
+		}
+		value, err := entities.Serialize(val, col)
 		if err != nil {
 			return fmt.Errorf("An Error Occured %w", err)
 		}
