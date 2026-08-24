@@ -90,30 +90,30 @@ func (engine *StorageEngine) LinearTree(rootId uint32, key []byte, col *entities
 	
 	return 0,0, fmt.Errorf("Key not found")
 }
-func (engine *StorageEngine) EvaluateExpression(buffer []byte,offset uint16, colOffsets map[string]int, expr *Expression, table *entities.Table) (bool, error) {
+func (engine *StorageEngine) EvaluateExpression(buffer []byte, colOffsets map[string]int, expr *Expression, table *entities.Table) (bool, error) {
 	if expr == nil {
 		return true, nil
 	}
 	switch expr.Type {
 	case NodeCondition:
-		return VerifyCondition(buffer, offset, colOffsets, expr.Condition, table)
+		return VerifyCondition(buffer, colOffsets, expr.Condition, table)
 	case NodeAnd:
-		leftResult, _ := engine.EvaluateExpression(buffer, offset, colOffsets, expr.Left, table)
+		leftResult, _ := engine.EvaluateExpression(buffer, colOffsets, expr.Left, table)
 		if leftResult == false {
 			return false, nil
 		}
-		return engine.EvaluateExpression(buffer, offset, colOffsets, expr.Right, table)
+		return engine.EvaluateExpression(buffer, colOffsets, expr.Right, table)
 	case NodeOr:
-		leftResult, _ := engine.EvaluateExpression(buffer, offset, colOffsets, expr.Left, table)
+		leftResult, _ := engine.EvaluateExpression(buffer, colOffsets, expr.Left, table)
 		if leftResult == true {
 			return true, nil
 		}
-		return engine.EvaluateExpression(buffer, offset, colOffsets, expr.Right, table)	
+		return engine.EvaluateExpression(buffer, colOffsets, expr.Right, table)	
 	default:
 		return false, fmt.Errorf("Unknown expression type: %v", expr.Type)
 	}
 }
-func VerifyCondition(buffer []byte,offset uint16,colOffsets map[string]int, condition *SearchCondition, table *entities.Table) (bool, error) {
+func VerifyCondition(buffer []byte,colOffsets map[string]int, condition *SearchCondition, table *entities.Table) (bool, error) {
 	if condition == nil {
 		return true, nil
 	}
@@ -121,9 +121,6 @@ func VerifyCondition(buffer []byte,offset uint16,colOffsets map[string]int, cond
 	size, err := entities.GetSize(col)
 	if err != nil {
 		return false, fmt.Errorf("An error occurred while getting size of column %s: %w", col.Name, err)
-	}
-	if size == 0 {// For variable-length types
-		size = buffer[offset] + 1 // First byte indicates the length of the variable-length data
 	}
 	
 	colOffset, exists := colOffsets[condition.ColumnName]
@@ -133,6 +130,9 @@ func VerifyCondition(buffer []byte,offset uint16,colOffsets map[string]int, cond
 	// Check if the column is null 
 	if colOffset == -1 {
 		return false, nil
+	}
+	if size == 0 {// For variable-length types
+		size = buffer[colOffset] + 1 // First byte indicates the length of the variable-length data
 	}
 	// Compare the value in the buffer with the condition value
 	comp, err := entities.Compare(buffer[colOffset:colOffset+int(size)], condition.Value, col)
@@ -216,7 +216,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colIn
 			}
 			GetColumnOffsets(table,dataBuffer, tableOffset,nullBitmap, colOffsets)
 			//check the condition
-			conditionMet, err := engine.EvaluateExpression(dataBuffer, tableOffset, colOffsets, expr, table)
+			conditionMet, err := engine.EvaluateExpression(dataBuffer, colOffsets, expr, table)
 			if err != nil {
 				return nil, fmt.Errorf("An Error Occured %w", err)
 			}
