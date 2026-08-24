@@ -79,6 +79,11 @@ var keywords = map[string]bool{
     "SELECT": true, "FROM": true, "WHERE": true,
     "AND": true, "OR": true, "INSERT": true,
     "INTO": true, "VALUES": true,
+	"INT": true, "SMALLINT": true,"TINYINT": true, "BIGINT": true,"SERIAL": true, "VARCHAR": true,
+	"CREATE": true, "TABLE": true, "PRIMARY": true, "KEY": true,
+	"NOT": true, "NULL": true, "DEFAULT": true,
+	"FOREIGN": true, "REFERENCES": true, "ON": true,
+	"UPDATE": true, "SET": true, "DELETE": true,
 }
 func Tokenize(input string) ([]Token, error) {
 	var tokens []Token
