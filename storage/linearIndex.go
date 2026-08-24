@@ -236,3 +236,30 @@ func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colIn
 	return results, nil
 }
 
+func SerializeSearchExpression(ex *Expression, table *entities.Table) ( error) {
+
+	if ex.Type == NodeCondition {
+		col, err := table.GetColumnByName(ex.Condition.ColumnName)
+		if err != nil {
+			return fmt.Errorf("An Error Occured %w", err)
+		}
+		value, err := entities.Serialize(string(ex.Condition.Value), col)
+		if err != nil {
+			return fmt.Errorf("An Error Occured %w", err)
+		}
+		ex.Condition.Value = value
+	}
+	if ex.Left != nil {
+		err := SerializeSearchExpression(ex.Left, table)
+		if err != nil {
+			return fmt.Errorf("An Error Occured %w", err)
+		}
+	}
+	if ex.Right != nil {
+		err := SerializeSearchExpression(ex.Right, table)
+		if err != nil {
+			return fmt.Errorf("An Error Occured %w", err)
+		}
+	}
+	return nil
+}
