@@ -1,21 +1,21 @@
 package storage
 
-
 import (
 	// "errors"
 	"encoding/binary"
 	"fmt"
-	
+	// "slices"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+
 /*
 This file contains functions for inserting and reading rows in the database, as well as creating new tables.
 */
 
 // ReadRow reads a row from the specified table at the given page ID and slot, returning the row data as a slice of any type.
-func (engine *StorageEngine) ReadRow(tableName string, cols []string, colOffsets map[string]int, buffer []byte, offset uint16) ([]any, error) {
+func (engine *StorageEngine) ReadRow(tableName string, cols []string, colIndexes []int, colOffsets map[string]int, buffer []byte, offset uint16) ([]any, error) {
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
@@ -33,38 +33,68 @@ func (engine *StorageEngine) ReadRow(tableName string, cols []string, colOffsets
 		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 	}
 	offset += uint16(len(nullBitmap.Bitmap))
+	// First pass: assign the offsets for the columns we want to read
 	for i, col := range table.Columns {
 		// Check if the column is null using the null bitmap
 		if nullBitmap.IsNull(i) {
-			Row[i] = nil
+			colOffsets[col.Name] = -1 // Mark as null
 			continue
 		}
 		switch col.DataType {
 		case entities.TypeTinyInt://int8
-			Row[i] = int8(buffer[offset])
+			colOffsets[col.Name] = int(offset)
 			offset++
 		case entities.TypeSmallInt://int16
-			Row[i] = int16(binary.BigEndian.Uint16(buffer[offset:offset+2]))
+			colOffsets[col.Name] = int(offset)
 			offset += 2
 		case entities.TypeInt:
-			Row[i] = int32(binary.BigEndian.Uint32(buffer[offset:offset+4]))
+			colOffsets[col.Name] = int(offset)
 			offset += 4
 		case entities.TypeSerial:// same as TypeInt
-			Row[i] = int32(binary.BigEndian.Uint32(buffer[offset:offset+4]))
+			colOffsets[col.Name] = int(offset)
 			offset += 4
 		case entities.TypeBigInt:
-			Row[i] = int64(binary.BigEndian.Uint64(buffer[offset:offset+8]))
+			colOffsets[col.Name] = int(offset)
 			offset += 8
 		case entities.TypeVarChar:
+			colOffsets[col.Name] = int(offset)
 			length := uint8(buffer[offset])
 			offset++
-			Row[i] = string(buffer[offset:offset+uint16(length)])
 			if col.Size > 0 {
 				offset += uint16(col.Size)
 			}else {
 				offset+= uint16(length)
 			}
 		}
+	}
+	var colOffset int
+	// Second pass: read the values for the specified columns
+	for i, col := range cols {
+		colOffset = colOffsets[col]
+		if colOffset == -1 {
+			Row[i] = nil // Column is null
+			continue
+		}
+		switch table.Columns[colIndexes[i]].DataType {
+		case entities.TypeTinyInt://int8
+			Row[i] = int8(buffer[colOffset])
+
+		case entities.TypeSmallInt://int16
+			Row[i] = int16(binary.BigEndian.Uint16(buffer[colOffset:colOffset+2]))
+
+		case entities.TypeInt:
+			Row[i] = int32(binary.BigEndian.Uint32(buffer[colOffset:colOffset+4]))
+
+		case entities.TypeSerial:// same as TypeInt
+			Row[i] = int32(binary.BigEndian.Uint32(buffer[colOffset:colOffset+4]))
+
+		case entities.TypeBigInt:
+			Row[i] = int64(binary.BigEndian.Uint64(buffer[colOffset:colOffset+8]))
+		case entities.TypeVarChar:
+			length := uint8(buffer[colOffset])
+			Row[i] = string(buffer[colOffset+1:colOffset+1+int(length)])
+		}
+		
 	}
 	return Row, nil
 }
