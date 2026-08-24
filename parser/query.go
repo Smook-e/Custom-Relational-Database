@@ -111,10 +111,64 @@ func (q *CreateTableQuery) Parse(p *Parser) ( error) {
 
 			foreignKeys = append(foreignKeys, entities.ForeignKeyDefinition{
 				ColumnName: fkColumnToken.Value,
-				ReferencedTable: refTableToken.Value,
-				ReferencedColumn: refColumnToken.Value,
+				ReferencedTableName: refTableToken.Value,
+				ReferencedColumnName: refColumnToken.Value,
 			})
+		}else {
+			// Parse column definition
+			columnDef := entities.ColumnDefinition{}
+			// Expect column name
+			colNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+			if err != nil {
+				return  err
+			}
+			columnDef.Name = colNameToken.Value
+			// Expect data type
+			dataTypeToken, err := p.Expect([]TokenType{TokenKeyword}, "")
+			if err != nil {
+				return  err
+			}
+			columnDef.DataType = dataTypeToken.Value
+			// Handle optional constraints (e.g., NOT NULL, PRIMARY KEY)
+			var constraints []string
+			for p.position < len(p.tokens) && p.Peek().Type != TokenComma && p.Peek().Type != TokenRParen {
+				// Expect constraint keyword
+				constraintToken, err := p.Expect([]TokenType{TokenKeyword}, "")
+				if err != nil {
+					return  err
+				}
+				switch constraintToken.Value {
+				case "NOT":
+					// Expect NULL keyword
+					_, err = p.Expect([]TokenType{TokenKeyword}, "NULL")
+					if err != nil {
+						return  err
+					}
+					constraints = append(constraints, "NOT NULL")
+				case "PRIMARY":
+					// Expect KEY keyword
+					_, err = p.Expect([]TokenType{TokenKeyword}, "KEY")
+					if err != nil {
+						return  err
+					}
+					constraints = append(constraints, "PRIMARY KEY")
+				case "DEFAULT":
+					// Expect default value (string or number)
+					defaultValueToken, err := p.Expect([]TokenType{TokenString, TokenNumber}, "")
+					if err != nil {
+						return  err
+					}
+					constraints = append(constraints, "DEFAULT")
+					columnDef.Default = defaultValueToken.Value
+				default:
+					constraints = append(constraints, constraintToken.Value)
+				}
+				
+			}
+			columns = append(columns, columnDef)
 		}
+		return nil
+	}
 }
 
 
