@@ -34,38 +34,8 @@ func (engine *StorageEngine) ReadRow(tableName string, cols []string, colIndexes
 	}
 	offset += uint16(len(nullBitmap.Bitmap))
 	// First pass: assign the offsets for the columns we want to read
-	for i, col := range table.Columns {
-		// Check if the column is null using the null bitmap
-		if nullBitmap.IsNull(i) {
-			colOffsets[col.Name] = -1 // Mark as null
-			continue
-		}
-		switch col.DataType {
-		case entities.TypeTinyInt://int8
-			colOffsets[col.Name] = int(offset)
-			offset++
-		case entities.TypeSmallInt://int16
-			colOffsets[col.Name] = int(offset)
-			offset += 2
-		case entities.TypeInt:
-			colOffsets[col.Name] = int(offset)
-			offset += 4
-		case entities.TypeSerial:// same as TypeInt
-			colOffsets[col.Name] = int(offset)
-			offset += 4
-		case entities.TypeBigInt:
-			colOffsets[col.Name] = int(offset)
-			offset += 8
-		case entities.TypeVarChar:
-			colOffsets[col.Name] = int(offset)
-			length := uint8(buffer[offset])
-			offset++
-			if col.Size > 0 {
-				offset += uint16(col.Size)
-			}else {
-				offset+= uint16(length)
-			}
-		}
+	if len(colOffsets) == 0 {
+		GetColumnOffsets(table, buffer, offset, nullBitmap, colOffsets)
 	}
 	var colOffset int
 	// Second pass: read the values for the specified columns
@@ -340,4 +310,41 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 	engine.metaWrite = true
 	
 	return nil
+}
+
+
+func GetColumnOffsets(table *entities.Table,buffer []byte, offset uint16, nullBitmap *entities.NullBitmap, colOffsets map[string]int) {
+	for i, col := range table.Columns {
+		// Check if the column is null using the null bitmap
+		if nullBitmap.IsNull(i) {
+			colOffsets[col.Name] = -1 // Mark as null
+			continue
+		}
+		switch col.DataType {
+		case entities.TypeTinyInt://int8
+			colOffsets[col.Name] = int(offset)
+			offset++
+		case entities.TypeSmallInt://int16
+			colOffsets[col.Name] = int(offset)
+			offset += 2
+		case entities.TypeInt:
+			colOffsets[col.Name] = int(offset)
+			offset += 4
+		case entities.TypeSerial:// same as TypeInt
+			colOffsets[col.Name] = int(offset)
+			offset += 4
+		case entities.TypeBigInt:
+			colOffsets[col.Name] = int(offset)
+			offset += 8
+		case entities.TypeVarChar:
+			colOffsets[col.Name] = int(offset)
+			length := uint8(buffer[offset])
+			offset++
+			if col.Size > 0 {
+				offset += uint16(col.Size)
+			}else {
+				offset+= uint16(length)
+			}
+		}
+	}
 }
