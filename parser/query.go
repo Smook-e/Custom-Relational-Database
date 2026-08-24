@@ -129,6 +129,23 @@ func (q *CreateTableQuery) Parse(p *Parser) ( error) {
 				return  err
 			}
 			columnDef.DataType = dataTypeToken.Value
+			if dataTypeToken.Value == "VARCHAR" {
+				// Expect opening parenthesis for VARCHAR length
+				if p.Peek().Type == TokenLParen {
+					p.Get() // Consume '('
+					// Expect length value
+					lengthToken, err := p.Expect([]TokenType{TokenNumber}, "")
+					if err != nil {
+						return  err
+					}
+					columnDef.DataType = fmt.Sprintf("VARCHAR(%s)", lengthToken.Value)
+					// Expect closing parenthesis for VARCHAR length
+					_, err = p.Expect([]TokenType{TokenRParen}, "")
+					if err != nil {
+						return  err
+					}
+				}
+			}
 			// Handle optional constraints (e.g., NOT NULL, PRIMARY KEY)
 			var constraints []string
 			for p.position < len(p.tokens) && p.Peek().Type != TokenComma && p.Peek().Type != TokenRParen {
