@@ -24,32 +24,40 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
     handler := newEmptySQLTestEngine(t)
 
     _, err := handler.ExecuteQuery(`
-        CREATE TABLE users (
+        CREATE TABLE test_users (
             id serial primarykey,
             name varchar(50) notnull,
-            email varchar(100),
+            email varchar(30) notnull unique,
             age int
         )
     `)
     if err != nil {
-        t.Fatalf("CREATE TABLE via SQL failed: %v", err)
+        t.Fatalf("CREATE TABLE query failed: %v", err)
     }
 
+    // INSERT via SQL
     _, err = handler.ExecuteQuery(`
-        INSERT INTO users (name, email, age)
+        INSERT INTO test_users (name, email, age)
         VALUES ("alice", "alice@example.com", 30)
     `)
     if err != nil {
-        t.Fatalf("INSERT via SQL failed: %v", err)
+        t.Fatalf("INSERT query failed: %v", err)
     }
 
-    result, err := handler.ExecuteQuery(`
-        SELECT name, age
-        FROM users
-        WHERE age = 30
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, email, age)
+        VALUES ("bob", "bob@example.com", 35)
     `)
     if err != nil {
-        t.Fatalf("SELECT via SQL failed: %v", err)
+        t.Fatalf("INSERT query failed: %v", err)
+    }
+
+    // SELECT via SQL
+    result, err := handler.ExecuteQuery(`
+        SELECT name, age FROM test_users WHERE age = 30
+    `)
+    if err != nil {
+        t.Fatalf("SELECT query failed: %v", err)
     }
 
     rows, ok := result.([][]any)
@@ -58,14 +66,70 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
     }
 
     if len(rows) != 1 {
-        t.Fatalf("expected 1 row, got %d", len(rows))
+        t.Fatalf("expected 1 matching row, got %d", len(rows))
+    }
+
+    if len(rows[0]) != 2 {
+        t.Fatalf("expected 2 columns, got %d", len(rows[0]))
     }
 
     if rows[0][0] != "alice" {
-        t.Fatalf("expected alice, got %#v", rows[0][0])
+        t.Fatalf("expected first row name to be alice, got %v", rows[0][0])
     }
 
     if rows[0][1] != 30 {
-        t.Fatalf("expected age 30, got %#v", rows[0][1])
+        t.Fatalf("expected first row age to be 30, got %v", rows[0][1])
+    }
+}
+func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
+    handler := newEmptySQLTestEngine(t)
+
+    _, err := handler.ExecuteQuery(`
+        CREATE TABLE products (
+            id serial primarykey,
+            name varchar(50) notnull,
+            price int
+        )
+    `)
+    if err != nil {
+        t.Fatalf("CREATE TABLE failed: %v", err)
+    }
+
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO products (name, price)
+        VALUES ("keyboard", 120)
+    `)
+    if err != nil {
+        t.Fatalf("first INSERT failed: %v", err)
+    }
+
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO products (name, price)
+        VALUES ("mouse", 40)
+    `)
+    if err != nil {
+        t.Fatalf("second INSERT failed: %v", err)
+    }
+
+    result, err := handler.ExecuteQuery(`
+        SELECT name, price
+        FROM products
+        WHERE price > 50
+    `)
+    if err != nil {
+        t.Fatalf("SELECT failed: %v", err)
+    }
+
+    rows, ok := result.([][]any)
+    if !ok {
+        t.Fatalf("expected [][]any result, got %T", result)
+    }
+
+    if len(rows) != 1 {
+        t.Fatalf("expected 1 matching row, got %d", len(rows))
+    }
+
+    if rows[0][0] != "keyboard" {
+        t.Fatalf("expected keyboard, got %#v", rows[0][0])
     }
 }
