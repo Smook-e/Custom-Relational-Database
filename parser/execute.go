@@ -9,4 +9,15 @@ import (
 
 type Query interface {
 	Execute(engine *storage.StorageEngine) (any, error)
+	Parse(p *Parser) (*Query, error)
+}
+func GetQueryType(p *Parser) *Query {
+	switch p.Peek().Value {
+	case "SELECT":
+		return &SelectQuery{}
+	case "INSERT":
+		return &InsertQuery{}
+	default:
+		return nil
+	}
 }
