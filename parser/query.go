@@ -4,6 +4,7 @@ package parser
 import (
 	"fmt"
 	"github.com/Smook-e/Custom-Relational-Database/storage"
+	"github.com/Smook-e/Custom-Relational-Database/entities"
 )
 
 type SelectQuery struct {
@@ -16,6 +17,12 @@ type InsertQuery struct {
 	Columns []string
 	Values [][]string
 }
+type CreateTableQuery struct {
+	TableName string
+	Columns []entities.ColumnDefinition
+	ForeignKeys []entities.ForeignKeyDefinition
+}
+
 
 func (q *SelectQuery) Parse(p *Parser) ( error) {
 	// Expect SELECT keyword

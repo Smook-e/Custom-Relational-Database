@@ -17,6 +17,8 @@ func GetQueryType(p *Parser) Query {
 		return &SelectQuery{}
 	case "INSERT":
 		return &InsertQuery{}
+	case "CREATE":
+		return &CreateTableQuery{}
 	default:
 		return nil
 	}
