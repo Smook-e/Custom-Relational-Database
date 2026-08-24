@@ -25,9 +25,9 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
 
     _, err := handler.ExecuteQuery(`
         CREATE TABLE test_users (
-            id serial primarykey,
-            name varchar(50) notnull,
-            email varchar(30) notnull unique,
+            id serial primary key,
+            name varchar(50) not null,
+            email varchar(30) not null unique,
             age int
         )
     `)
@@ -38,7 +38,7 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
     // INSERT via SQL
     _, err = handler.ExecuteQuery(`
         INSERT INTO test_users (name, email, age)
-        VALUES ("alice", "alice@example.com", 30)
+        VALUES ('alice', 'alice@example.com', 30);
     `)
     if err != nil {
         t.Fatalf("INSERT query failed: %v", err)
@@ -46,7 +46,7 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
 
     _, err = handler.ExecuteQuery(`
         INSERT INTO test_users (name, email, age)
-        VALUES ("bob", "bob@example.com", 35)
+        VALUES ('bob', 'bob@example.com', 35);
     `)
     if err != nil {
         t.Fatalf("INSERT query failed: %v", err)
@@ -54,7 +54,7 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
 
     // SELECT via SQL
     result, err := handler.ExecuteQuery(`
-        SELECT name, age FROM test_users WHERE age = 30
+        SELECT name, age FROM test_users WHERE age = 30;
     `)
     if err != nil {
         t.Fatalf("SELECT query failed: %v", err)
@@ -86,8 +86,8 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
 
     _, err := handler.ExecuteQuery(`
         CREATE TABLE test_products (
-            id serial primarykey,
-            name varchar(50) notnull,
+            id serial primary key,
+            name varchar(50) not null,
             price int
         )
     `)
@@ -97,7 +97,7 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
 
     _, err = handler.ExecuteQuery(`
         INSERT INTO test_products (name, price)
-        VALUES ("keyboard", 120)
+        VALUES ('keyboard', 120)
     `)
     if err != nil {
         t.Fatalf("first INSERT failed: %v", err)
@@ -105,7 +105,7 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
 
     _, err = handler.ExecuteQuery(`
         INSERT INTO test_products (name, price)
-        VALUES ("mouse", 40)
+        VALUES ('mouse', 40)
     `)
     if err != nil {
         t.Fatalf("second INSERT failed: %v", err)
