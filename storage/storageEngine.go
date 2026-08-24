@@ -286,6 +286,12 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 		colIndexes[i] = index
 	}
 	columnOffsets := make(map[string]int)
+	if expr != nil { 
+		err := SerializeSearchExpression(expr, table)
+		if err != nil {
+			return nil, fmt.Errorf("An Error Occured %w", err)
+		}
+	}
 
 	// If there's only one condition, check if it has an index and use the indexed search
 	if expr != nil && expr.Type == NodeCondition && (expr.Condition.Operator == "=" || expr.Condition.Operator == "==") {
