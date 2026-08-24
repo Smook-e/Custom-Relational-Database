@@ -329,18 +329,19 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 	return results, nil
 }
 
-func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]string) error {
+func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]string) (int, error) {
 	// Get the table object from the database
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
-		return fmt.Errorf("Table %s not found", tableName)
+		return 0, fmt.Errorf("Table %s not found", tableName)
 	}
 	// Validate that the specified columns exist in the table
 	for _, colName := range cols {
 		if _, err := table.GetColumnByName(colName); err != nil {
-			return fmt.Errorf("Column %s not found in table %s", colName, tableName)
+			return 0, fmt.Errorf("Column %s not found in table %s", colName, tableName)
 		}
 	}
+	insertedCount := 0
 	for _, rowValues := range values {
 		row := make([]string, len(table.Columns))
 		for i, colName := range cols {
@@ -348,8 +349,9 @@ func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]
 			row[columnIndex] = rowValues[i]
 		}
 		if _, _, err := engine.InsertRow(row, tableName); err != nil {
-			return fmt.Errorf("Failed to insert row: %w", err)
+			return insertedCount, fmt.Errorf("Failed to insert row: %w", err)
 		}
+		insertedCount++
 	}
-	return nil
+	return insertedCount, nil
 }

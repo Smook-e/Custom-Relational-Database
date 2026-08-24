@@ -32,6 +32,6 @@ func (q *SelectQuery) Execute(engine *storage.StorageEngine) (any, error) {
 }
 
 func (q *InsertQuery) Execute(engine *storage.StorageEngine) (any, error) {
-	engine.InsertRow(q.Values[0], q.TableName)
+	engine.Insert(q.TableName, q.Columns, q.Values)
 	return nil, nil
 }
