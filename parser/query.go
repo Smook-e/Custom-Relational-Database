@@ -17,7 +17,7 @@ type InsertQuery struct {
 	Values [][]string
 }
 
-func ParseSelectQuery(p *Parser) (*SelectQuery, error) {
+func (q *SelectQuery) Parse(p *Parser) (Query, error) {
 	// Expect SELECT keyword
 	_, err := p.Expect([]TokenType{TokenKeyword}, "SELECT")
 	if err != nil {
@@ -68,7 +68,7 @@ func ParseSelectQuery(p *Parser) (*SelectQuery, error) {
 	return query, nil
 }
 
-func ParseInsertQuery(p *Parser) (*InsertQuery, error) {
+func (q *InsertQuery) Parse(p *Parser) (Query, error) {
 	// Expect INSERT keyword
 	_, err := p.Expect([]TokenType{TokenKeyword}, "INSERT")
 	if err != nil {
