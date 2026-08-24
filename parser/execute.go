@@ -1,7 +1,7 @@
 package parser
 
 import (
-	// "fmt"
+	"fmt"
 	// "strings"
 	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
@@ -38,3 +38,20 @@ func (q *InsertQuery) Execute(engine *storage.StorageEngine) (any, error) {
 	return engine.Insert(q.TableName, q.Columns, q.Values)
 }
 
+func (Q *QueryHandler) ExecuteQuery(query string) (any, error) {
+	tokens, err := Tokenize(query)
+	if err != nil {
+		return nil, fmt.Errorf("Syntax Error: %w", err)
+		
+	}
+	p := NewParser(tokens)
+	queryType := GetQueryType(p)
+	if queryType == nil {
+		return nil, fmt.Errorf("Error: Unsupported query type")
+	}
+	err = queryType.Parse(p)
+	if err != nil {
+		return nil, fmt.Errorf("Syntax Error: %w", err)
+	}
+	return queryType.Execute(Q.engine)
+}
