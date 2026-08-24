@@ -167,8 +167,20 @@ func (q *CreateTableQuery) Parse(p *Parser) ( error) {
 			}
 			columns = append(columns, columnDef)
 		}
-		return nil
+		if p.Peek().Type == TokenComma {
+			p.Get() // Consume the comma
+		} else {
+			break
+		}
 	}
+	// Expect closing parenthesis for columns
+	_, err = p.Expect([]TokenType{TokenRParen}, "")
+	if err != nil {
+		return  err
+	}
+	q.Columns = columns
+	q.ForeignKeys = foreignKeys
+	return  nil
 }
 
 
