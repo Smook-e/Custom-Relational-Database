@@ -328,3 +328,28 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 
 	return results, nil
 }
+
+func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]string) error {
+	// Get the table object from the database
+	table, ok := engine.db.Tables[tableName]
+	if !ok {
+		return fmt.Errorf("Table %s not found", tableName)
+	}
+	// Validate that the specified columns exist in the table
+	for _, colName := range cols {
+		if _, err := table.GetColumnByName(colName); err != nil {
+			return fmt.Errorf("Column %s not found in table %s", colName, tableName)
+		}
+	}
+	for _, rowValues := range values {
+		row := make([]string, len(table.Columns))
+		for i, colName := range cols {
+			columnIndex, _ := table.GetColumnIndexByName(colName)
+			row[columnIndex] = rowValues[i]
+		}
+		if _, _, err := engine.InsertRow(row, tableName); err != nil {
+			return fmt.Errorf("Failed to insert row: %w", err)
+		}
+	}
+	return nil
+}
