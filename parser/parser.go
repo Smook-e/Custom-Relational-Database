@@ -36,6 +36,13 @@ func (p *Parser) Get() Token {
 func (p *Parser) Expect(expectedType []TokenType, val string) (Token, error) {
 	token := p.Peek()
 	if !slices.Contains(expectedType, token.Type) {
+		tokens := make([]string, len(expectedType))
+		for i, t := range expectedType {
+			tokens[i] = DecodeTokenType(t)
+		}
+		if val != "" {
+			return token, fmt.Errorf("expected token of type %v with value %v, got %v", tokens, val, token.Decode())
+		}
 		return token, fmt.Errorf("expected token of type %v, got %v", expectedType, token.Decode())
 	}
 	if val != "" && token.Value != val {
