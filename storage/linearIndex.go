@@ -171,7 +171,7 @@ func VerifyCondition(buffer []byte, condition *SearchCondition, table *entities.
 
 
 
-func (engine *StorageEngine) LinearSearch(tableName string, expr *Expression) ([][]any, error) {
+func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colOffsets map[string]int, expr *Expression) ([][]any, error) {
 	// Get the table object from the database
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
@@ -227,7 +227,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, expr *Expression) ([
 			}
 			if conditionMet {
 				// Read the pageId and slot from the buffer
-				row, err := engine.ReadRow(tableName, dataBuffer, tableOffset)
+				row, err := engine.ReadRow(tableName, cols, colOffsets, dataBuffer, tableOffset)
 				if err != nil {
 					return nil, fmt.Errorf("An Error Occured %w", err)
 				}
@@ -285,7 +285,7 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 					if err != nil {
 						return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 					}
-					row, err := engine.ReadRow(tableName, dataBuffer, tableOffset)
+					row, err := engine.ReadRow(tableName, cols, columnOffsets,dataBuffer, tableOffset)
 					if err != nil {
 						return nil, fmt.Errorf("An Error Occured %w", err)
 					}
@@ -297,7 +297,7 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 		}
 	}
 	// If the condition is more complex or the column doesn't have an index, use linear search
-	results, err := engine.LinearSearch(tableName, expr)
+	results, err := engine.LinearSearch(tableName,cols,columnOffsets, expr)
 	if err != nil {
 		return nil, fmt.Errorf("An Error Occured %w", err)
 	}

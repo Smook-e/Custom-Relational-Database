@@ -15,7 +15,7 @@ This file contains functions for inserting and reading rows in the database, as 
 */
 
 // ReadRow reads a row from the specified table at the given page ID and slot, returning the row data as a slice of any type.
-func (engine *StorageEngine) ReadRow(tableName string, buffer []byte, offset uint16) ([]any, error) {
+func (engine *StorageEngine) ReadRow(tableName string, cols []string, colOffsets map[string]int, buffer []byte, offset uint16) ([]any, error) {
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
