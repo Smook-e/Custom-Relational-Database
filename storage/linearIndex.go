@@ -241,13 +241,28 @@ func (engine *StorageEngine) LinearSearch(tableName string, expr *Expression) ([
 }
 
 
-func (engine *StorageEngine) Search(tableName string, expr *Expression) ([][]any, error) {
+func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expression) ([][]any, error) {
 	// Get the table object from the database
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
 		return nil, fmt.Errorf("Table %s not found", tableName)
 	}
-	
+	if cols[0] == "*" {
+		cols = make([]string, len(table.Columns))
+		for i, col := range table.Columns {
+			cols[i] = col.Name
+		}
+	}else {
+		// Validate that the specified columns exist in the table
+		for _, colName := range cols {
+			if _, err := table.GetColumnByName(colName); err != nil {
+				return nil, fmt.Errorf("Column %s not found in table %s", colName, tableName)
+			}
+		}
+	}
+	columnOffsets := make(map[string]int, len(table.Columns))
+
+
 	// If there's only one condition, check if it has an index and use the indexed search
 	if expr != nil && expr.Type == NodeCondition && (expr.Condition.Operator == "=" || expr.Condition.Operator == "==") {
 		condition := expr.Condition
