@@ -26,32 +26,7 @@ func main(){
 	}
 	defer engine.Bp.File.Close()
 	engine.PrintMetaData()
-	rows , err := engine.LinearSearch("products", nil)
-	if err != nil {
-		fmt.Printf("failed to perform linear search on products table: %v", err)
-	}
-	fmt.Println("Sample rows in products table:")
-	for _, row := range rows {
-		fmt.Println(row)
-	}
-	rows , err = engine.LinearSearch("users", nil)
-	if err != nil {
-		fmt.Printf("failed to perform linear search on users table: %v", err)
-	}
-	fmt.Println("Sample rows in users table:")
-	for _, row := range rows {
-		fmt.Println(row)
-	}
-	rows , err = engine.LinearSearch("orders", nil)
-	if err != nil {
-		fmt.Printf("failed to perform linear search on orders table: %v", err)
-	}
-	fmt.Println("Sample rows in orders table:")
-	for _, row := range rows {
-		fmt.Println(row)
-	}
-	// engine.TestIndexInsertMiddleRoot(0)
-	// engine.TestIndexInsertStringMiddleRoot()
+	
 	
 
     

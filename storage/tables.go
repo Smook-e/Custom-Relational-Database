@@ -20,7 +20,7 @@ func (engine *StorageEngine) ReadRow(tableName string, cols []string, colIndexes
 	if !ok {
 		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
 	}
-	Row := make([]any, len(table.Columns))
+	Row := make([]any, len(cols))
 	
 	
 	// read the null bitmap first
