@@ -55,3 +55,8 @@ func (Q *QueryHandler) ExecuteQuery(query string) (any, error) {
 	}
 	return queryType.Execute(Q.engine)
 }
+func InitializeQueryHandler(engine *storage.StorageEngine) *QueryHandler {
+	return &QueryHandler{
+		engine: engine,
+	}
+}
