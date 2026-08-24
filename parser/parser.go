@@ -43,7 +43,7 @@ func (p *Parser) Expect(expectedType []TokenType, val string) (Token, error) {
 		if val != "" {
 			return token, fmt.Errorf("expected token of type %v with value %v, got %v", tokens, val, token.Decode())
 		}
-		return token, fmt.Errorf("expected token of type %v, got %v", expectedType, token.Decode())
+		return token, fmt.Errorf("expected token of type %v, got %v", tokens, token.Decode())
 	}
 	if val != "" && token.Value != val {
 		return token, fmt.Errorf("expected token with value %v, got %v", val, token.Value)
