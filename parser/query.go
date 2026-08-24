@@ -2,7 +2,7 @@ package parser
 
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
 
@@ -157,4 +157,23 @@ func (q *InsertQuery) Parse(p *Parser) ( error) {
 	q.Columns = columns
 	q.Values = values
 	return  nil
+}
+func Print(q Query) {
+	switch query := q.(type) {
+	case *SelectQuery:
+		fmt.Println("Select Query:")
+		fmt.Println("Columns:", query.Columns)
+		fmt.Println("Table Name:", query.TableName)
+		if query.Where != nil {
+			fmt.Println("Where Condition:")
+			PrintExpression(query.Where, "")
+		}
+	case *InsertQuery:
+		fmt.Println("Insert Query:")
+		fmt.Println("Table Name:", query.TableName)
+		fmt.Println("Columns:", query.Columns)
+		fmt.Println("Values:", query.Values)
+	default:
+		fmt.Println("Unknown Query Type")
+	}
 }
