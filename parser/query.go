@@ -11,6 +11,11 @@ type SelectQuery struct {
 	TableName string
 	Where *storage.Expression
 }
+type InsertQuery struct {
+	TableName string
+	Columns []string
+	Values [][]string
+}
 
 func ParseSelectQuery(p *Parser) (*SelectQuery, error) {
 	// Expect SELECT keyword
