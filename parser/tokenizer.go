@@ -23,6 +23,32 @@ type Token struct {
     Type  TokenType
     Value string
 }
+func DecodeTokenType(t TokenType) string {
+	switch t {
+	case TokenKeyword:
+		return "Keyword"
+	case TokenIdentifier:
+		return "Identifier"
+	case TokenNumber:
+		return "Number"
+	case TokenString:
+		return "String"
+	case TokenOperator:
+		return "Operator"
+	case TokenComma:
+		return "Comma"
+	case TokenLParen:
+		return "Left Parenthesis"
+	case TokenRParen:
+		return "Right Parenthesis"
+	case TokenEOF:
+		return "EOF"
+	case TokenSemicolon:
+		return "Semicolon"
+	default:
+		return ""
+	}
+}
 func (token *Token) Decode() string {
 	switch token.Type {
 	case TokenKeyword:

@@ -36,7 +36,7 @@ func (p *Parser) Get() Token {
 func (p *Parser) Expect(expectedType []TokenType, val string) (Token, error) {
 	token := p.Peek()
 	if !slices.Contains(expectedType, token.Type) {
-		return token, fmt.Errorf("expected token of type %v, got %v", expectedType, token.Type)
+		return token, fmt.Errorf("expected token of type %v, got %v", expectedType, token.Decode())
 	}
 	if val != "" && token.Value != val {
 		return token, fmt.Errorf("expected token with value %v, got %v", val, token.Value)
