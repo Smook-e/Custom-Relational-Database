@@ -234,7 +234,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			// 	Condition: searchCondition2,
 			// },
 		}
-		result, err := engine.Search("users", expression)
+		result, err := engine.Search("users", []string{"*"}, expression)
 		if err != nil {
 			return engine, fmt.Errorf("failed to perform search: %w", err)
 		}
