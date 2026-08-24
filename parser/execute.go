@@ -23,9 +23,10 @@ func GetQueryType(p *Parser) Query {
 }
 
 func (q *SelectQuery) Execute(engine *storage.StorageEngine) (any, error) {
-	return nil,nil
+	return engine.Search(q.TableName, q.Where)
 }
 
 func (q *InsertQuery) Execute(engine *storage.StorageEngine) (any, error) {
-	return nil,nil
+	engine.InsertRow(q.Values[0], q.TableName)
+	return nil, nil
 }
