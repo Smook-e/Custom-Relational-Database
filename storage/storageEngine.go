@@ -257,3 +257,74 @@ func (engine *StorageEngine) NewPage() (uint32, error) {
 	return newPageID, nil
 }
 
+
+func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expression) ([][]any, error) {
+	// Get the table object from the database
+	table, ok := engine.db.Tables[tableName]
+	if !ok {
+		return nil, fmt.Errorf("Table %s not found", tableName)
+	}
+	if cols[0] == "*" {
+		cols = make([]string, len(table.Columns))
+		for i, col := range table.Columns {
+			cols[i] = col.Name
+		}
+	}else {
+		// Validate that the specified columns exist in the table
+		for _, colName := range cols {
+			if _, err := table.GetColumnByName(colName); err != nil {
+				return nil, fmt.Errorf("Column %s not found in table %s", colName, tableName)
+			}
+		}
+	}
+	colIndexes := make([]int, len(cols))
+	for i, colName := range cols {
+		index, err := table.GetColumnIndexByName(colName)
+		if err != nil {
+			return nil, fmt.Errorf("Column %s not found in table %s", colName, tableName)
+		}
+		colIndexes[i] = index
+	}
+	columnOffsets := make(map[string]int)
+
+	// If there's only one condition, check if it has an index and use the indexed search
+	if expr != nil && expr.Type == NodeCondition && (expr.Condition.Operator == "=" || expr.Condition.Operator == "==") {
+		condition := expr.Condition
+		if condition != nil {
+			rootID, exists := table.Indexes[condition.ColumnName]// Check if the column has an index
+			if exists {
+				// If the column has an index, use the indexed search
+				column, _ := table.GetColumnByName(condition.ColumnName)
+				pageId, slot, _ := engine.IndexSearch(rootID, condition.Value, column)
+				
+				if pageId == 0 && slot == 0 {
+					return [][]any{}, nil
+				}else {
+					// If the key is found, read the row
+					dataBuffer, err := engine.Bp.Get(pageId)
+					if err != nil {
+						return nil, fmt.Errorf("An Error Occured %w", err)
+					}
+					tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
+					if err != nil {
+						return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+					}
+					row, err := engine.ReadRow(tableName, cols, colIndexes, columnOffsets,dataBuffer, tableOffset)
+					if err != nil {
+						return nil, fmt.Errorf("An Error Occured %w", err)
+					}
+					return [][]any{row}, nil
+				}
+
+			}
+			
+		}
+	}
+	// If the condition is more complex or the column doesn't have an index, use linear search
+	results, err := engine.LinearSearch(tableName,cols,colIndexes,columnOffsets, expr)
+	if err != nil {
+		return nil, fmt.Errorf("An Error Occured %w", err)
+	}
+
+	return results, nil
+}
