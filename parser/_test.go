@@ -85,7 +85,7 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
     handler := newEmptySQLTestEngine(t)
 
     _, err := handler.ExecuteQuery(`
-        CREATE TABLE products (
+        CREATE TABLE test_products (
             id serial primarykey,
             name varchar(50) notnull,
             price int
@@ -96,7 +96,7 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
     }
 
     _, err = handler.ExecuteQuery(`
-        INSERT INTO products (name, price)
+        INSERT INTO test_products (name, price)
         VALUES ("keyboard", 120)
     `)
     if err != nil {
@@ -104,7 +104,7 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
     }
 
     _, err = handler.ExecuteQuery(`
-        INSERT INTO products (name, price)
+        INSERT INTO test_products (name, price)
         VALUES ("mouse", 40)
     `)
     if err != nil {
@@ -113,7 +113,7 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
 
     result, err := handler.ExecuteQuery(`
         SELECT name, price
-        FROM products
+        FROM test_products
         WHERE price > 50
     `)
     if err != nil {
