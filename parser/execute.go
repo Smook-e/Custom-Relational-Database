@@ -5,6 +5,9 @@ import (
 	// "strings"
 	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
+type QueryHandler struct {
+	engine *storage.StorageEngine
+}
 
 
 type Query interface {
@@ -34,3 +37,4 @@ func (q *SelectQuery) Execute(engine *storage.StorageEngine) (any, error) {
 func (q *InsertQuery) Execute(engine *storage.StorageEngine) (any, error) {
 	return engine.Insert(q.TableName, q.Columns, q.Values)
 }
+
