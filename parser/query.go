@@ -2,7 +2,7 @@ package parser
 
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/Smook-e/Custom-Relational-Database/storage"
 )
 
@@ -62,4 +62,56 @@ func ParseSelectQuery(p *Parser) (*SelectQuery, error) {
 	}
 	return query, nil
 }
-		
+
+func ParseInsertQuery(p *Parser) (*InsertQuery, error) {
+	// Expect INSERT keyword
+	_, err := p.Expect([]TokenType{TokenKeyword}, "INSERT")
+	if err != nil {
+		return nil, err
+	}
+
+	// Expect INTO keyword
+	_, err = p.Expect([]TokenType{TokenKeyword}, "INTO")
+	if err != nil {
+		return nil, err
+	}
+
+	// Expect table name
+	tableNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	// Expect opening parenthesis for columns
+	_, err = p.Expect([]TokenType{TokenLParen}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	var columns []string
+	for {
+		col, err := p.Expect([]TokenType{TokenIdentifier}, "")
+		if err != nil {
+			return nil, err
+		}
+		columns = append(columns, col.Value)
+
+		if p.Peek().Type == TokenComma {
+			p.Get() // Consume the comma
+		} else {
+			break
+		}
+	}
+
+	// Expect closing parenthesis for columns
+	_, err = p.Expect([]TokenType{TokenRParen}, "")
+	if err != nil {
+		return nil, err
+	}
+
+	// Expect VALUES keyword
+	_, err = p.Expect([]TokenType{TokenKeyword}, "VALUES")
+	if err != nil {
+		return nil, err
+	}
+}
