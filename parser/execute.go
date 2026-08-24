@@ -24,6 +24,9 @@ func GetQueryType(p *Parser) Query {
 	}
 }
 
+func (q *CreateTableQuery) Execute(engine *storage.StorageEngine) (any, error) {
+	return true, engine.CreateTable(q.TableName, q.Columns, q.ForeignKeys)
+}
 func (q *SelectQuery) Execute(engine *storage.StorageEngine) (any, error) {
 	return engine.Search(q.TableName, q.Where)
 }

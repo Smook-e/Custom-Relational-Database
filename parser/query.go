@@ -22,6 +22,9 @@ type CreateTableQuery struct {
 	Columns []entities.ColumnDefinition
 	ForeignKeys []entities.ForeignKeyDefinition
 }
+func (q *CreateTableQuery) Parse(p *Parser) ( error) {
+	return nil
+}
 
 
 func (q *SelectQuery) Parse(p *Parser) ( error) {
