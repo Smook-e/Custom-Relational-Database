@@ -121,7 +121,7 @@ func ParseInsertQuery(p *Parser) (*InsertQuery, error) {
 	}
 	var values [][]string
 
-	for p.Peek().Type != TokenSemicolon && p.Peek().Type != TokenEOF {
+	for p.Peek().Type != TokenSemicolon && p.Peek().Type != TokenEOF && p.position < len(p.tokens) {
 		// Expect opening parenthesis for values
 		_, err = p.Expect([]TokenType{TokenLParen}, "")
 		if err != nil {

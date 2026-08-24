@@ -25,6 +25,9 @@ func NewParser(tokens []Token) *Parser {
 	}
 }
 func (p *Parser) Peek() Token {	
+	if p.position >= len(p.tokens) {
+		return Token{Type: TokenEOF, Value: ""}
+	}
 	return p.tokens[p.position]
 }
 
