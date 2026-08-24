@@ -9,7 +9,7 @@ import (
 
 type Query interface {
 	Execute(engine *storage.StorageEngine) (any, error)
-	Parse(p *Parser) (Query, error)
+	Parse(p *Parser) ( error)
 }
 func GetQueryType(p *Parser) Query {
 	switch p.Peek().Value {

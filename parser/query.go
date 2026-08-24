@@ -17,11 +17,11 @@ type InsertQuery struct {
 	Values [][]string
 }
 
-func (q *SelectQuery) Parse(p *Parser) (Query, error) {
+func (q *SelectQuery) Parse(p *Parser) ( error) {
 	// Expect SELECT keyword
 	_, err := p.Expect([]TokenType{TokenKeyword}, "SELECT")
 	if err != nil {
-		return nil, err
+		return  err
 	}
 
 	// Parse columns
@@ -34,7 +34,7 @@ func (q *SelectQuery) Parse(p *Parser) (Query, error) {
 		for  {
 			col , err := p.Expect([]TokenType{TokenIdentifier}, "")
 			if err != nil {
-				return nil, err
+				return  err
 			}
 			columns = append(columns, col.Value)
 
@@ -46,58 +46,60 @@ func (q *SelectQuery) Parse(p *Parser) (Query, error) {
 		}
 	}
 	if _, err := p.Expect([]TokenType{TokenKeyword}, "FROM"); err != nil {
-		return nil, err
+		return  err
 	}
 
 	tableNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
 	if err != nil {
-		return nil, err
+		return  err
 	}
-	query := &SelectQuery{
-		Columns: columns,
-		TableName: tableNameToken.Value,
-	}
+	// query := &SelectQuery{
+	// 	Columns: columns,
+	// 	TableName: tableNameToken.Value,
+	// }
+	q.Columns = columns
+	q.TableName = tableNameToken.Value
 	if p.Peek().Type == TokenKeyword && p.Peek().Value == "WHERE" {
 		p.Get() // Consume the WHERE keyword
 		whereExpr, err := ParseWhereExpression(p)
 		if err != nil {
-			return nil, err
+			return  err
 		}
-		query.Where = whereExpr
+		q.Where = whereExpr
 	}
-	return query, nil
+	return  nil
 }
 
-func (q *InsertQuery) Parse(p *Parser) (Query, error) {
+func (q *InsertQuery) Parse(p *Parser) ( error) {
 	// Expect INSERT keyword
 	_, err := p.Expect([]TokenType{TokenKeyword}, "INSERT")
 	if err != nil {
-		return nil, err
+		return  err
 	}
 
 	// Expect INTO keyword
 	_, err = p.Expect([]TokenType{TokenKeyword}, "INTO")
 	if err != nil {
-		return nil, err
+		return  err
 	}
 
 	// Expect table name
 	tableNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
 	if err != nil {
-		return nil, err
+		return  err
 	}
 
 	// Expect opening parenthesis for columns
 	_, err = p.Expect([]TokenType{TokenLParen}, "")
 	if err != nil {
-		return nil, err
+		return  err
 	}
 
 	var columns []string
 	for {
 		col, err := p.Expect([]TokenType{TokenIdentifier}, "")
 		if err != nil {
-			return nil, err
+			return  err
 		}
 		columns = append(columns, col.Value)
 
@@ -111,13 +113,13 @@ func (q *InsertQuery) Parse(p *Parser) (Query, error) {
 	// Expect closing parenthesis for columns
 	_, err = p.Expect([]TokenType{TokenRParen}, "")
 	if err != nil {
-		return nil, err
+		return  err
 	}
 
 	// Expect VALUES keyword
 	_, err = p.Expect([]TokenType{TokenKeyword}, "VALUES")
 	if err != nil {
-		return nil, err
+		return  err
 	}
 	var values [][]string
 
@@ -125,13 +127,13 @@ func (q *InsertQuery) Parse(p *Parser) (Query, error) {
 		// Expect opening parenthesis for values
 		_, err = p.Expect([]TokenType{TokenLParen}, "")
 		if err != nil {
-			return nil, err
+			return  err
 		}
 		var row []string
 		for p.Peek().Type != TokenRParen {
 			val, err := p.Expect([]TokenType{TokenString, TokenNumber}, "")
 			if err != nil {
-				return nil, err
+				return  err
 			}
 			row = append(row, val.Value)
 			if p.Peek().Type == TokenComma {
@@ -143,7 +145,7 @@ func (q *InsertQuery) Parse(p *Parser) (Query, error) {
 		values = append(values, row)
 		// Expect closing parenthesis for values
 		if _, err = p.Expect([]TokenType{TokenRParen}, ""); err != nil {
-			return nil, err
+			return  err
 		}
 		if p.Peek().Type == TokenComma {
 			p.Get() // Consume the comma
@@ -151,9 +153,8 @@ func (q *InsertQuery) Parse(p *Parser) (Query, error) {
 			break
 		}
 	}
-	return &InsertQuery{
-		TableName: tableNameToken.Value,
-		Columns:   columns,
-		Values:    values,
-	}, nil
+	q.TableName = tableNameToken.Value
+	q.Columns = columns
+	q.Values = values
+	return  nil
 }
