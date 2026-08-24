@@ -23,6 +23,32 @@ type Token struct {
     Type  TokenType
     Value string
 }
+func (token *Token) Decode() string {
+	switch token.Type {
+	case TokenKeyword:
+		return fmt.Sprintf("Keyword(%q)", token.Value)
+	case TokenIdentifier:
+		return "Identifier"
+	case TokenNumber:
+		return "Number"
+	case TokenString:
+		return "String"
+	case TokenOperator:
+		return "Operator"
+	case TokenComma:
+		return "Comma"
+	case TokenLParen:
+		return "Left Parenthesis"
+	case TokenRParen:
+		return "Right Parenthesis"
+	case TokenEOF:
+		return "EOF"
+	case TokenSemicolon:
+		return "Semicolon"
+	default:
+		return ""
+	}
+}
 var keywords = map[string]bool{
     "SELECT": true, "FROM": true, "WHERE": true,
     "AND": true, "OR": true, "INSERT": true,
