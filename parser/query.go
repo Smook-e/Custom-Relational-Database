@@ -146,7 +146,7 @@ func (q *CreateTableQuery) Parse(p *Parser) ( error) {
 					}
 				}
 			}
-			// Handle optional constraints (e.g., NOT NULL, PRIMARY KEY)
+			// Handle optional constraints 
 			var constraints []string
 			for p.position < len(p.tokens) && p.Peek().Type != TokenComma && p.Peek().Type != TokenRParen {
 				// Expect constraint keyword
@@ -161,14 +161,14 @@ func (q *CreateTableQuery) Parse(p *Parser) ( error) {
 					if err != nil {
 						return  err
 					}
-					constraints = append(constraints, "NOT NULL")
+					constraints = append(constraints, "NOTNULL")
 				case "PRIMARY":
 					// Expect KEY keyword
 					_, err = p.Expect([]TokenType{TokenKeyword}, "KEY")
 					if err != nil {
 						return  err
 					}
-					constraints = append(constraints, "PRIMARY KEY")
+					constraints = append(constraints, "PRIMARYKEY")
 				case "DEFAULT":
 					// Expect default value (string or number)
 					defaultValueToken, err := p.Expect([]TokenType{TokenString, TokenNumber}, "")
@@ -180,7 +180,7 @@ func (q *CreateTableQuery) Parse(p *Parser) ( error) {
 				default:
 					constraints = append(constraints, constraintToken.Value)
 				}
-				
+				columnDef.Constraints = constraints
 			}
 			columns = append(columns, columnDef)
 		}
@@ -357,6 +357,17 @@ func Print(q Query) {
 		fmt.Println("Table Name:", query.TableName)
 		fmt.Println("Columns:", query.Columns)
 		fmt.Println("Values:", query.Values)
+	case *CreateTableQuery:
+		fmt.Println("Create Table Query:")
+		fmt.Println("Table Name:", query.TableName)
+		fmt.Println("Columns:")
+		for _, col := range query.Columns {
+			fmt.Printf("  Name: %s, DataType: %s, Constraints: %v, Default: %s\n", col.Name, col.DataType, col.Constraints, col.Default)
+		}
+		fmt.Println("Foreign Keys:")
+		for _, fk := range query.ForeignKeys {
+			fmt.Printf("  Column: %s, References: %s(%s)\n", fk.ColumnName, fk.ReferencedTableName, fk.ReferencedColumnName)
+		}
 	default:
 		fmt.Println("Unknown Query Type")
 	}
