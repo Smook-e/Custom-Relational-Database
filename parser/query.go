@@ -23,7 +23,98 @@ type CreateTableQuery struct {
 	ForeignKeys []entities.ForeignKeyDefinition
 }
 func (q *CreateTableQuery) Parse(p *Parser) ( error) {
-	return nil
+	// Expect CREATE keyword
+	_, err := p.Expect([]TokenType{TokenKeyword}, "CREATE")
+	if err != nil {
+		return  err
+	}
+
+	// Expect TABLE keyword
+	_, err = p.Expect([]TokenType{TokenKeyword}, "TABLE")
+	if err != nil {
+		return  err
+	}
+
+	// Expect table name
+	tableNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+	if err != nil {
+		return  err
+	}
+	q.TableName = tableNameToken.Value
+
+	// Expect opening parenthesis for columns
+	_, err = p.Expect([]TokenType{TokenLParen}, "")
+	if err != nil {
+		return  err
+	}
+
+	var columns []entities.ColumnDefinition
+	var foreignKeys []entities.ForeignKeyDefinition
+
+	for {
+		if p.Peek().Type == TokenKeyword && p.Peek().Value == "FOREIGN" {
+			p.Get() // Consume the FOREIGN keyword
+
+			// Expect KEY keyword
+			_, err = p.Expect([]TokenType{TokenKeyword}, "KEY")
+			if err != nil {
+				return  err
+			}
+
+			// Expect opening parenthesis for foreign key column
+			_, err = p.Expect([]TokenType{TokenLParen}, "")
+			if err != nil {
+				return  err
+			}
+
+			// Expect foreign key column name
+			fkColumnToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+			if err != nil {
+				return  err
+			}
+
+			// Expect closing parenthesis for foreign key column
+			_, err = p.Expect([]TokenType{TokenRParen}, "")
+			if err != nil {
+				return  err
+			}
+
+			// Expect REFERENCES keyword
+			_, err = p.Expect([]TokenType{TokenKeyword}, "REFERENCES")
+			if err != nil {
+				return  err
+			}
+
+			// Expect referenced table name
+			refTableToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+			if err != nil {
+				return  err
+			}
+
+			// Expect opening parenthesis for referenced column
+			_, err = p.Expect([]TokenType{TokenLParen}, "")
+			if err != nil {
+				return  err
+			}
+
+			// Expect referenced column name
+			refColumnToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+			if err != nil {
+				return  err
+			}
+
+			// Expect closing parenthesis for referenced column
+			_, err = p.Expect([]TokenType{TokenRParen}, "")
+			if err != nil {
+				return  err
+			}
+
+			foreignKeys = append(foreignKeys, entities.ForeignKeyDefinition{
+				ColumnName: fkColumnToken.Value,
+				ReferencedTable: refTableToken.Value,
+				ReferencedColumn: refColumnToken.Value,
+			})
+		}
 }
 
 
