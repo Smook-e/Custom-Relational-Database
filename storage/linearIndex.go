@@ -210,10 +210,11 @@ func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colIn
 			}
 			// Get the column offsets
 			// Read the null bitmap first
-			nullBitmap, err := table.ReadNullBitmap(buffer)
+			nullBitmap, err := table.ReadNullBitmap(buffer[tableOffset:])
 			if err != nil {
 				return nil, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
 			}
+			tableOffset += uint16(len(nullBitmap.Bitmap)) // Move the offset past the null bitmap
 			GetColumnOffsets(table,dataBuffer, tableOffset,nullBitmap, colOffsets)
 			//check the condition
 			conditionMet, err := engine.EvaluateExpression(dataBuffer, colOffsets, expr, table)
