@@ -11,3 +11,55 @@ type SelectQuery struct {
 	TableName string
 	Where *storage.Expression
 }
+
+func ParseSelectQuery(p *Parser) (*SelectQuery, error) {
+	// Expect SELECT keyword
+	_, err := p.Expect([]TokenType{TokenKeyword}, "SELECT")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse columns
+	var columns []string
+
+	if p.Peek().Value == "*" {
+		columns = append(columns, "*")
+		p.Get() // Consume the '*'
+	} else {
+		for  {
+			col , err := p.Expect([]TokenType{TokenIdentifier}, "")
+			if err != nil {
+				return nil, err
+			}
+			columns = append(columns, col.Value)
+
+			if p.Peek().Type == TokenComma {
+				p.Get() // Consume the comma
+			} else {
+				break
+			}
+		}
+	}
+	if _, err := p.Expect([]TokenType{TokenKeyword}, "FROM"); err != nil {
+		return nil, err
+	}
+
+	tableNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+	if err != nil {
+		return nil, err
+	}
+	query := &SelectQuery{
+		Columns: columns,
+		TableName: tableNameToken.Value,
+	}
+	if p.Peek().Type == TokenKeyword && p.Peek().Value == "WHERE" {
+		p.Get() // Consume the WHERE keyword
+		whereExpr, err := ParseWhereExpression(p)
+		if err != nil {
+			return nil, err
+		}
+		query.Where = whereExpr
+	}
+	return query, nil
+}
+		
