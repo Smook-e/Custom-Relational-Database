@@ -219,7 +219,7 @@ func createTable(handler *parser.QueryHandler, t *testing.T, sql string) error {
     return err
 }
 
-func TestCreateTableEdgeCases(t *testing.T) {
+func TestCreateTable(t *testing.T) {
     handler := newEmptySQLTestEngine(t)
 
     // Valid table creation should succeed
