@@ -6,6 +6,7 @@ import (
 	"fmt"
 	// "github.com/Smook-e/Custom-Relational-Database/storage"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
+	"errors"
 )
 
 
@@ -44,18 +45,17 @@ func TestIndexInsert(t *testing.T) {
 		}
 	}
 	// Search for all numbers and verify they exist
-	var pageID uint32
 	for i := 1; i <= 1000000; i++ {
 		val , err := entities.Serialize(int32(i), &col)
 		if err != nil {
 			t.Fatalf("failed to serialize value: %v", err)
 		}
-		pageID, _, err = engine.IndexSearch(rootID, val, &col)
+		_, _, err = engine.IndexSearch(rootID, val, &col)
+		if errors.Is(err, errKeyNotFound) {
+			t.Fatalf("value %d not found in index", i)
+		}
 		if err != nil {
 			t.Fatalf("failed to search in users table: %v", err)
-		}
-		if pageID == 0 {
-			t.Fatalf("value %d not found in index", i)
 		}
 	}
 	// Search for a non-existent number and verify it does not exist
@@ -63,13 +63,14 @@ func TestIndexInsert(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to serialize value: %v", err)
 	}
-	pageID, _, err = engine.IndexSearch(rootID, val, &col)
-	if err != nil {
+	_, _, err = engine.IndexSearch(rootID, val, &col)
+	if err != nil && !errors.Is(err, errKeyNotFound) {
 		t.Fatalf("failed to search in users table: %v", err)
 	}
-	if pageID != 0 {
+	if !errors.Is(err, errKeyNotFound) {
 		t.Fatalf("value 1000001 should not be found in index")
 	}
+	
 }
 func TestIndexInsert_ForStrings(t *testing.T) {
 	engine := newEmptyStorageEngine(t)
@@ -94,18 +95,18 @@ func TestIndexInsert_ForStrings(t *testing.T) {
 		}
 	}
 	// Search for all strings and verify they exist
-	var pageID uint32
+	
 	for i := 1; i <= 1000000; i++ {
 		val , err := entities.Serialize(fmt.Sprintf("value_%d", i), &col)
 		if err != nil {
 			t.Fatalf("failed to serialize value: %v", err)
 		}
-		pageID, _, err = engine.IndexSearch(rootID, val, &col)
+		_, _, err = engine.IndexSearch(rootID, val, &col)
+		if errors.Is(err, errKeyNotFound) {
+			t.Fatalf("value %d not found in index", i)
+		}
 		if err != nil {
 			t.Fatalf("failed to search in users table: %v", err)
-		}
-		if pageID == 0 {
-			t.Fatalf("value %d not found in index", i)
 		}
 	}
 	// Search for a non-existent string and verify it does not exist
@@ -113,12 +114,12 @@ func TestIndexInsert_ForStrings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to serialize value: %v", err)
 	}
-	pageID, _, err = engine.IndexSearch(rootID, val, &col)
-	if err != nil {
+	_, _, err = engine.IndexSearch(rootID, val, &col)
+	if err != nil && !errors.Is(err, errKeyNotFound) {
 		t.Fatalf("failed to search in users table: %v", err)
 	}
-	if pageID != 0 {
-		t.Fatalf("value 1000001 should not be found in index")
+	if !errors.Is(err, errKeyNotFound) {
+		t.Fatalf("value 1000002 should not be found in index")
 	}
 }
 
@@ -155,18 +156,17 @@ func TestIndexInsert_Middle(t *testing.T) {
 		}
 	}
 	// Search for all numbers and verify they exist
-	var pageID uint32
 	for i := 0; i <= 1000000; i++ {
 		val , err := entities.Serialize(int32(i), &col)
 		if err != nil {
 			t.Fatalf("failed to serialize value: %v", err)
 		}
-		pageID, _, err = engine.IndexSearch(rootID, val, &col)
+		_, _, err = engine.IndexSearch(rootID, val, &col)
+		if errors.Is(err, errKeyNotFound) {
+			t.Fatalf("value %d not found in index", i)
+		}
 		if err != nil {
 			t.Fatalf("failed to search in users table: %v", err)
-		}
-		if pageID == 0 {
-			t.Fatalf("value %d not found in index", i)
 		}
 	}
 	// Search for a non-existent number and verify it does not exist
@@ -174,11 +174,71 @@ func TestIndexInsert_Middle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to serialize value: %v", err)
 	}
-	pageID, _, err = engine.IndexSearch(rootID, val, &col)
-	if err != nil {
+	_, _, err = engine.IndexSearch(rootID, val, &col)
+	if err != nil && !errors.Is(err, errKeyNotFound) {
 		t.Fatalf("failed to search in users table: %v", err)
 	}
-	if pageID != 0 {
+	if !errors.Is(err, errKeyNotFound) {
 		t.Fatalf("value 1000001 should not be found in index")
+	}
+}
+func TestIndexInsert_Middle_ForStrings(t *testing.T) {
+	engine := newEmptyStorageEngine(t)
+
+	// Create a table
+	if err := engine.CreateTable("users", []entities.ColumnDefinition{
+			{Name: "id", DataType: "VARCHAR(50)", Constraints: []string{"primarykey"}},
+		}, []entities.ForeignKeyDefinition{}); err != nil {
+			t.Fatalf("failed to create users table: %v", err)
+	}
+	rootID := engine.db.Tables["users"].Indexes["id"]
+	col := engine.db.Tables["users"].Columns[0]
+	// Insert 100,000 strings into the index
+	for i := 0; i <= 1000000; i+=2 {
+		val , err := entities.Serialize(fmt.Sprintf("value_%d", i), &col)
+		if err != nil {
+			t.Fatalf("failed to serialize value: %v", err)
+		}
+		rootID,  err = engine.InsertIntoIndex(rootID, val, uint32(i), uint16(i), &col); 
+		if err != nil {
+			t.Fatalf("failed to insert into users table: %v", err)
+		}
+	}
+	for i := 1; i <= 1000000; i+=2 {
+		val , err := entities.Serialize(fmt.Sprintf("value_%d", i), &col)
+		if err != nil {
+			t.Fatalf("failed to serialize value: %v", err)
+		}
+		rootID,  err = engine.InsertIntoIndex(rootID, val, uint32(i), uint16(i), &col); 
+		if err != nil {
+			t.Fatalf("failed to insert into users table: %v", err)
+		}
+	}
+	// Search for all strings and verify they exist
+	
+	for i := 1; i <= 1000000; i++ {
+		val , err := entities.Serialize(fmt.Sprintf("value_%d", i), &col)
+		if err != nil {
+			t.Fatalf("failed to serialize value: %v", err)
+		}
+		_, _, err = engine.IndexSearch(rootID, val, &col)
+		if errors.Is(err, errKeyNotFound) {
+			t.Fatalf("value %d not found in index", i)
+		}
+		if err != nil {
+			t.Fatalf("failed to search in users table: %v", err)
+		}
+	}
+	// Search for a non-existent string and verify it does not exist
+	val , err := entities.Serialize(fmt.Sprintf("value_%d", 1000002), &col)
+	if err != nil {
+		t.Fatalf("failed to serialize value: %v", err)
+	}
+	_, _, err = engine.IndexSearch(rootID, val, &col)
+	if err != nil && !errors.Is(err, errKeyNotFound) {
+		t.Fatalf("failed to search in users table: %v", err)
+	}
+	if !errors.Is(err, errKeyNotFound) {
+		t.Fatalf("value 1000002 should not be found in index")
 	}
 }
