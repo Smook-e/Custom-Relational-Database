@@ -325,7 +325,7 @@ func TestCreateTable(t *testing.T) {
         t.Fatalf("expected foreign key referencing non-primary column to fail")
     }
 
-	// Foreign key referencing same 
+	// Foreign key referencing same table should fail
     err = createTable(handler, t, `
         CREATE TABLE ct_fk_notpk (
             id serial primary key,
@@ -334,6 +334,18 @@ func TestCreateTable(t *testing.T) {
         )
     `)
     if err == nil {
+        t.Fatalf("expected foreign key referencing non-primary column to fail")
+    }
+
+	// Valid foreign key referencing primary key should succeed
+    err = createTable(handler, t, `
+        CREATE TABLE ct_fk_notpk (
+            id serial primary key,
+            other int,
+            FOREIGN KEY (other) REFERENCES ct_ref(pk)
+        )
+    `)
+    if err != nil {
         t.Fatalf("expected foreign key referencing non-primary column to fail")
     }
 }
