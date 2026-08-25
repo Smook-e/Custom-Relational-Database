@@ -79,3 +79,38 @@ func TestEngineInsert(t *testing.T) {
     }
 
 }
+
+func TestEngineSelect(t *testing.T) {
+	handler := newEmptySQLTestEngine(t)
+
+	_, err := handler.ExecuteQuery(`
+        CREATE TABLE test_users (
+            id serial primary key,
+            name varchar(50) not null default 'anonymous',
+            email varchar(30) not null unique,
+            age int default 18,
+			job varchar(50) not null	
+        )
+    `)
+	if err != nil {
+		t.Fatalf("failed to execute query: %v", err)
+	}
+
+	// Insert some rows
+	inserted, err := handler.ExecuteQuery(`
+		INSERT INTO test_users (name, email, age, job) VALUES 
+		('alice', 'alice@example.com', 25, 'engineer'),
+		('bob', 'bob@example.com', 30, 'manager'),
+		('charlie', 'charlie@example.com', 35, 'developer'),
+		('dave', 'dave@example.com', 40, 'designer'),
+		('eve', 'eve@example.com', 45, 'analyst'),
+		('frank', 'frank@example.com', 50, 'consultant')
+	`)
+	if err != nil {
+		t.Fatalf("failed to execute query: %v", err)
+	}
+	if inserted.(int) != 6 {
+		t.Fatalf("expected 6 rows inserted, got %d", inserted.(int))
+	}
+
+}
