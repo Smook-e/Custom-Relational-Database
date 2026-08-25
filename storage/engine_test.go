@@ -2,10 +2,13 @@ package storage_test
 
 import (
 	"testing"
+
 	"github.com/Smook-e/Custom-Relational-Database/storage"
+
 	// "github.com/Smook-e/Custom-Relational-Database/entities"
-	"github.com/Smook-e/Custom-Relational-Database/parser"
 	"path/filepath"
+
+	"github.com/Smook-e/Custom-Relational-Database/parser"
 	// "fmt"
 )
 
@@ -112,5 +115,66 @@ func TestEngineSelect(t *testing.T) {
 	if inserted.(int) != 6 {
 		t.Fatalf("expected 6 rows inserted, got %d", inserted.(int))
 	}
+
+    // Select specific columns
+    res, err := handler.ExecuteQuery(`
+        SELECT id, name FROM test_users
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute select query: %v", err)
+    }
+    rows := res.([][]any)
+    if len(rows) != 6 {
+        t.Fatalf("expected 6 rows from select, got %d", len(rows))
+    }
+    // first row should be alice
+    if rows[0][1] != "alice" {
+        t.Fatalf("expected first name alice, got %v", rows[0][1])
+    }
+
+    // Complex where: (id = 2 or age > 18) and (age < 30 or job = 'developer')
+    res, err = handler.ExecuteQuery(`
+        SELECT id, name FROM test_users WHERE (id = 2 OR age > 18) AND (age < 30 OR job = 'developer')
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute complex where select: %v", err)
+    }
+    rows = res.([][]any)
+    // Expect alice (id 1) and charlie (id 3)
+    if len(rows) != 2 {
+        t.Fatalf("expected 2 rows from complex where, got %d", len(rows))
+    }
+    found := map[string]bool{}
+    for _, r := range rows {
+        name := r[1].(string)
+        found[name] = true
+    }
+    if !found["alice"] || !found["charlie"] {
+        t.Fatalf("expected alice and charlie in complex where results, got %v", found)
+    }
+
+    // Or combination on job
+    res, err = handler.ExecuteQuery(`
+        SELECT id, name, job FROM test_users WHERE job = 'manager' OR job = 'designer'
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute job OR select: %v", err)
+    }
+    rows = res.([][]any)
+    if len(rows) != 2 {
+        t.Fatalf("expected 2 rows for job filter, got %d", len(rows))
+    }
+
+    // Age greater than 40
+    res, err = handler.ExecuteQuery(`
+        SELECT id, name, age FROM test_users WHERE age > 40
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute age filter select: %v", err)
+    }
+    rows = res.([][]any)
+    if len(rows) != 2 {
+        t.Fatalf("expected 2 rows for age > 40, got %d", len(rows))
+    }
 
 }
