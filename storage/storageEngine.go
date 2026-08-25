@@ -21,6 +21,8 @@ type StorageEngine struct {
 	Bp *bufferpool.BufferPool
 	metaWrite bool // Flag to indicate if the meta page needs to be written to disk
 }
+
+// Closes the database file and flushes the buffer pool to disk.
 func (engine *StorageEngine) Close() error {
 	if engine.Bp != nil {
 		if err := engine.Bp.Flush(); err != nil {
