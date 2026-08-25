@@ -68,6 +68,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		Tables:    make(map[string]*entities.Table),
 		FreePages: make([]entities.FreePage, 0),
 		TotalPages: uint32(fi.Size() / bufferSize),
+
 	}
 
 	// Initialize buffer pool
@@ -112,7 +113,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// }
 		
 		// ensure FreePages is empty for meta write
-		engine.db.FreePages = []entities.FreePage{}
+		// engine.db.FreePages = []entities.FreePage{}
 
 		
 
