@@ -90,6 +90,9 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	
 	// Validate constraints for each column
 	for i, col := range table.Columns {
+		if col.DataType == entities.TypeSerial && vals[i] != nil {
+			return 0,0, fmt.Errorf("Error: Column '%s' is of type Serial and cannot be manually set.", col.Name)
+		}
 		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {
 			if col.HasConstraint(entities.ConstraintDefault) {
 				// If the column has a default constraint, use the default value instead of returning an error
