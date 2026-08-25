@@ -74,7 +74,7 @@ func TestIndexInsert(t *testing.T) {
 }
 func TestIndexInsert_ForStrings(t *testing.T) {
 	engine := newEmptyStorageEngine(t)
-
+	defer engine.Close()
 	// Create a table
 	if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "VARCHAR(50)", Constraints: []string{"primarykey"}},
@@ -125,7 +125,7 @@ func TestIndexInsert_ForStrings(t *testing.T) {
 
 func TestIndexInsert_Middle(t *testing.T) {
 	engine := newEmptyStorageEngine(t)
-
+	defer engine.Close()
 	// Create a table
 	if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
@@ -184,7 +184,7 @@ func TestIndexInsert_Middle(t *testing.T) {
 }
 func TestIndexInsert_Middle_ForStrings(t *testing.T) {
 	engine := newEmptyStorageEngine(t)
-
+	defer engine.Close()
 	// Create a table
 	if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "VARCHAR(50)", Constraints: []string{"primarykey"}},
