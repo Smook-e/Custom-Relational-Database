@@ -71,11 +71,11 @@ func TestEngineInsert(t *testing.T) {
     }
 
     // Invalid insert: providing value for serial 'id' should be rejected
-    // _, err = handler.ExecuteQuery(`
-    //     INSERT INTO test_users (id, name, email, age, job) VALUES (1, 'dave', 'dave@example.com', 20, 'dev')
-    // `)
-    // if err == nil {
-    //     t.Fatalf("expected insert providing serial 'id' to fail")
-    // }
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (id, name, email, age, job) VALUES (1, 'dave', 'dave@example.com', 20, 'dev')
+    `)
+    if err == nil {
+        t.Fatalf("expected insert providing serial 'id' to fail")
+    }
 
 }
