@@ -324,4 +324,16 @@ func TestCreateTable(t *testing.T) {
     if err == nil {
         t.Fatalf("expected foreign key referencing non-primary column to fail")
     }
+
+	// Foreign key referencing same 
+    err = createTable(handler, t, `
+        CREATE TABLE ct_fk_notpk (
+            id serial primary key,
+            other int,
+            FOREIGN KEY (other) REFERENCES ct_fk_notpk(notpk)
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected foreign key referencing non-primary column to fail")
+    }
 }
