@@ -3,7 +3,7 @@ package storage
 import (
 	"encoding/binary"
 	"fmt"
-
+	"errors"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
@@ -13,7 +13,8 @@ It provides functions to insert keys into the index, search for keys, and handle
 The index is implemented as a B+Tree, where internal pages contain keys and pointers to child pages, and leaf pages contain keys and pointers to the actual data records in the database.
 Used in the storage layer to manage indexes for tables, allowing efficient searching and insertion of records based on indexed columns.
 */
-
+var errKeyNotFound = errors.New("key not found")
+var errKeyAlreadyExists = errors.New("key already exists")
 const (
 	nextLeafPageOffset = 1
 	leafPageNumEntriesOffset = 5
@@ -30,7 +31,9 @@ const (
 func (engine *StorageEngine) InsertIntoIndex(root uint32, key []byte, pageID uint32, slot uint16, col *entities.Column) (uint32, error) {
 	newRoot, newKey, err := IndexInsert(engine, root, key, pageID, slot, col)
 	if err != nil {
-		
+		if errors.Is(err, errKeyAlreadyExists) {
+			return root, fmt.Errorf("key already exists in index: %w", err)
+		}
 		return 0, fmt.Errorf("failed to insert into index: %w", err)
 	}
 	if newKey != nil {
@@ -212,6 +215,9 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 				if err != nil {
 					return 0, nil, fmt.Errorf("comparison error: %w", err)
 				}
+				if comp == 0 {
+					return 0, nil, errKeyAlreadyExists
+				}
 				if comp < 0 {
 					inserted = true
 					// Shift entries to make space for the new entry
@@ -259,6 +265,9 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 					comp, err := entities.Compare(key, existingKey, col)
 					if err != nil {
 						return 0, nil, fmt.Errorf("comparison error: %w", err)
+					}
+					if comp == 0 {
+						return 0, nil, errKeyAlreadyExists
 					}
 					if comp < 0 {
 						leafEntries[writeIdx] = pages.LeafEntry{Key: key, PageID: pageID, Slot: slot}
@@ -378,11 +387,11 @@ func (engine *StorageEngine) IndexSearch(root uint32, key []byte, col *entities.
 				return pageID, slot, nil
 			}else if comp < 0 {
 				// Key is less than the current entry's key, so it doesn't exist in this leaf page
-				return 0, 0, nil
+				return 0, 0, errKeyNotFound
 			}
 			offset += 4 + 2 // Skip pageID and slot
 		}
-		return 0, 0, nil
+		return 0, 0, errKeyNotFound
 
 	}
 }
