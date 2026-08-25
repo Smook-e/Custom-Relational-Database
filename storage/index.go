@@ -226,6 +226,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 					offset += 2
 					// Update the number of entries
 					binary.BigEndian.PutUint16(buffer[1+4:1+4+2], numberOfEntries+1)
+					engine.Bp.MarkDirty(root)
 					return root, nil, nil
 				}else{
 
