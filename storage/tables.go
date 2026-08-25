@@ -231,6 +231,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 
 	engine.db.Tables[tableName] = table
 	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
+	var hasPrimaryKey bool
 	for _, col := range cols{
 		
 		dataType,size, err := entities.GetDataTypeAndSize(col.DataType)
@@ -240,6 +241,12 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		constraints, err  := entities.GetConstraint(col.Constraints)
 		if err != nil {
 			return  fmt.Errorf("Error getting constraint:%w", err)
+		}
+		if constraints & entities.ConstraintPrimaryKey != 0 {
+			if hasPrimaryKey {
+				return fmt.Errorf("Error: Table %s already has a primary key defined. Only one primary key is allowed per table.", tableName)
+			}
+			hasPrimaryKey = true
 		}
 		newCol := entities.Column{
 			Name:        col.Name,
@@ -290,6 +297,9 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		// 	return  err
 		// }
 		table.Columns = append(table.Columns, newCol)
+	}
+	if !hasPrimaryKey {
+		return fmt.Errorf("Error: Table %s must have a primary key defined. Please specify a primary key column.", tableName)
 	}
 	table.ForeignKeys = make(map[string]entities.ForeignKeyReference)
 	for _, fk := range foreignKeys {
