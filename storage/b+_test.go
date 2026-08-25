@@ -83,7 +83,7 @@ func TestIndexInsert_ForStrings(t *testing.T) {
 	rootID := engine.db.Tables["users"].Indexes["id"]
 	col := engine.db.Tables["users"].Columns[0]
 	// Insert 100,000 strings into the index
-	for i := 1; i <= 100000; i++ {
+	for i := 1; i <= 1000000; i++ {
 		val , err := entities.Serialize(fmt.Sprintf("value_%d", i), &col)
 		if err != nil {
 			t.Fatalf("failed to serialize value: %v", err)
@@ -95,7 +95,7 @@ func TestIndexInsert_ForStrings(t *testing.T) {
 	}
 	// Search for all strings and verify they exist
 	var pageID uint32
-	for i := 1; i <= 100000; i++ {
+	for i := 1; i <= 1000000; i++ {
 		val , err := entities.Serialize(fmt.Sprintf("value_%d", i), &col)
 		if err != nil {
 			t.Fatalf("failed to serialize value: %v", err)
