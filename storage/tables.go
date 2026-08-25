@@ -312,7 +312,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			return fmt.Errorf("Error: Column %q not found in table %q for foreign key constraint", fk.ColumnName, tableName)
 		}
 		referencedTable, ok := engine.db.Tables[fk.ReferencedTableName]
-		if !ok {
+		if !ok || referencedTable.Name == table.Name{
 			return fmt.Errorf("Error: Referenced table %q not found for foreign key constraint on column %q", fk.ReferencedTableName, fk.ColumnName)
 		}
 		referencedColIndex, err := referencedTable.GetColumnIndexByName(fk.ReferencedColumnName)
