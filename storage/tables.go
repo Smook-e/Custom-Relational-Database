@@ -18,7 +18,7 @@ This file contains functions for inserting and reading rows in the database, as 
 func (engine *StorageEngine) ReadRow(tableName string, cols []string, colIndexes []int, colOffsets map[string]int, buffer []byte, offset uint16) ([]any, error) {
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
-		return nil, fmt.Errorf("Error: Table %s Not Found ", tableName)
+		return nil, fmt.Errorf("Error: Table %q Not Found ", tableName)
 	}
 	Row := make([]any, len(cols))
 	
@@ -78,7 +78,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	//Pass 1: Check Validity and calculate size
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
-		return 0,0, fmt.Errorf("Error: Table %s Not Found ", tableName)
+		return 0,0, fmt.Errorf("Error: Table %q Not Found ", tableName)
 	}
 	if len(table.Columns) != len(data){
 		return 0,0, fmt.Errorf("Error: Invalid input size. Please enter %d Fields", len(table.Columns))
@@ -91,7 +91,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	// Validate constraints for each column
 	for i, col := range table.Columns {
 		if col.DataType == entities.TypeSerial && vals[i] != nil {
-			return 0,0, fmt.Errorf("Error: Column '%s' is of type Serial and cannot be manually set.", col.Name)
+			return 0,0, fmt.Errorf("Error: Column '%q' is of type Serial and cannot be manually set.", col.Name)
 		}
 		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {
 			if col.HasConstraint(entities.ConstraintDefault) {
@@ -116,7 +116,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 					size += uint16(defaultSize)
 				}
 			}else {
-				return 0,0, fmt.Errorf("Error: Column '%s' cannot be null", col.Name)
+				return 0,0, fmt.Errorf("Error: Column '%q' cannot be null", col.Name)
 			}
 		}
 		if vals[i] != nil && (col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex)) {
@@ -127,14 +127,14 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			}
 			root := table.Indexes[col.Name]
 			if pageID, _, _ := engine.IndexSearch(root, serializedKey, &col); pageID != 0 {
-				return 0,0, fmt.Errorf("Error: Column %s must be unique. Value %v already exists.", col.Name, data[i])
+				return 0,0, fmt.Errorf("Error: Column %q must be unique. Value %v already exists.", col.Name, data[i])
 			}
 		}
 		// Check for foreign key constraints
 		if fk, exists := table.ForeignKeys[col.Name]; exists {
 			referencedTable, ok := engine.db.Tables[fk.ReferencedTableName]
 			if !ok {
-				return 0,0, fmt.Errorf("Error: Referenced table %s not found for foreign key constraint on column %s", fk.ReferencedTableName, col.Name)
+				return 0,0, fmt.Errorf("Error: Referenced table %q not found for foreign key constraint on column %q", fk.ReferencedTableName, col.Name)
 			}
 			referencedCol := referencedTable.Columns[fk.ReferencedColumnIndex]
 			serializedKey, err := entities.Serialize(vals[i], &col)
@@ -143,7 +143,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 			}
 			root := referencedTable.Indexes[referencedCol.Name]
 			if pageID, _, _ := engine.IndexSearch(root, serializedKey, &referencedCol); pageID == 0 {
-				return 0,0, fmt.Errorf("Error: Foreign key constraint violation on column '%s'. Value %v does not exist in Column '%s' of referenced table '%s'.", col.Name, data[i], referencedCol.Name, fk.ReferencedTableName)
+				return 0,0, fmt.Errorf("Error: Foreign key constraint violation on column '%q'. Value %v does not exist in Column '%q' of referenced table '%q'.", col.Name, data[i], referencedCol.Name, fk.ReferencedTableName)
 			}
 		}
 	}
@@ -244,7 +244,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		}
 		if constraints & entities.ConstraintPrimaryKey != 0 {
 			if hasPrimaryKey {
-				return fmt.Errorf("Error: Table %s already has a primary key defined. Only one primary key is allowed per table.", tableName)
+				return fmt.Errorf("Error: Table %q already has a primary key defined. Only one primary key is allowed per table.", tableName)
 			}
 			hasPrimaryKey = true
 		}
@@ -280,7 +280,7 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		if constraints & entities.ConstraintDefault != 0 {
 			defaultValue, err := newCol.GetDefaultValue(col.Default)
 			if err != nil {
-				return fmt.Errorf("Error getting default value for column %s: %w", col.Name, err)
+				return fmt.Errorf("Error getting default value for column %q: %w", col.Name, err)
 			}
 			newCol.Default = defaultValue
 		}
@@ -299,21 +299,24 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 		table.Columns = append(table.Columns, newCol)
 	}
 	if !hasPrimaryKey {
-		return fmt.Errorf("Error: Table %s must have a primary key defined. Please specify a primary key column.", tableName)
+		return fmt.Errorf("Error: Table %q must have a primary key defined. Please specify a primary key column.", tableName)
 	}
 	table.ForeignKeys = make(map[string]entities.ForeignKeyReference)
 	for _, fk := range foreignKeys {
 		// Validate that the column exists in the current table
 		if _, err := table.GetColumnByName(fk.ColumnName); err != nil {
-			return fmt.Errorf("Error: Column %s not found in table %s for foreign key constraint", fk.ColumnName, tableName)
+			return fmt.Errorf("Error: Column %q not found in table %q for foreign key constraint", fk.ColumnName, tableName)
 		}
 		referencedTable, ok := engine.db.Tables[fk.ReferencedTableName]
 		if !ok {
-			return fmt.Errorf("Error: Referenced table %s not found for foreign key constraint on column %s", fk.ReferencedTableName, fk.ColumnName)
+			return fmt.Errorf("Error: Referenced table %q not found for foreign key constraint on column %q", fk.ReferencedTableName, fk.ColumnName)
 		}
 		referencedColIndex, err := referencedTable.GetColumnIndexByName(fk.ReferencedColumnName)
 		if err != nil {
 			return fmt.Errorf("Error getting referenced column index for foreign key: %w", err)
+		}
+		if !referencedTable.Columns[referencedColIndex].HasConstraint(entities.ConstraintPrimaryKey) {
+			return fmt.Errorf("Error: Column %q in table %q is not a primary key, which is required for a foreign key constraint", fk.ReferencedColumnName, fk.ReferencedTableName)
 		}
 		table.ForeignKeys[fk.ColumnName] = entities.ForeignKeyReference{
 			ReferencedTableName: fk.ReferencedTableName,
