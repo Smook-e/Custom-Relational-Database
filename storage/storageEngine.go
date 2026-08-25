@@ -21,6 +21,19 @@ type StorageEngine struct {
 	Bp *bufferpool.BufferPool
 	metaWrite bool // Flag to indicate if the meta page needs to be written to disk
 }
+func (engine *StorageEngine) Close() error {
+	if engine.Bp != nil {
+		if err := engine.Bp.Flush(); err != nil {
+			return fmt.Errorf("failed to flush buffer pool: %w", err)
+		}
+	}
+	if engine.db != nil && engine.db.File != nil {
+		if err := engine.db.File.Close(); err != nil {
+			return fmt.Errorf("failed to close database file: %w", err)
+		}
+	}
+	return nil
+}
 
 // Commit flushes the buffer pool to disk and writes the meta page if necessary.
 func (engine *StorageEngine) Commit() error {

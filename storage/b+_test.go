@@ -24,7 +24,6 @@ func newEmptyStorageEngine(t *testing.T) *StorageEngine {
 
 func TestIndexInsert(t *testing.T) {
 	engine := newEmptyStorageEngine(t)
-
 	// Create a table
 	if err := engine.CreateTable("users", []entities.ColumnDefinition{
 			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
