@@ -68,7 +68,6 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		Tables:    make(map[string]*entities.Table),
 		FreePages: make([]entities.FreePage, 0),
 		TotalPages: uint32(fi.Size() / bufferSize),
-
 	}
 
 	// Initialize buffer pool
