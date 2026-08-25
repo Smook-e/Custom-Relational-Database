@@ -81,6 +81,40 @@ func TestEngineInsert(t *testing.T) {
         t.Fatalf("expected insert providing serial 'id' to fail")
     }
 
+    // Invalid insert: name exceeds varchar(50)
+    longName := ""
+    for i := 0; i < 60; i++ { longName += "x" }
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, email, age, job) VALUES ('` + longName + `', 'long@example.com', 29, 'tester')
+    `)
+    if err == nil {
+        t.Fatalf("expected insert with too-long name to fail")
+    }
+
+    // Invalid insert: non-numeric value into int column
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, email, age, job) VALUES ('erin', 'erin@example.com', 'twenty', 'intern')
+    `)
+    if err == nil {
+        t.Fatalf("expected insert with non-numeric age to fail")
+    }
+
+    // Invalid insert: empty string for NOT NULL 'job' (treated as null)
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, email, age, job) VALUES ('fred', 'fred@example.com', 28, '')
+    `)
+    if err == nil {
+        t.Fatalf("expected insert with empty NOT NULL 'job' to fail")
+    }
+
+    // Valid insert: provide empty name (should use default 'anonymous')
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, email, age, job) VALUES ('', 'gina@example.com', 27, 'analyst')
+    `)
+    if err != nil {
+        t.Fatalf("expected insert with empty name to use default and succeed, got error: %v", err)
+    }
+
 }
 
 func TestEngineSelect(t *testing.T) {
@@ -177,4 +211,117 @@ func TestEngineSelect(t *testing.T) {
         t.Fatalf("expected 2 rows for age > 40, got %d", len(rows))
     }
 
+}
+
+// createTable is a small helper that executes a CREATE TABLE SQL and returns the error (if any).
+func createTable(handler *parser.QueryHandler, t *testing.T, sql string) error {
+    _, err := handler.ExecuteQuery(sql)
+    return err
+}
+
+func TestCreateTableEdgeCases(t *testing.T) {
+    handler := newEmptySQLTestEngine(t)
+
+    // Valid table creation should succeed
+    err := createTable(handler, t, `
+        CREATE TABLE ct_valid (
+            id serial primary key,
+            name varchar(50) not null,
+            val int
+        )
+    `)
+    if err != nil {
+        t.Fatalf("expected valid create table to succeed, got: %v", err)
+    }
+
+    // Missing primary key should fail
+    err = createTable(handler, t, `
+        CREATE TABLE ct_no_pk (
+            id int,
+            name varchar(10)
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected create without primary key to fail")
+    }
+
+    // Two primary keys should fail (parser or storage should reject)
+    err = createTable(handler, t, `
+        CREATE TABLE ct_two_pk (
+            a int primary key,
+            b int primary key,
+            c varchar(10)
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected create with two primary keys to fail")
+    }
+
+    // Duplicate column names should fail
+    err = createTable(handler, t, `
+        CREATE TABLE ct_dup_col (
+            id serial primary key,
+            name varchar(10),
+            name varchar(20)
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected create with duplicate column names to fail")
+    }
+
+    // Invalid data type should fail
+    err = createTable(handler, t, `
+        CREATE TABLE ct_bad_type (
+            id serial primary key,
+            foo spamtype
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected create with invalid data type to fail")
+    }
+
+    // Varchar length too large should fail (e.g., varchar(300))
+    err = createTable(handler, t, `
+        CREATE TABLE ct_varchar_large (
+            id serial primary key,
+            big varchar(300)
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected create with oversized varchar to fail")
+    }
+
+    // Foreign key referencing non-existent table should fail
+    err = createTable(handler, t, `
+        CREATE TABLE ct_fk_bad_ref (
+            id serial primary key,
+            other_id int,
+            FOREIGN KEY (other_id) REFERENCES no_table(id)
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected create with foreign key referencing non-existent table to fail")
+    }
+
+    // Create referenced table then foreign key referencing non-primary column should fail
+    err = createTable(handler, t, `
+        CREATE TABLE ct_ref (
+            pk serial primary key,
+            notpk int
+        )
+    `)
+    if err != nil {
+        t.Fatalf("failed to create referenced table: %v", err)
+    }
+
+    err = createTable(handler, t, `
+        CREATE TABLE ct_fk_notpk (
+            id serial primary key,
+            other int,
+            FOREIGN KEY (other) REFERENCES ct_ref(notpk)
+        )
+    `)
+    if err == nil {
+        t.Fatalf("expected foreign key referencing non-primary column to fail")
+    }
 }

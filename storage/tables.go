@@ -232,8 +232,11 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 	engine.db.Tables[tableName] = table
 	engine.db.Tables[tableName].Indexes = make(map[string]uint32)
 	var hasPrimaryKey bool
+	createdColumns := make(map[string]bool)
 	for _, col := range cols{
-		
+		if _, exists := createdColumns[col.Name]; exists {
+			return fmt.Errorf("Error: Duplicate column name %q in table %q. Column names must be unique.", col.Name, tableName)
+		}
 		dataType,size, err := entities.GetDataTypeAndSize(col.DataType)
 		if err != nil {
 			return  fmt.Errorf("Error getting data type:%w", err)
@@ -254,8 +257,9 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 			Constraints: constraints,
 			Size:        size,
 		}
+		createdColumns[col.Name] = true
 		// If the column has a primary key, unique, or index constraint, create an index for it
-		if constraints & entities.ConstraintPrimaryKey != 0 || constraints & entities.ConstraintUnique != 0 || constraints & entities.ConstraintIndex != 0 {
+		if constraints & entities.ConstraintIndex != 0 {
 			// Create an index for the primary key column
 			// Create a new page for the index root
 			root, err := engine.NewPage()
