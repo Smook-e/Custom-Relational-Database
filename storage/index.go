@@ -377,11 +377,11 @@ func (engine *StorageEngine) IndexSearch(root uint32, key []byte, col *entities.
 				return pageID, slot, nil
 			}else if comp < 0 {
 				// Key is less than the current entry's key, so it doesn't exist in this leaf page
-				return 0, 0, fmt.Errorf("key not found, %d ", binary.BigEndian.Uint64(key))
+				return 0, 0, nil
 			}
 			offset += 4 + 2 // Skip pageID and slot
 		}
-		return 0, 0, fmt.Errorf("key not found")
+		return 0, 0, nil
 
 	}
 }
