@@ -38,6 +38,14 @@ func (db *Database) UpdateFreePage(pageID uint32, freeSpace uint16) {
         }
     }
 }
+func (db *Database) UpdateFreePageChange(pageID uint32, netChange int16) {
+    for i, freePage := range db.FreePages {
+        if freePage.PageID == pageID {
+            db.FreePages[i].FreeSpace = uint16(int16(db.FreePages[i].FreeSpace) + netChange)
+            return
+        }
+    }
+}
 
 func (db *Database) PrintTables() {
 	

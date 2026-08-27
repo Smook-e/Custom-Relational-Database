@@ -157,12 +157,13 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
 	engine.Bp.MarkDirty(pageID)
-	freeSpaceOffset,slot, err := pages.FindandUpdateDataPageSlot(buffer, size)
-
+	freeSpaceOffset,slot, newSlotused, err := pages.FindandUpdateDataPageSlot(buffer, size)
 	if err != nil {
 		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
 	}
-	
+	if newSlotused {
+		engine.UpdateFreePageChange(pageID, -2) // 2 bytes for the new slot that points to the new row
+	}
 	offset := freeSpaceOffset
 	//Pass 2: write the values into the page
 	// Write the null bitmap first
@@ -224,7 +225,7 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 }
 // Deletes a row from the specified table at the given page ID and slot.
 // It updates the slot to 0 and shifts the rest of the rows up to fill the gap, and updates the free space offset and the free page list.
-func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uint16) error {
+func (engine *StorageEngine) DeleteRow( pageID uint32, slot uint16) error {
 	buffer, err := engine.Bp.Get(pageID)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
@@ -252,11 +253,12 @@ func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uin
 	// Update free space offset
 	pages.UpdateDataPageFreeSpace(buffer, freeSpaceOffset)
 	// Update the offsets of the slots after the deleted row
-	pages.UpdateDataPageSlotOffsets(buffer, slot, (int16(rowOffsetEnd) - int16(rowOffsetStart)))
-
+	pages.UpdateDataPageSlotOffsets(buffer, slot, (int16(rowOffsetEnd) - int16(rowOffsetStart)), rowOffsetStart)
+	
 	// Update the free page list
-	freeSpace, _ := pages.GetFreeSpace(buffer)
-	engine.UpdateFreePage(pageID, freeSpace)
+	// freeSpace, _ := pages.GetFreeSpace(buffer)
+	engine.UpdateFreePageChange(pageID, int16(rowOffsetEnd - rowOffsetStart))
+	// engine.UpdateFreePage(pageID, freeSpace)
 	return nil
 }
 

@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 	"os"
-
+	"errors"
 	bufferpool "github.com/Smook-e/Custom-Relational-Database/bufferPool"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
@@ -94,26 +94,26 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// update total pages to account for meta + free-space pages
 		engine.db.TotalPages = 2
 		// create example tables
-		if err := engine.CreateTable("products", []entities.ColumnDefinition{
-			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
-			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull"}},
-			{Name: "price", DataType: "bigint", Constraints: []string{"notnull"}},
-			{Name: "quantity", DataType: "smallint", Constraints: []string{"notnull", "default"}, Default: "1"},
-			{Name: "seller", DataType: "varchar", Constraints: []string{}},
-		}, []entities.ForeignKeyDefinition{}); err != nil {
-			return nil, fmt.Errorf("failed to create products table: %w", err)
-		}
-		
-		
-		// if err := engine.CreateTable("users", []entities.ColumnDefinition{
+		// if err := engine.CreateTable("products", []entities.ColumnDefinition{
 		// 	{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
-		// 	{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "anonymous"},
-		// 	{Name: "email", DataType: "varchar(30)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
-		// 	{Name: "phone_number", DataType: "varchar(15)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
-		// 	{Name: "age", DataType: "int", Constraints: []string{}},
+		// 	{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull"}},
+		// 	{Name: "price", DataType: "bigint", Constraints: []string{"notnull"}},
+		// 	{Name: "quantity", DataType: "smallint", Constraints: []string{"notnull", "default"}, Default: "1"},
+		// 	{Name: "seller", DataType: "varchar", Constraints: []string{}},
 		// }, []entities.ForeignKeyDefinition{}); err != nil {
-		// 	return nil, fmt.Errorf("failed to create users table: %w", err)
+		// 	return nil, fmt.Errorf("failed to create products table: %w", err)
 		// }
+		
+		
+		if err := engine.CreateTable("users", []entities.ColumnDefinition{
+			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
+			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "anonymous"},
+			{Name: "email", DataType: "varchar(30)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
+			{Name: "phone_number", DataType: "varchar(15)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
+			{Name: "age", DataType: "int", Constraints: []string{}},
+		}, []entities.ForeignKeyDefinition{}); err != nil {
+			return nil, fmt.Errorf("failed to create users table: %w", err)
+		}
 		
 		// if err := engine.CreateTable("orders", []entities.ColumnDefinition{
 		// 	{Name: "user_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},
@@ -131,22 +131,49 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 
 		
 
+		Rows  := []entities.RowID{}
+
 		
-
 		// insert a few sample rows to make the DB testable (FindFreePage will create data pages)
-		// if _, _, err := engine.InsertRow([]string{"", "","email@example.com","123-456-7890", "20"}, "users"); err != nil {
-		// 	fmt.Printf("failed to insert sample user row: %v", err)
-		// }
-		// if _, _, err := engine.InsertRow([]string{"", "emily", "emily@example.com", "098-765-4321", "25"}, "users"); err != nil {
-		// 	return engine, fmt.Errorf("failed to insert sample user row: %w", err)
-		// }
-		// if _, _, err := engine.InsertRow([]string{"", "alice", "alice@example.com", "098-765-4320", "30"}, "users"); err != nil {
-		// 	return engine, fmt.Errorf("failed to insert sample user row: %w", err)
-		// }
-		// if _, _, err := engine.InsertRow([]string{"", "bob", "bob@example.com", "098-761-4321", "35"}, "users"); err != nil {
-		// 	return engine, fmt.Errorf("failed to insert sample user row: %w", err)
-		// }
-
+		pageID, slot, err := engine.InsertRow([]string{"", "anon","email@example.com","123-456-7890", "20"}, "users");if err != nil {
+			fmt.Printf("failed to insert sample user row: %v", err)
+		}
+		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
+		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
+		
+		pageID, slot, err = engine.InsertRow([]string{"", "emily", "emily@example.com", "098-765-4321", "25"}, "users"); if err != nil {
+			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
+		}
+		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
+		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
+		pageID, slot, err = engine.InsertRow([]string{"", "alice", "alice@example.com", "098-765-4320", "30"}, "users"); if err != nil {
+			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
+		}
+		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
+		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
+		pageID, slot, err = engine.InsertRow([]string{"", "bob", "bob@example.com", "098-761-4321", "35"}, "users"); if err != nil {
+			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
+		}
+		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
+		result, err := engine.Search("users", []string{"*"}, nil)
+		if err != nil {
+			return engine, fmt.Errorf("failed to search users: %w", err)
+		}
+		for _, row := range result {
+			fmt.Println(row)
+		}
+		
+		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
+		engine.DeleteRow(Rows[1].PageID, Rows[1].Slot)
+		engine.DeleteRow(Rows[2].PageID, Rows[2].Slot)
+		// engine.DeleteRow(Rows[3].PageID, Rows[3].Slot)
+		result, err = engine.Search("users", []string{"*"}, nil)
+		if err != nil {
+			return engine, fmt.Errorf("failed to search users: %w", err)
+		}
+		for _, row := range result {
+			fmt.Println(row)
+		}
 
 		// if _, _, err := engine.InsertRow([]string{"", "IPhone", "1000", "2", "apple"}, "products"); err != nil {
 		// 	fmt.Printf("failed to insert sample product row: %v", err)
@@ -327,6 +354,9 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 						return nil, fmt.Errorf("An Error Occured %w", err)
 					}
 					tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
+					if errors.Is(err, pages.ErrRowNotFound){
+						return [][]any{}, nil
+					}
 					if err != nil {
 						return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 					}
@@ -379,5 +409,10 @@ func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]
 
 func (engine *StorageEngine)  UpdateFreePage(pageID uint32, freeSpace uint16) {
 	engine.db.UpdateFreePage(pageID, freeSpace)
+	engine.metaWrite = true
+}
+
+func (engine *StorageEngine)  UpdateFreePageChange(pageID uint32, netChange int16) {
+	engine.db.UpdateFreePageChange(pageID, netChange)
 	engine.metaWrite = true
 }

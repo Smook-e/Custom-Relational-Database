@@ -1,10 +1,14 @@
 package storage
+
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
+
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+
 /*
 Provides a linear search implementation for searching through the B+Tree index in the database.
 The B+Tree Leaf pages are linked together in a linked list, allowing for efficient linear traversal of the keys in the index.
@@ -205,6 +209,9 @@ func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colIn
 				return nil,err
 			}
 			tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
+			if errors.Is(err, pages.ErrRowNotFound){
+				continue
+			}
 			if err != nil {
 				return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 			}
