@@ -13,6 +13,10 @@ type FreePage struct {
 	PageID	uint32
 	FreeSpace	uint16
 }
+type RowID struct {
+    PageID	uint32
+    Slot	uint16
+}
 // Database represents the Metadata of the database, including the file handle, tables, free pages, and total number of pages.
 type Database struct {
 	File *os.File
