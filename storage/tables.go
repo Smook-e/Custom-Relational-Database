@@ -225,10 +225,6 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 // Deletes a row from the specified table at the given page ID and slot.
 // It updates the slot to 0 and shifts the rest of the rows up to fill the gap, and updates the free space offset and the free page list.
 func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uint16) error {
-	table, ok := engine.db.Tables[tableName]
-	if !ok {
-		return fmt.Errorf("Error: Table %q Not Found ", tableName)
-	}
 	buffer, err := engine.Bp.Get(pageID)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
@@ -260,7 +256,7 @@ func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uin
 
 	// Update the free page list
 	freeSpace, _ := pages.GetFreeSpace(buffer)
-	
+	engine.UpdateFreePage(pageID, freeSpace)
 	return nil
 }
 
