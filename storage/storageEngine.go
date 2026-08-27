@@ -376,3 +376,8 @@ func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]
 	}
 	return insertedCount, nil
 }
+
+func (engine *StorageEngine)  UpdateFreePage(pageID uint32, freeSpace uint16) {
+	engine.db.UpdateFreePage(pageID, freeSpace)
+	engine.metaWrite = true
+}
