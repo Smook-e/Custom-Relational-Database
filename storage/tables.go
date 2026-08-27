@@ -234,6 +234,7 @@ func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uin
 		return fmt.Errorf("An error occured while deleting: %w", err)
 	}
 	engine.Bp.MarkDirty(pageID)
+	
 }
 
 

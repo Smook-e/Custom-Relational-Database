@@ -27,7 +27,7 @@ func GetDataPageSlotOffset(buffer []byte, slot uint16) (uint16, error) {
 // Returns the starting offset of the previous slot in the data page, given the current slot number.
 // if the current slot is the first slot, it returns the BufferSize
 // Used to know the end point of the row data in the data page, since the row data is stored between the current ofsset and the previous offset.
-func GetPrevOffset(buffer []byte, slot uint16) (uint16, error) {
+func GetDataPageSlotOffsetEnd(buffer []byte, slot uint16) (uint16, error) {
 	if slot == 0 {
 		return bufferSize, nil
 	}
