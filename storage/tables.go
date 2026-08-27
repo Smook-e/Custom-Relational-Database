@@ -234,11 +234,11 @@ func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uin
 		return fmt.Errorf("An error occured while deleting: %w", err)
 	}
 	engine.Bp.MarkDirty(pageID)
-	tableOffsetStart, err := pages.GetDataPageSlotOffset(buffer, slot)
+	rowOffsetStart, err := pages.GetDataPageSlotOffset(buffer, slot)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
 	}
-	tableOffsetEnd, err := pages.GetDataPageSlotOffsetEnd(buffer, slot)
+	rowOffsetEnd, err := pages.GetDataPageSlotOffsetEnd(buffer, slot)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
 	}
