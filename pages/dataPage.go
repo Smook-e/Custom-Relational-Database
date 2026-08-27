@@ -12,7 +12,7 @@ This file contains utility functions for managing data pages in the database.
 It is responsible for reading and writing data pages, managing free space, and handling slots within the pages.
 Used in the storage layer to Insert and Read rows from the database file.
 */
-
+var ErrRowNotFound = fmt.Errorf("row not found")
 //Function receives a pageid and slot and returns the specific offset of the slot
 func GetDataPageSlotOffset(buffer []byte, slot uint16) (uint16, error) {
 
@@ -22,7 +22,7 @@ func GetDataPageSlotOffset(buffer []byte, slot uint16) (uint16, error) {
 	offset += slot * 2;//each slot has 2 bytes
 	tableOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]);// read the table offset from the specified slot
 	if tableOffset == 0 {
-		return 0, fmt.Errorf("Slot %d is empty", slot)
+		return 0, ErrRowNotFound
 	}
 	return tableOffset, nil
 
@@ -36,7 +36,8 @@ func GetDataPageSlotOffsetEnd(buffer []byte, slot uint16) (uint16, error) {
 	// numberOfElements := binary.BigEndian.Uint16(buffer[offset:offset + 2])
 	offset += 2; // number of elements 2 bytes
 	offset += (slot - 1) * 2;//each slot has 2 bytes
-	i := int(slot - 1)
+	i := int(slot)
+	i--
 	for i >= 0 && binary.BigEndian.Uint16(buffer[offset:offset + 2]) == 0 {
 		i--
 		offset += 2
