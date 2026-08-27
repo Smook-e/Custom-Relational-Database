@@ -94,10 +94,19 @@ func FindandUpdateDataPageSlot( buffer []byte, requiredSpace uint16) (uint16,uin
 	freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
 	freeSpaceOffset -= requiredSpace//update the free space offset
 	binary.BigEndian.PutUint16(buffer[offset:offset + 2 ], freeSpaceOffset); offset += 2;
-	
-	numberOfElements := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
-	binary.BigEndian.PutUint16(buffer[offset: offset + 2], numberOfElements + 1)// update the number of elements
-	offset += 2 + (int(numberOfElements) * 2)
+	numberOfElementsOffset := offset
+	numberOfElements := binary.BigEndian.Uint16(buffer[numberOfElementsOffset:numberOfElementsOffset + 2]);
+	// Use a Deleted slot if available, otherwise use the next available slot
+	offset += 2;
+	for i := uint16(0); i < numberOfElements; i++ {
+		slotOffset := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
+		if slotOffset == 0 {
+			binary.BigEndian.PutUint16(buffer[offset:offset + 2], freeSpaceOffset)//update the slot with the new free space offset
+			return freeSpaceOffset, i, nil
+		}
+		offset += 2;
+	}
+	binary.BigEndian.PutUint16(buffer[numberOfElementsOffset: numberOfElementsOffset + 2], numberOfElements + 1)// update the number of elements
 	binary.BigEndian.PutUint16(buffer[offset: offset + 2], freeSpaceOffset)//add the new element at the next free slot
 	
 	return freeSpaceOffset,numberOfElements, nil
