@@ -61,17 +61,21 @@ func UpdateDataPageSlotOffsets(buffer []byte, slot uint16, netChange int16) erro
 	return nil
 }
 
+// Returns the Free Space Offset in the data page, which is stored in the first 2 bytes of the page.
 func GetDataPageFreeSpace(buffer []byte) (uint16, error) {
 	var offset uint16 = 0
 	freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
 	return freeSpaceOffset, nil
 }
+
+// Updates the free space offset in the data page, which is stored in the first 2 bytes of the page.
 func UpdateDataPageFreeSpace(buffer []byte, newFreeSpace uint16) error {
 	var offset uint16 = 0
 	binary.BigEndian.PutUint16(buffer[offset:offset + 2], newFreeSpace);
 	return nil
 }
 
+// Returns the total free space in the data page
 func GetFreeSpace(buffer []byte) (uint16, error) {
 	var offset uint16 = 0
 	freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
