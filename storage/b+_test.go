@@ -23,6 +23,9 @@ func newEmptyStorageEngine(t *testing.T) *StorageEngine {
 }
 
 func TestIndexInsert(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	engine := newEmptyStorageEngine(t)
 	defer engine.Close()
 	// Create a table
@@ -73,6 +76,9 @@ func TestIndexInsert(t *testing.T) {
 	
 }
 func TestIndexInsert_ForStrings(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	engine := newEmptyStorageEngine(t)
 	defer engine.Close()
 	// Create a table
@@ -124,6 +130,9 @@ func TestIndexInsert_ForStrings(t *testing.T) {
 }
 
 func TestIndexInsert_Middle(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	engine := newEmptyStorageEngine(t)
 	defer engine.Close()
 	// Create a table
@@ -183,6 +192,9 @@ func TestIndexInsert_Middle(t *testing.T) {
 	}
 }
 func TestIndexInsert_Middle_ForStrings(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	engine := newEmptyStorageEngine(t)
 	defer engine.Close()
 	// Create a table
