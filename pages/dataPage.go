@@ -3,7 +3,7 @@ package pages
 import (
 	"encoding/binary"
 	
-	
+	"fmt"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 )
@@ -21,6 +21,9 @@ func GetDataPageSlotOffset(buffer []byte, slot uint16) (uint16, error) {
 	offset += 2; // number of elements 2 bytes
 	offset += slot * 2;//each slot has 2 bytes
 	tableOffset := binary.BigEndian.Uint16(buffer[offset:offset+2]);// read the table offset from the specified slot
+	if tableOffset == 0 {
+		return 0, fmt.Errorf("Slot %d is empty", slot)
+	}
 	return tableOffset, nil
 
 }
