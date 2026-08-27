@@ -46,6 +46,12 @@ func UpdateDataPageSlotOffset(buffer []byte, slot uint16, newOffset uint16) erro
 	binary.BigEndian.PutUint16(buffer[offset:offset+2], newOffset)
 	return nil
 }
+
+func GetDataPageFreeSpace(buffer []byte) (uint16, error) {
+	var offset uint16 = 0
+	freeSpaceOffset := binary.BigEndian.Uint16(buffer[offset:offset + 2]);
+	return freeSpaceOffset, nil
+}
 //Function receives the required space by a row and the buffer where the row should be inserted.
 // It updates the free space offset, number of elements, and adds the new slot to the next available position in the data page.
 // it returns the offset where the new row should be inserted and the slot number of the new row.
