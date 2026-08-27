@@ -46,6 +46,20 @@ func UpdateDataPageSlotOffset(buffer []byte, slot uint16, newOffset uint16) erro
 	binary.BigEndian.PutUint16(buffer[offset:offset+2], newOffset)
 	return nil
 }
+func UpdateDataPageSlotOffsets(buffer []byte, slot uint16, netChange int16) error {
+	var offset uint16 = 0
+	offset += 2; // free space offset 2 bytes
+	numberOfElements := binary.BigEndian.Uint16(buffer[offset:offset + 2])
+	offset += 2; // number of elements 2 bytes
+	offset += slot * 2 + 2;//each slot has 2 bytes + skip the current slot since we don't want to update it, we only want to update the slots after it
+	for i := slot + 1; i < numberOfElements; i++ {
+		currentOffset := binary.BigEndian.Uint16(buffer[offset:offset+2])
+		newOffset := int16(currentOffset) + netChange
+		binary.BigEndian.PutUint16(buffer[offset:offset+2], uint16(newOffset))
+		offset += 2
+	}
+	return nil
+}
 
 func GetDataPageFreeSpace(buffer []byte) (uint16, error) {
 	var offset uint16 = 0

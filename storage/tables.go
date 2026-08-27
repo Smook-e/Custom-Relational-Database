@@ -246,6 +246,17 @@ func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uin
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
 	}
+	freeSpaceOffset, err := pages.GetDataPageFreeSpace(buffer)
+	if err != nil {
+		return fmt.Errorf("An error occured while deleting: %w", err)
+	}
+	// Shift the data up to fill the gap left by the deleted row
+	copy(buffer[freeSpaceOffset+ (rowOffsetEnd-rowOffsetStart): rowOffsetEnd], buffer[freeSpaceOffset:rowOffsetStart])
+	freeSpaceOffset += (rowOffsetEnd - rowOffsetStart)
+	err = pages.UpdateDataPageFreeSpace(buffer, freeSpaceOffset)
+	if err != nil {
+		return fmt.Errorf("An error occured while deleting: %w", err)
+	}
 	return nil
 }
 
