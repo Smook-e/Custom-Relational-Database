@@ -26,6 +26,14 @@ func (db *Database) PrintFreePages() {
         fmt.Printf(" Page: %d | Free Space: %d\n", freePage.PageID, freePage.FreeSpace)
     }
 }
+func (db *Database) UpdateFreePage(pageID uint32, freeSpace uint16) {
+    for i, freePage := range db.FreePages {
+        if freePage.PageID == pageID {
+            db.FreePages[i].FreeSpace = freeSpace
+            return
+        }
+    }
+}
 
 func (db *Database) PrintTables() {
 	

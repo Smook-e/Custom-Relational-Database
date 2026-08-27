@@ -259,6 +259,7 @@ func (engine *StorageEngine) DeleteRow(tableName string, pageID uint32, slot uin
 	pages.UpdateDataPageSlotOffsets(buffer, slot, (int16(rowOffsetEnd) - int16(rowOffsetStart)))
 
 	// Update the free page list
+	freeSpace, _ := pages.GetFreeSpace(buffer)
 	
 	return nil
 }
