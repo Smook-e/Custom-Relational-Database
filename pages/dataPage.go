@@ -13,7 +13,7 @@ It is responsible for reading and writing data pages, managing free space, and h
 Used in the storage layer to Insert and Read rows from the database file.
 */
 
-//Function receives a pageid and slot and reads the page into a buffer and specifies the specific offset of the slot
+//Function receives a pageid and slot and returns the specific offset of the slot
 func GetDataPageSlotOffset(buffer []byte, slot uint16) (uint16, error) {
 
 	var offset uint16 = 0
