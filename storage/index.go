@@ -395,3 +395,63 @@ func (engine *StorageEngine) IndexSearch(root uint32, key []byte, col *entities.
 
 	}
 }
+
+
+func (engine * StorageEngine) IndexDelete(root uint32, key []byte, col *entities.Column) (error) {
+	buffer , err := engine.Bp.Get(root)
+	if err != nil {
+		return fmt.Errorf("failed to get buffer for page %d: %w", root, err)
+	}
+	// Check if the page is a leaf or internal page
+	offset := 0
+	if buffer[offset] == 0 {
+		// Internal page
+		offset += 1 
+		// Read the number of entries
+		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
+		offset += 2
+		for range numberOfEntries {
+			leftptr := binary.BigEndian.Uint32(buffer[offset : offset+4])// left PageID
+			offset += 4
+			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], col)
+			if err != nil {
+				return fmt.Errorf("comparison error: %w", err)
+			}
+			if comp < 0 {
+				// Key is less than the current entry's key, so we should go to the left pointer
+				return engine.IndexDelete(leftptr, key, col)
+			}
+			offset += len(key)
+		}
+		// If we reach here, it means the key is greater than all entries, so we should go to the right pointer
+		rightptr := binary.BigEndian.Uint32(buffer[offset : offset+4])
+		return engine.IndexDelete(rightptr, key, col)
+	} else {
+		// Leaf page
+		offset += 1 + 4 // Skip isLeaf and nextLeafPage
+		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
+		offset += 2
+		for i := range numberOfEntries {
+			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], col)
+			if err != nil {
+				return fmt.Errorf("comparison error: %w", err)
+			}
+			offset += len(key) + 6
+			if comp == 0 {
+				// Key found, remove it and shift the keys
+				engine.Bp.MarkDirty(root)
+				if i + 1 < numberOfEntries {
+					dataEnd := LeafPageHeaderSize + int(numberOfEntries)*(len(key) + 6)
+					copy(buffer[offset - len(key) - 6:dataEnd - len(key) - 6], buffer[offset:dataEnd]) // Shift the rest of the entries
+				}
+				numberOfEntries -= 1
+				binary.BigEndian.PutUint16(buffer[leafPageNumEntriesOffset:leafPageNumEntriesOffset+2], numberOfEntries)
+				return nil
+			}else if comp < 0 {
+				// Key is less than the current entry's key, so it doesn't exist in this leaf page
+				return  errKeyNotFound
+			}
+		}
+		return errKeyNotFound
+	}
+}
