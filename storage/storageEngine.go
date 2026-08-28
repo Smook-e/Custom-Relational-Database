@@ -162,11 +162,15 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		for _, row := range result {
 			fmt.Println(row)
 		}
+		// table := engine.db.Tables["users"]
+		// colOffsets := make(map[string]int)
 		
-		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
-		// engine.DeleteRow(Rows[1].PageID, Rows[1].Slot)
-		// engine.DeleteRow(Rows[2].PageID, Rows[2].Slot)
-		// engine.DeleteRow(Rows[3].PageID, Rows[3].Slot)
+		// engine.DeleteRow(table, colOffsets, Rows[0].PageID, Rows[0].Slot)
+		// engine.DeleteRow(table, colOffsets, Rows[1].PageID, Rows[1].Slot)
+		// clear(colOffsets)
+		// engine.DeleteRow(table,colOffsets,Rows[2].PageID, Rows[2].Slot)
+		// engine.DeleteRow(table, colOffsets,Rows[3].PageID, Rows[3].Slot)
+
 		result, err = engine.Search("users", []string{"*"}, nil)
 		if err != nil {
 			return engine, fmt.Errorf("failed to search users: %w", err)
@@ -319,14 +323,6 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 			}
 		}
 	}
-	colIndexes := make([]int, len(cols))
-	for i, colName := range cols {
-		index, err := table.GetColumnIndexByName(colName)
-		if err != nil {
-			return nil, fmt.Errorf("Column %s not found in table %s", colName, tableName)
-		}
-		colIndexes[i] = index
-	}
 	columnOffsets := make(map[string]int)
 	if expr != nil { 
 		err := SerializeSearchExpression(expr, table)
@@ -360,7 +356,7 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 					if err != nil {
 						return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 					}
-					row, err := engine.ReadRow(tableName, cols, colIndexes, columnOffsets,dataBuffer, tableOffset)
+					row, err := engine.ReadRow(tableName, cols, columnOffsets,dataBuffer, tableOffset)
 					if err != nil {
 						return nil, fmt.Errorf("An Error Occured %w", err)
 					}
@@ -372,7 +368,7 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 		}
 	}
 	// If the condition is more complex or the column doesn't have an index, use linear search
-	results, err := engine.LinearSearch(tableName,cols,colIndexes,columnOffsets, expr)
+	results, err := engine.LinearSearch(tableName,cols,columnOffsets, expr)
 	if err != nil {
 		return nil, fmt.Errorf("An Error Occured %w", err)
 	}

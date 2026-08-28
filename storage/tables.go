@@ -15,7 +15,7 @@ This file contains functions for inserting and reading rows in the database, as 
 */
 
 // ReadRow reads a row from the specified table at the given page ID and slot, returning the row data as a slice of any type.
-func (engine *StorageEngine) ReadRow(tableName string, cols []string, colIndexes []int, colOffsets map[string]int, buffer []byte, offset uint16) ([]any, error) {
+func (engine *StorageEngine) ReadRow(tableName string, cols []string, colOffsets map[string]int, buffer []byte, offset uint16) ([]any, error) {
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
 		return nil, fmt.Errorf("Error: Table %q Not Found ", tableName)
@@ -41,7 +41,11 @@ func (engine *StorageEngine) ReadRow(tableName string, cols []string, colIndexes
 			Row[i] = nil // Column is null
 			continue
 		}
-		switch table.Columns[colIndexes[i]].DataType {
+		column, err := table.GetColumnByName(col)
+		if err != nil {
+			return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+		}
+		switch column.DataType {
 		case entities.TypeTinyInt://int8
 			Row[i] = int8(buffer[colOffset])
 
@@ -222,7 +226,6 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 // Deletes a row from the specified table at the given page ID and slot.
 // It updates the slot to 0 and shifts the rest of the rows up to fill the gap, and updates the free space offset and the free page list.
 func (engine *StorageEngine) DeleteRow(table *entities.Table, colOffsets map[string]int, buffer []byte, pageID uint32, slot uint16) error {
-	
 	rowOffsetStart, err := pages.GetDataPageSlotOffset(buffer, slot)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
@@ -417,6 +420,9 @@ func (engine *StorageEngine) CreateTable(tableName string, cols []entities.Colum
 
 
 func GetColumnOffsets(table *entities.Table,buffer []byte, offset uint16, nullBitmap *entities.NullBitmap, colOffsets map[string]int) {
+	if colOffsets == nil {
+		colOffsets = make(map[string]int)
+	}
 	for i, col := range table.Columns {
 		// Check if the column is null using the null bitmap
 		if nullBitmap.IsNull(i) {

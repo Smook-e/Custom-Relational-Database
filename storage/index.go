@@ -222,7 +222,7 @@ func IndexInsert(engine *StorageEngine, root uint32, key []byte, pageID uint32, 
 					inserted = true
 					// Shift entries to make space for the new entry
 					dataEnd := LeafPageHeaderSize + int(numberOfEntries)*(len(key) + 6)
-					copy(buffer[offset + len(key) + 6:dataEnd + len(key) + 6], buffer[offset:dataEnd]) // Shift the rest of the entries
+					copy(buffer[offset + len(key) + 6:dataEnd + len(key) + 6+1], buffer[offset:dataEnd+1]) // Shift the rest of the entries
 					// Insert the new entry
 					copy(buffer[offset:offset+len(key)], key)
 					offset += len(key)
@@ -431,7 +431,7 @@ func (engine * StorageEngine) IndexDelete(root uint32, key []byte, col *entities
 		offset += 1 + 4 // Skip isLeaf and nextLeafPage
 		numberOfEntries := binary.BigEndian.Uint16(buffer[offset : offset+2])
 		offset += 2
-		for i := range numberOfEntries {
+		for _= range numberOfEntries {
 			comp, err := entities.Compare(key, buffer[offset:offset+len(key)], col)
 			if err != nil {
 				return fmt.Errorf("comparison error: %w", err)
@@ -440,12 +440,11 @@ func (engine * StorageEngine) IndexDelete(root uint32, key []byte, col *entities
 			if comp == 0 {
 				// Key found, remove it and shift the keys
 				engine.Bp.MarkDirty(root)
-				if i + 1 < numberOfEntries {
 					dataEnd := LeafPageHeaderSize + int(numberOfEntries)*(len(key) + 6)
-					copy(buffer[offset - len(key) - 6:dataEnd - len(key) - 6], buffer[offset:dataEnd]) // Shift the rest of the entries
-				}
+					copy(buffer[offset - len(key) - 6:dataEnd - len(key) - 6+1], buffer[offset:dataEnd+1]) // Shift the rest of the entries
 				numberOfEntries -= 1
 				binary.BigEndian.PutUint16(buffer[leafPageNumEntriesOffset:leafPageNumEntriesOffset+2], numberOfEntries)
+				// PrintLeafPageEntries(buffer, col)
 				return nil
 			}else if comp < 0 {
 				// Key is less than the current entry's key, so it doesn't exist in this leaf page

@@ -163,7 +163,7 @@ func VerifyCondition(buffer []byte,colOffsets map[string]int, condition *SearchC
 }
 
 
-func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colIndexes []int, colOffsets map[string]int, expr *Expression) ([][]any, error) {
+func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colOffsets map[string]int, expr *Expression) ([][]any, error) {
 	// Get the table object from the database
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
@@ -230,7 +230,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colIn
 			}
 			if conditionMet {
 				// Read the pageId and slot from the buffer
-				row, err := engine.ReadRow(tableName, cols, colIndexes, colOffsets, dataBuffer, tableOffset)
+				row, err := engine.ReadRow(tableName, cols, colOffsets, dataBuffer, tableOffset)
 				if err != nil {
 					return nil, fmt.Errorf("An Error Occured %w", err)
 				}
