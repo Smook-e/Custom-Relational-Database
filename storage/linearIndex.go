@@ -242,6 +242,82 @@ func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colOf
 
 	return results, nil
 }
+func (engine *StorageEngine) LinearDelete(table *entities.Table, colOffsets map[string]int, expr *Expression) (int, error) { 
+	// Get the Primary Key Column Name to start searching
+	primaryKeyColumn, _, err := table.GetPrimaryKeyColumn()
+	if err != nil {
+		return 0, fmt.Errorf("An Error Occured %w", err)
+	}
+	rootId, ok := table.Indexes[primaryKeyColumn.Name]
+	if !ok {
+		return 0, fmt.Errorf("Primary key index not found for table %s", table.Name)
+	}
+	// Get the first leaf page of the B+ tree (linked list of leaf pages)
+	leafId, err := engine.GetFirstLeafPage(rootId)
+	if err != nil {
+		return 0, fmt.Errorf("An Error Occured %w", err)
+	}
+	offset := 0
+	rowsDeleted := 0
+	for leafId != 0 {
+		//load leaf page
+		buffer, err := engine.Bp.Get(leafId)
+		if err != nil {
+			return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
+		}
+		//get next leaf page
+		leafId = binary.BigEndian.Uint32(buffer[nextLeafPageOffset:nextLeafPageOffset + 4])
+		//get number of keys
+		numKeys := binary.BigEndian.Uint16(buffer[leafPageNumEntriesOffset: leafPageNumEntriesOffset + 2])
+		offset = LeafPageHeaderSize
+		for range numKeys {
+			//skip the key bytes
+			offset += int(primaryKeyColumn.Size)
+			pageId := binary.BigEndian.Uint32(buffer[offset:offset + 4])
+			offset += 4
+			slot := binary.BigEndian.Uint16(buffer[offset:offset + 2])
+			offset += 2
+			// Find the Row in the table using the pageId and slot
+			dataBuffer, err := engine.Bp.Get(pageId)
+			if err != nil {
+				return rowsDeleted,err
+			}
+			tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
+			if errors.Is(err, pages.ErrRowNotFound){
+				continue
+			}
+			if err != nil {
+				return rowsDeleted,fmt.Errorf("an error occured while Reading Row: %w", err)
+			}
+			// Get the column offsets
+			// Read the null bitmap first
+			nullBitmap, err := table.ReadNullBitmap(buffer[tableOffset:])
+			if err != nil {
+				return rowsDeleted, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
+			}
+			tableOffset += uint16(len(nullBitmap.Bitmap)) // Move the offset past the null bitmap
+			// Populate the ColOffsets map with offsets for each column
+			GetColumnOffsets(table,dataBuffer, tableOffset,nullBitmap, colOffsets)
+			//check the condition
+			conditionMet, err := engine.EvaluateExpression(dataBuffer, colOffsets, expr, table)
+			if err != nil {
+				return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
+			}
+			if conditionMet {
+				// Read the pageId and slot from the buffer
+				err := engine.DeleteRow(table,colOffsets, dataBuffer, pageId, slot)
+				if err != nil {
+					return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
+				}
+				rowsDeleted++
+			}
+		}
+
+	}
+	return rowsDeleted, nil
+
+}
+
 
 func SerializeSearchExpression(ex *Expression, table *entities.Table) ( error) {
 

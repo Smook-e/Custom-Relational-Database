@@ -36,7 +36,7 @@ func (db *Database) UpdateFreePage(pageID uint32, freeSpace uint16) {
             db.FreePages[i].FreeSpace = freeSpace
             return
         }
-    }
+}
 }
 func (db *Database) UpdateFreePageChange(pageID uint32, netChange int16) {
     for i, freePage := range db.FreePages {
