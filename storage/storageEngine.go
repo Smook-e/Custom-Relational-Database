@@ -155,6 +155,10 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
+		pageID, slot, err = engine.InsertRow([]string{"", "joe", "joe@example.com", "098-761-4324", "35"}, "users"); if err != nil {
+			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
+		}
+		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
 		result, err := engine.Search("users", []string{"*"}, nil)
 		if err != nil {
 			return engine, fmt.Errorf("failed to search users: %w", err)
@@ -170,6 +174,22 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// clear(colOffsets)
 		// engine.DeleteRow(table,colOffsets,Rows[2].PageID, Rows[2].Slot)
 		// engine.DeleteRow(table, colOffsets,Rows[3].PageID, Rows[3].Slot)
+		engine.Delete("users", &Expression{
+			Type: NodeCondition,
+			Condition: &SearchCondition{
+				ColumnName: "id",
+				Operator: "=",
+				Value: []byte("1"),
+			},
+		})
+		engine.Delete("users", &Expression{
+			Type: NodeCondition,
+			Condition: &SearchCondition{
+				ColumnName: "age",
+				Operator: "=",
+				Value: []byte("35"),
+			},
+		})
 
 		result, err = engine.Search("users", []string{"*"}, nil)
 		if err != nil {
