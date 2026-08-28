@@ -403,6 +403,55 @@ func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]
 	return insertedCount, nil
 }
 
+func (engine *StorageEngine) Delete(tableName string, expr *Expression) (int, error) {
+	table, ok := engine.db.Tables[tableName]
+	if !ok {
+		return 0, fmt.Errorf("Table %s not found", tableName)
+	}
+	columnOffsets := make(map[string]int)
+	// Make sure the Search expression is ready for use by other functions
+	if expr != nil { 
+		err := SerializeSearchExpression(expr, table)
+		if err != nil {
+			return 0, fmt.Errorf("An Error Occured %w", err)
+		}
+	}
+	// If there's only one condition, check if it has an index and use the indexed search
+	if expr != nil && expr.Type == NodeCondition && (expr.Condition.Operator == "=" || expr.Condition.Operator == "==") {
+		condition := expr.Condition
+		if condition != nil {
+			rootID, exists := table.Indexes[condition.ColumnName]// Check if the column has an index
+			// If the column has an index, use the indexed search
+			if exists {
+				column, _ := table.GetColumnByName(condition.ColumnName)
+				pageId, slot, err := engine.IndexSearch(rootID, condition.Value, column)
+				
+				if errors.Is(err, errKeyNotFound) {
+					return 0, fmt.Errorf("Key not found")
+				}else {
+					// If the key is found, read the row
+					dataBuffer, err := engine.Bp.Get(pageId)
+					if err != nil {
+						return 0, fmt.Errorf("An Error Occured %w", err)
+					}
+					err = engine.DeleteRow(table,columnOffsets,dataBuffer, pageId, slot)
+					if err != nil {
+						return 0, fmt.Errorf("An Error Occured %w", err)
+					}
+					return 1, nil
+				}
+
+			}
+			
+		}
+	}
+	result , err := engine.LinearDelete(table,columnOffsets, expr)
+	if err != nil {
+		return 0, fmt.Errorf("An Error Occured %w", err)
+	}
+	return result, nil
+}
+
 func (engine *StorageEngine)  UpdateFreePage(pageID uint32, freeSpace uint16) {
 	engine.db.UpdateFreePage(pageID, freeSpace)
 	engine.metaWrite = true
