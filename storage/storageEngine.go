@@ -164,8 +164,8 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		}
 		
 		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
-		engine.DeleteRow(Rows[1].PageID, Rows[1].Slot)
-		engine.DeleteRow(Rows[2].PageID, Rows[2].Slot)
+		// engine.DeleteRow(Rows[1].PageID, Rows[1].Slot)
+		// engine.DeleteRow(Rows[2].PageID, Rows[2].Slot)
 		// engine.DeleteRow(Rows[3].PageID, Rows[3].Slot)
 		result, err = engine.Search("users", []string{"*"}, nil)
 		if err != nil {

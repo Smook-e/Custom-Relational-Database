@@ -28,13 +28,9 @@ func (engine *StorageEngine) ReadRow(tableName string, cols []string, colIndexes
 	if err != nil {
 		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
 	}
-	nullBitmap , err = table.ReadNullBitmap(buffer[offset:])
-	if err != nil {
-		return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
-	}
 	offset += uint16(len(nullBitmap.Bitmap))
 	// First pass: assign the offsets for the columns we want to read
-	if len(colOffsets) == 0 {
+	if colOffsets == nil || len(colOffsets) == 0 {
 		GetColumnOffsets(table, buffer, offset, nullBitmap, colOffsets)
 	}
 	var colOffset int
@@ -225,12 +221,8 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 }
 // Deletes a row from the specified table at the given page ID and slot.
 // It updates the slot to 0 and shifts the rest of the rows up to fill the gap, and updates the free space offset and the free page list.
-func (engine *StorageEngine) DeleteRow( pageID uint32, slot uint16) error {
-	buffer, err := engine.Bp.Get(pageID)
-	if err != nil {
-		return fmt.Errorf("An error occured while deleting: %w", err)
-	}
-	engine.Bp.MarkDirty(pageID)
+func (engine *StorageEngine) DeleteRow(table *entities.Table, colOffsets map[string]int, buffer []byte, pageID uint32, slot uint16) error {
+	
 	rowOffsetStart, err := pages.GetDataPageSlotOffset(buffer, slot)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
@@ -239,6 +231,7 @@ func (engine *StorageEngine) DeleteRow( pageID uint32, slot uint16) error {
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
 	}
+	
 	err = pages.UpdateDataPageSlotOffset(buffer, slot, 0)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
@@ -246,6 +239,53 @@ func (engine *StorageEngine) DeleteRow( pageID uint32, slot uint16) error {
 	freeSpaceOffset, err := pages.GetDataPageFreeSpace(buffer)
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting: %w", err)
+	}
+	offset := rowOffsetStart
+	nullBitmap, err := table.ReadNullBitmap(buffer[offset:])
+	if err != nil {
+		return fmt.Errorf("an error occured while deleting Row: %w", err)
+	}
+	offset += uint16(len(nullBitmap.Bitmap))
+	// First pass: assign the offsets for the columns we want to read
+	if colOffsets == nil || len(colOffsets) == 0 {
+		GetColumnOffsets(table, buffer, offset, nullBitmap, colOffsets)
+	}
+	var colOffset int
+	// Second pass: specify if any index needs deleting
+	for colName, root := range table.Indexes {
+		colOffset = colOffsets[colName]
+		if colOffset == -1 {
+			// Column is null
+			continue
+		}
+		column, err := table.GetColumnByName(colName)
+		if err != nil {
+			return fmt.Errorf("an error occured while deleting Row: %w", err)
+		}
+		switch column.DataType {
+		case entities.TypeTinyInt://int8
+			engine.IndexDelete(root,buffer[colOffset:colOffset+1],  column)
+
+		case entities.TypeSmallInt://int16
+			engine.IndexDelete(root,buffer[colOffset:colOffset+2],  column)	
+
+		case entities.TypeInt:
+			engine.IndexDelete(root,buffer[colOffset:colOffset+4],  column)	
+
+		case entities.TypeSerial:// same as TypeInt
+			engine.IndexDelete(root,buffer[colOffset:colOffset+4],  column)	
+
+		case entities.TypeBigInt:
+			engine.IndexDelete(root,buffer[colOffset:colOffset+8],  column)	
+
+		case entities.TypeVarChar:
+			size,_ := entities.GetSize(column)
+			if size == 0 {
+				return fmt.Errorf("an error occured while deleting Row: Can't use variable sized columns for index deletion")
+			}
+			engine.IndexDelete(root,buffer[colOffset:colOffset+ int(size)],  column)
+		}
+		
 	}
 	// Shift the data up to fill the gap left by the deleted row
 	copy(buffer[freeSpaceOffset+ (rowOffsetEnd-rowOffsetStart): rowOffsetEnd], buffer[freeSpaceOffset:rowOffsetStart])
