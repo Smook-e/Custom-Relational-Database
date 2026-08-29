@@ -1,6 +1,8 @@
 package storage_test
 
 import (
+	// "errors"
+	// "fmt"
 	"testing"
 
 	"github.com/Smook-e/Custom-Relational-Database/storage"
@@ -212,6 +214,8 @@ func TestEngineSelect(t *testing.T) {
     }
 
 }
+
+
 
 // createTable is a small helper that executes a CREATE TABLE SQL and returns the error (if any).
 func createTable(handler *parser.QueryHandler, t *testing.T, sql string) error {

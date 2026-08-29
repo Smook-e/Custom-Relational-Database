@@ -174,20 +174,20 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// clear(colOffsets)
 		// engine.DeleteRow(table,colOffsets,Rows[2].PageID, Rows[2].Slot)
 		// engine.DeleteRow(table, colOffsets,Rows[3].PageID, Rows[3].Slot)
-		engine.Delete("users", &Expression{
-			Type: NodeCondition,
-			Condition: &SearchCondition{
-				ColumnName: "id",
-				Operator: "=",
-				Value: []byte("1"),
-			},
-		})
+		// engine.Delete("users", &Expression{
+		// 	Type: NodeCondition,
+		// 	Condition: &SearchCondition{
+		// 		ColumnName: "id",
+		// 		Operator: "=",
+		// 		Value: []byte("1"),
+		// 	},
+		// })
 		engine.Delete("users", &Expression{
 			Type: NodeCondition,
 			Condition: &SearchCondition{
 				ColumnName: "age",
-				Operator: "=",
-				Value: []byte("35"),
+				Operator: ">",
+				Value: []byte("26"),
 			},
 		})
 
@@ -411,6 +411,9 @@ func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]
 	insertedCount := 0
 	for _, rowValues := range values {
 		row := make([]string, len(table.Columns))
+		if len(rowValues) != len(cols) {
+			return insertedCount, fmt.Errorf("Number of values does not match number of columns")
+		}
 		for i, colName := range cols {
 			columnIndex, _ := table.GetColumnIndexByName(colName)
 			row[columnIndex] = rowValues[i]
@@ -447,7 +450,7 @@ func (engine *StorageEngine) Delete(tableName string, expr *Expression) (int, er
 				pageId, slot, err := engine.IndexSearch(rootID, condition.Value, column)
 				
 				if errors.Is(err, errKeyNotFound) {
-					return 0, fmt.Errorf("Key not found")
+					return 0, err
 				}else {
 					// If the key is found, read the row
 					dataBuffer, err := engine.Bp.Get(pageId)

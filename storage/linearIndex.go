@@ -217,7 +217,7 @@ func (engine *StorageEngine) LinearSearch(tableName string, cols []string, colOf
 			}
 			// Get the column offsets
 			// Read the null bitmap first
-			nullBitmap, err := table.ReadNullBitmap(buffer[tableOffset:])
+			nullBitmap, err := table.ReadNullBitmap(dataBuffer[tableOffset:])
 			if err != nil {
 				return nil, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
 			}
@@ -259,6 +259,7 @@ func (engine *StorageEngine) LinearDelete(table *entities.Table, colOffsets map[
 	}
 	offset := 0
 	rowsDeleted := 0
+	rowsToDelete := make([]entities.RowID, 0)
 	for leafId != 0 {
 		//load leaf page
 		buffer, err := engine.Bp.Get(leafId)
@@ -291,7 +292,7 @@ func (engine *StorageEngine) LinearDelete(table *entities.Table, colOffsets map[
 			}
 			// Get the column offsets
 			// Read the null bitmap first
-			nullBitmap, err := table.ReadNullBitmap(buffer[tableOffset:])
+			nullBitmap, err := table.ReadNullBitmap(dataBuffer[tableOffset:])
 			if err != nil {
 				return rowsDeleted, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
 			}
@@ -304,16 +305,27 @@ func (engine *StorageEngine) LinearDelete(table *entities.Table, colOffsets map[
 				return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
 			}
 			if conditionMet {
-				// Read the pageId and slot from the buffer
-				err := engine.DeleteRow(table,colOffsets, dataBuffer, pageId, slot)
-				if err != nil {
-					return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
-				}
-				rowsDeleted++
+				rowsToDelete = append(rowsToDelete, entities.RowID{PageID: pageId, Slot: slot})
 			}
 		}
 
 	}
+
+	for _, row := range rowsToDelete {
+		dataBuffer, err := engine.Bp.Get(row.PageID)
+		if err != nil {
+			return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
+		}
+		err = engine.DeleteRow(table, make(map[string]int), dataBuffer, row.PageID, row.Slot)
+		if errors.Is(err, pages.ErrRowNotFound) {
+			continue
+		}
+		if err != nil {
+			return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
+		}
+		rowsDeleted++
+	}
+
 	return rowsDeleted, nil
 
 }
