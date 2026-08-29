@@ -351,6 +351,63 @@ func (q *InsertQuery) Parse(p *Parser) ( error) {
 	q.Values = values
 	return  nil
 }
+func (q *UpdateQuery) Parse(p *Parser) ( error) {
+	// Expect UPDATE keyword
+	_, err := p.Expect([]TokenType{TokenKeyword}, "UPDATE")
+	if err != nil {
+		return  err
+	}
+
+	// Expect table name
+	tableNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+	if err != nil {
+		return  err
+	}
+	q.TableName = tableNameToken.Value
+
+	// Expect SET keyword
+	_, err = p.Expect([]TokenType{TokenKeyword}, "SET")
+	if err != nil {
+		return  err
+	}
+
+	setClauses := make(map[string]string)
+	for {
+		colNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+		if err != nil {
+			return  err
+		}
+
+		_, err = p.Expect([]TokenType{TokenOperator}, "=")
+		if err != nil {
+			return  err
+		}
+
+		valueToken, err := p.Expect([]TokenType{TokenString, TokenNumber}, "")
+		if err != nil {
+			return  err
+		}
+
+		setClauses[colNameToken.Value] = valueToken.Value
+
+		if p.Peek().Type == TokenComma {
+			p.Get() // Consume the comma
+		} else {
+			break
+		}
+	}
+	q.SetClauses = setClauses
+
+	if p.Peek().Type == TokenKeyword && p.Peek().Value == "WHERE" {
+		p.Get() // Consume the WHERE keyword
+		whereExpr, err := ParseWhereExpression(p)
+		if err != nil {
+			return  err
+		}
+		q.Where = whereExpr
+	}
+	return  nil
+}
 func Print(q Query) {
 	switch query := q.(type) {
 	case *SelectQuery:
