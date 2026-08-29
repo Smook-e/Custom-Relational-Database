@@ -366,6 +366,13 @@ func Print(q Query) {
 		fmt.Println("Table Name:", query.TableName)
 		fmt.Println("Columns:", query.Columns)
 		fmt.Println("Values:", query.Values)
+	case *DeleteQuery:
+		fmt.Println("Delete Query:")
+		fmt.Println("Table Name:", query.TableName)
+		if query.Where != nil {
+			fmt.Println("Where Condition:")
+			PrintExpression(query.Where, "")
+		}
 	case *CreateTableQuery:
 		fmt.Println("Create Table Query:")
 		fmt.Println("Table Name:", query.TableName)
