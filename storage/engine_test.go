@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 
 	"github.com/Smook-e/Custom-Relational-Database/parser"
-	// "fmt"
 )
 
 func newEmptySQLTestEngine(t *testing.T) *parser.QueryHandler {

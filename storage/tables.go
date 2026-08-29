@@ -309,7 +309,73 @@ func (engine *StorageEngine) DeleteRow(table *entities.Table, colOffsets map[str
 	return nil
 }
 
+func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[string]int, buffer []byte, pageID uint32, slot uint16, newData map[string][]byte) error {
+	
+	offset, err := pages.GetDataPageSlotOffset(buffer, slot)
+	if err != nil {
+		return fmt.Errorf("An error occured while updating: %w", err)
+	}
+	// read the null bitmap first
+	nullBitmap, err := table.ReadNullBitmap(buffer[offset:])
+	if err != nil {
+		return fmt.Errorf("an error occured while Reading Row: %w", err)
+	}
+	offset += uint16(len(nullBitmap.Bitmap))
+	// First pass: assign the offsets for the columns we want to read
+	if colOffsets == nil || len(colOffsets) == 0 {
+		GetColumnOffsets(table, buffer, offset, nullBitmap, colOffsets)
+	}
+	// Check if the new data violates any constraints
+	for colName, newVal := range newData {
+		column, err := table.GetColumnByName(colName)
+		if err != nil {
+			return fmt.Errorf("Error: Column %q not found in table %q for update", colName, table.Name)
+		}
+		if column.DataType == entities.TypeSerial {
+			return fmt.Errorf("Error: Column '%q' is of type Serial and cannot be manually updated.", colName)
+		}
+		if column.HasConstraint(entities.ConstraintNotNull) && (newVal == nil || len(newVal) == 0) {
+			if column.HasConstraint(entities.ConstraintDefault) {
+				// If the column has a default constraint, use the default value instead of returning an error
+				// newData[colName] = 
+		
+			}else{
+				return fmt.Errorf("Error: Column '%q' cannot be null", colName)
+			}
+		}
+		if column.HasConstraint(entities.ConstraintUnique) {
+			// Check for uniqueness in the existing rows
+			// serializedKey, err := entities.Serialize(newVal, column)
+			// if err != nil {
+			// 	return fmt.Errorf("Error serializing new value for column %q: %w", colName, err)
+			// }
+			root := table.Indexes[colName]
+			if pageID, _, _ := engine.IndexSearch(root, newVal, column); pageID != 0 {
+				return fmt.Errorf("Error: Column %q must be unique. Value %v already exists.", colName, newVal)
+			}
+		}
+		// Check for foreign key constraints
+		if fk, exists := table.ForeignKeys[colName]; exists {
+			referencedTable, ok := engine.db.Tables[fk.ReferencedTableName]
+			if !ok {
+				return  fmt.Errorf("Error: Referenced table %q not found for foreign key constraint on column %q", fk.ReferencedTableName, column.Name)
+			}
+			referencedCol := referencedTable.Columns[fk.ReferencedColumnIndex]
+			// serializedKey, err := entities.Serialize(vals[i], &col)
+			// if err != nil {
+			// 	return 0,0, fmt.Errorf("An error occurred while serializing key for foreign key check: %w", err)
+			// }
+			root := referencedTable.Indexes[referencedCol.Name]
+			if pageID, _, _ := engine.IndexSearch(root, newVal, &referencedCol); pageID == 0 {
+				return  fmt.Errorf("Error: Foreign key constraint violation on column '%q'. Value %v does not exist in Column '%q' of referenced table '%q'.", column.Name, newVal, referencedCol.Name, fk.ReferencedTableName)
+			}
+		}
 
+		
+
+	}
+	return nil
+}
 // CreateTable creates a new table in the database with the specified name, columns, and foreign keys.
 // It initializes the table's columns, constraints, and indexes, and writes the meta page to disk.
 func (engine *StorageEngine) CreateTable(tableName string, cols []entities.ColumnDefinition, foreignKeys []entities.ForeignKeyDefinition) (error) {
