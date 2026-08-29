@@ -186,6 +186,15 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, *NullBitmap, error) {
 	return values, size, nullBitmap, nil
 
 }
+func GetNullBitmapForValues(table *Table, values []any) *NullBitmap {
+	nullBitmap := table.InitializeNullBitmap()
+	for i, val := range values {
+		if val == nil {
+			nullBitmap.SetNull(i)
+		}
+	}
+	return nullBitmap
+}
 
 func GetValueFromString(val string, col *Column) (any, error) {
 	if val == "" {
