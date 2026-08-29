@@ -214,7 +214,178 @@ func TestEngineSelect(t *testing.T) {
     }
 
 }
+func TestEngineDelete(t *testing.T) {
+    handler := newEmptySQLTestEngine(t)
 
+    _, err := handler.ExecuteQuery(`
+        CREATE TABLE test_users (
+            id serial primary key,
+            name varchar(50) not null default 'anonymous',
+            age int default 18,
+			job varchar(50) not null,
+            email varchar(30) unique	
+        )
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute query: %v", err)
+    }
+
+    // Insert some test data
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users ( name, age, job, email) VALUES
+            ('alice', 25, 'developer', 'alice@example.com'),
+            ('bob', 30, 'manager', 'bob@example.com'),
+            ('charlie', 35, 'designer', 'charlie@example.com'),
+            ('dave', 40, 'analyst', 'dave@example.com'),
+            ('eve', 45, 'consultant', 'eve@example.com'),
+            ('frank', 50, 'engineer', 'frank@example.com')
+    `)
+    if err != nil {
+        t.Fatalf("failed to insert test data: %v", err)
+    }
+
+    // Delete a specific user
+    _, err = handler.ExecuteQuery(`
+        DELETE FROM test_users WHERE id = 2
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute delete query: %v", err)
+    }
+
+    // Verify the user was deleted
+    res, err := handler.ExecuteQuery(`
+        SELECT id, name FROM test_users
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute select query: %v", err)
+    }
+    rows := res.([][]any)
+    if len(rows) != 5 {
+        t.Fatalf("expected 5 rows after delete, got %d", len(rows))
+    }
+    // Ensure that the deleted user (id=2) is not present
+    for _, r := range rows {
+        if r[0].(int32) == 2 {
+            t.Fatalf("expected user with id=2 to be deleted, but found in results")
+        }
+    }
+    // Attempt to delete a non-existent user (should not error, but no rows affected)
+    rowsDeleted, err := handler.ExecuteQuery(`
+        DELETE FROM test_users WHERE id = 999
+    `)
+    if rowsDeleted.(int) != 0 {
+        t.Fatalf("expected 0 rows deleted for non-existent user, got %d", rowsDeleted.(int))
+    }
+
+    //Delete multiple users with a condition
+    _, err = handler.ExecuteQuery(`
+        DELETE FROM test_users WHERE age >= 40
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute delete query for age > 40: %v", err)
+    }
+
+    // Verify the users with age > 40 were deleted
+    res, err = handler.ExecuteQuery(`
+        SELECT id, name, age FROM test_users
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute select query after delete: %v", err)
+    }
+    rows = res.([][]any)
+    for _, r := range rows {
+        if r[2].(int32) >= 40 {
+            t.Fatalf("expected no users with age >= 40 after delete, but found user with age %d", r[2].(int32))
+        }
+    }
+    // ensure that the remaining users are correct
+    expectedRemaining := map[int32]string{
+        1: "alice",
+        3: "charlie",
+    }
+    if len(rows) != len(expectedRemaining) {
+        t.Fatalf("expected %d remaining users, got %d", len(expectedRemaining), len(rows))
+    }
+    for _, r := range rows {
+        id := r[0].(int32)
+        name := r[1].(string)
+        if expectedName, ok := expectedRemaining[id]; !ok || expectedName != name {
+            t.Fatalf("unexpected remaining user: id=%d, name=%s", id, name)
+        }
+    }
+
+    // Delete all remaining users
+    _, err = handler.ExecuteQuery(`
+        DELETE FROM test_users
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute delete all query: %v", err)
+    }
+
+    // Verify that the table is now empty
+    res, err = handler.ExecuteQuery(`
+        SELECT id, name FROM test_users
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute select query after deleting all: %v", err)
+    }
+    rows = res.([][]any)
+    if len(rows) != 0 {
+        t.Fatalf("expected 0 rows after deleting all users, got %d", len(rows))
+    }
+
+    // Attempt to delete from an empty table (should not error, but no rows affected)
+    rowsDeleted, err = handler.ExecuteQuery(`
+        DELETE FROM test_users
+    `)
+    if err != nil {
+        t.Fatalf("failed to execute delete on empty table: %v", err)
+    }
+    if rowsDeleted.(int) != 0 {
+        t.Fatalf("expected 0 rows deleted from empty table, got %d", rowsDeleted.(int))
+    }
+    // Attempt to insert a user after deletion to ensure table is still functional
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, age, job, email) VALUES ('grace', 28, 'analyst', 'grace@example.com')
+    `)
+    if err != nil {
+        t.Fatalf("failed to insert after deleting all users: %v", err)
+    }
+    // Verify the new user was inserted
+    res, err = handler.ExecuteQuery(`
+        SELECT id, name FROM test_users WHERE name = 'grace'
+    `)
+    if err != nil {
+        t.Fatalf("failed to select newly inserted user: %v", err)
+    }
+    rows = res.([][]any)
+    if len(rows) != 1 || rows[0][1].(string) != "grace" {
+        t.Fatalf("expected to find newly inserted user 'grace', but did not")
+    }
+
+    // Attempt to insert a user with a duplicate email to ensure unique constraint is still enforced
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, age, job, email) VALUES ('hank', 32, 'developer', 'grace@example.com')
+    `)
+    if err == nil {
+        t.Fatalf("expected insert with duplicate email to fail, but it succeeded")
+    }
+    // Delete the newly inserted user to clean up
+    _, err = handler.ExecuteQuery(`
+        DELETE FROM test_users WHERE name = 'grace'
+    `)
+    if err != nil {
+        t.Fatalf("failed to delete newly inserted user 'grace': %v", err)
+    }
+    // try to insert a user with the same email again 
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, age, job, email) VALUES ('hank', 32, 'developer', 'grace@example.com')
+    `)
+    if err != nil {
+        t.Fatalf("expected insert with previously used email to succeed after deletion, but got error: %v", err)
+    }
+
+}
 
 
 // createTable is a small helper that executes a CREATE TABLE SQL and returns the error (if any).
