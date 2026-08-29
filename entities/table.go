@@ -388,7 +388,39 @@ func (t *Table) GetColumnByIndex(index int) (*Column, error) {
 	return &t.Columns[index], nil
 }
 
-
+func (col *Column) IsValidValue(val any) bool {
+	if val == nil {
+		return (col.HasConstraint(ConstraintNotNull) == true && col.HasConstraint(ConstraintDefault) == false) // If the column is NOT NULL and has no default, nil is invalid
+	}
+	switch col.DataType {
+	case TypeTinyInt:
+		_, ok := val.(int8)
+		return ok
+	case TypeSmallInt:
+		_, ok := val.(int16)
+		return ok
+	case TypeInt:
+		_, ok := val.(int32)
+		return ok
+	case TypeSerial:// same as TypeInt
+		_, ok := val.(int32)
+		return ok
+	case TypeBigInt:
+		_, ok := val.(int64)
+		return ok
+	case TypeVarChar:
+		strVal, ok := val.(string)
+		if !ok {
+			return false
+		}
+		if col.Size > 0 && len(strVal) > int(col.Size) {
+			return false
+		}
+		return true
+	default:
+		return false
+	}
+}
 
 // Serialize takes a value and a column definition, and returns the serialized byte representation of the value based on the column's data type.
 // This is used when writing data to the database to ensure that values are stored in a consistent binary format.
