@@ -42,6 +42,9 @@ func (q *InsertQuery) Execute(engine *storage.StorageEngine) (any, error) {
 func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (any, error) {
 	return engine.Delete(q.TableName, q.Where)
 }
+func (q *UpdateQuery) Execute(engine *storage.StorageEngine) (any, error) {
+	return engine.Update(q.TableName,  q.Where, q.SetClauses)
+}
 
 func (Q *QueryHandler) ExecuteQuery(query string) (any, error) {
 	tokens, err := Tokenize(query)
