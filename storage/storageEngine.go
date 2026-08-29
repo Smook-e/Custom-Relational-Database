@@ -181,7 +181,6 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		err = engine.UpdateRow(table, colOffsets, buffer, Rows[0].PageID, Rows[0].Slot, map[string]any{
 			"name": "johnny",
 			"job": "manager",
-			"email": "joe@example.com",
 		})
 		if err != nil {
 			return engine, fmt.Errorf("failed to update row: %w", err)

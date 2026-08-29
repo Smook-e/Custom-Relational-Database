@@ -316,6 +316,22 @@ func (engine *StorageEngine) LinearDelete(table *entities.Table, colOffsets map[
 		if err != nil {
 			return rowsDeleted, fmt.Errorf("An Error Occured %w", err)
 		}
+		tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, row.Slot)
+		if errors.Is(err, pages.ErrRowNotFound){
+			continue
+		}
+		if err != nil {
+			return rowsDeleted,fmt.Errorf("an error occured while Reading Row: %w", err)
+		}
+		// Get the column offsets
+		// Read the null bitmap first
+		nullBitmap, err := table.ReadNullBitmap(dataBuffer[tableOffset:])
+		if err != nil {
+			return rowsDeleted, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
+		}
+		tableOffset += uint16(len(nullBitmap.Bitmap)) // Move the offset past the null bitmap
+		// Populate the ColOffsets map with offsets for each column
+		GetColumnOffsets(table,dataBuffer, tableOffset,nullBitmap, colOffsets)
 		err = engine.DeleteRow(table, make(map[string]int), dataBuffer, row.PageID, row.Slot)
 		if errors.Is(err, pages.ErrRowNotFound) {
 			continue
@@ -327,6 +343,111 @@ func (engine *StorageEngine) LinearDelete(table *entities.Table, colOffsets map[
 	}
 
 	return rowsDeleted, nil
+
+}
+
+func (engine *StorageEngine) LinearUpdate(table *entities.Table, colOffsets map[string]int, expr *Expression, updates map[string]any) (int, error) {
+	// Get the Primary Key Column Name to start searching
+	primaryKeyColumn, _, err := table.GetPrimaryKeyColumn()
+	if err != nil {
+		return 0, fmt.Errorf("An Error Occured %w", err)
+	}
+	rootId, ok := table.Indexes[primaryKeyColumn.Name]
+	if !ok {
+		return 0, fmt.Errorf("Primary key index not found for table %s", table.Name)
+	}
+	// Get the first leaf page of the B+ tree (linked list of leaf pages)
+	leafId, err := engine.GetFirstLeafPage(rootId)
+	if err != nil {
+		return 0, fmt.Errorf("An Error Occured %w", err)
+	}
+	offset := 0
+	rowsUpdated := 0
+	rowsToUpdate := make([]entities.RowID, 0)
+	for leafId != 0 {
+		//load leaf page
+		buffer, err := engine.Bp.Get(leafId)
+		if err != nil {
+			return rowsUpdated, fmt.Errorf("An Error Occured %w", err)
+		}
+		//get next leaf page
+		leafId = binary.BigEndian.Uint32(buffer[nextLeafPageOffset:nextLeafPageOffset + 4])
+		//get number of keys
+		numKeys := binary.BigEndian.Uint16(buffer[leafPageNumEntriesOffset: leafPageNumEntriesOffset + 2])
+		offset = LeafPageHeaderSize
+		for range numKeys {
+			//skip the key bytes
+			offset += int(primaryKeyColumn.Size)
+			pageId := binary.BigEndian.Uint32(buffer[offset:offset + 4])
+			offset += 4
+			slot := binary.BigEndian.Uint16(buffer[offset:offset + 2])
+			offset += 2
+			// Find the Row in the table using the pageId and slot
+			dataBuffer, err := engine.Bp.Get(pageId)
+			if err != nil {
+				return rowsUpdated,err
+			}
+			tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
+			if errors.Is(err, pages.ErrRowNotFound){
+				continue
+			}
+			if err != nil {
+				return rowsUpdated,fmt.Errorf("an error occured while Reading Row: %w", err)
+			}
+			// Get the column offsets
+			// Read the null bitmap first
+			nullBitmap, err := table.ReadNullBitmap(dataBuffer[tableOffset:])
+			if err != nil {
+				return rowsUpdated, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
+			}
+			tableOffset += uint16(len(nullBitmap.Bitmap)) // Move the offset past the null bitmap
+			// Populate the ColOffsets map with offsets for each column
+			GetColumnOffsets(table,dataBuffer, tableOffset,nullBitmap, colOffsets)
+			//check the condition
+			conditionMet, err := engine.EvaluateExpression(dataBuffer, colOffsets, expr, table)
+			if err != nil {
+				return rowsUpdated, fmt.Errorf("An Error Occured %w", err)
+			}
+			if conditionMet {
+				rowsToUpdate = append(rowsToUpdate, entities.RowID{PageID: pageId, Slot: slot})
+			}
+		}
+
+	}
+
+	for _, row := range rowsToUpdate {
+		dataBuffer, err := engine.Bp.Get(row.PageID)
+		if err != nil {
+			return rowsUpdated, fmt.Errorf("An Error Occured %w", err)
+		}
+		tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, row.Slot)
+		if errors.Is(err, pages.ErrRowNotFound){
+			continue
+		}
+		if err != nil {
+			return rowsUpdated,fmt.Errorf("an error occured while Reading Row: %w", err)
+		}
+		// Get the column offsets
+		// Read the null bitmap first
+		nullBitmap, err := table.ReadNullBitmap(dataBuffer[tableOffset:])
+		if err != nil {
+			return rowsUpdated, fmt.Errorf("An error occurred while reading null bitmap: %w", err)
+		}
+		tableOffset += uint16(len(nullBitmap.Bitmap)) // Move the offset past the null bitmap
+		// Populate the ColOffsets map with offsets for each column
+		GetColumnOffsets(table,dataBuffer, tableOffset,nullBitmap, colOffsets)
+		err = engine.UpdateRow(table, colOffsets, dataBuffer, row.PageID, row.Slot, updates)
+		if errors.Is(err, pages.ErrRowNotFound) {
+			continue
+		}
+		if err != nil {
+			return rowsUpdated, fmt.Errorf("An Error Occured %w", err)
+		}
+		rowsUpdated++
+	}
+
+	return rowsUpdated, nil
+
 
 }
 
