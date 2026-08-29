@@ -186,6 +186,42 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, *NullBitmap, error) {
 	return values, size, nullBitmap, nil
 
 }
+func (t *Table) GetSizeOfValues(values []any) (uint16, error) {
+	var size uint16 = 0
+	size += uint16((len(t.Columns) + 7) / 8) // Add size of null bitmap
+	for i, val := range values {
+		col := &t.Columns[i]
+		if val == nil {
+			continue // Null values do not contribute to size
+		}
+		switch col.DataType {
+		case TypeTinyInt:
+			size += 1
+		case TypeSmallInt:
+			size += 2
+		case TypeInt, TypeSerial:
+			size += 4
+		case TypeBigInt:
+			size += 8
+		case TypeVarChar:
+			strVal, ok := val.(string)
+			if !ok {
+				return 0, fmt.Errorf("Expected string for TypeVarChar, got %T", val)
+			}
+			if col.Size > 0 && len(strVal) > int(col.Size) {
+				return 0, fmt.Errorf("String length exceeds maximum of %d characters for column %s", col.Size, col.Name)
+			}
+			if col.Size > 0 {
+				size += uint16(col.Size) + 1 // +1 for length prefix
+			} else {
+				size += uint16(len(strVal)) + 1 // +1 for length prefix
+			}
+		default:
+			return 0, fmt.Errorf("Unsupported data type for column %s", col.Name)
+		}
+	}
+	return size, nil
+}
 func (t *Table) GetNullBitmapForValues(values []any) *NullBitmap {
 	nullBitmap := t.InitializeNullBitmap()
 	for i, val := range values {
