@@ -187,6 +187,49 @@ func (t *Table) GetValues(vals []string) ([]any,uint16, *NullBitmap, error) {
 
 }
 
+func GetValueFromString(val string, col *Column) (any, error) {
+	if val == "" {
+		return nil, nil
+	}
+	switch col.DataType {
+	case TypeTinyInt:
+		n, err := strconv.ParseInt(val, 10, 8)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to TinyInt: %w", val, err)
+		}
+		return int8(n), nil
+	case TypeSmallInt:
+		n, err := strconv.ParseInt(val, 10, 16)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to SmallInt: %w", val, err)
+		}
+		return int16(n), nil
+	case TypeInt:
+		n, err := strconv.ParseInt(val, 10, 32)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to Int: %w", val, err)
+		}
+		return int32(n), nil
+	case TypeSerial:// same as TypeInt
+		return nil, errors.New("Error: Serial type should not be provided by user. It is auto-incremented.")
+	case TypeBigInt:
+		n, err := strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("Error converting %s to BigInt: %w", val, err)
+		}
+		return int64(n), nil
+	case TypeVarChar:
+		if col.Size > 0 {
+			if len(val) > int(col.Size) {
+				return nil, fmt.Errorf("Error: Value %s exceeds maximum length of %d for column %s", val, col.Size, col.Name)
+			}
+		}
+		return val, nil
+	default:
+		return nil, fmt.Errorf("Unsupported data type for column %s", col.Name)
+	}
+}
+
 // Returns the size in bytes of the serialized value for a given column.
 func GetSize(col *Column) (uint8, error) {
 	switch col.DataType {
