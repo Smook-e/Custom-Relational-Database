@@ -207,13 +207,17 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	}
 	//Insert indexes
 	for colName, root := range table.Indexes {
+		
 		colIndex, err := table.GetColumnIndexByName(colName)
 		if err != nil {
 			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
 		}
+		if vals[colIndex] == nil {
+			continue // Skip index insertion for null values
+		}
 		serializedKey, err := entities.Serialize(vals[colIndex], &table.Columns[colIndex])
 		if err != nil {
-			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+			return 0,0, fmt.Errorf("An error occured while inserting: Serialize: %w", err)
 		}
 		table.Indexes[colName] , err = engine.InsertIntoIndex(root, serializedKey, pageID, slot, &table.Columns[colIndex])
 		if err != nil {

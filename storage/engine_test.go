@@ -222,7 +222,7 @@ func TestEngineDelete(t *testing.T) {
             id serial primary key,
             name varchar(50) not null default 'anonymous',
             age int default 18,
-			job varchar(50) not null,
+			job varchar(50),
             email varchar(30) unique	
         )
     `)
@@ -237,8 +237,8 @@ func TestEngineDelete(t *testing.T) {
             ('bob', 30, 'manager', 'bob@example.com'),
             ('charlie', 35, 'designer', 'charlie@example.com'),
             ('dave', 40, 'analyst', 'dave@example.com'),
-            ('eve', 45, 'consultant', 'eve@example.com'),
-            ('frank', 50, 'engineer', 'frank@example.com')
+            ('eve', 45, 'consultant', ''),
+            ('frank', 50, 'engineer', '') 
     `)
     if err != nil {
         t.Fatalf("failed to insert test data: %v", err)
