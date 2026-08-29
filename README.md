@@ -128,7 +128,7 @@ A warm hit is roughly **118x faster** than a cold read, and allocates nothing �
 - [x] B+Tree Indexing — insertion, page-splitting, multi-level root growth, and search, verified at 1M+ rows for both integer and string keys
 - [x] Secondary Indexes
 - [x] Constraints — NOT NULL, UNIQUE, DEFAULT, Serial, Foreign Keys, null-bitmap NULL handling
-- [x] SQL Query Engine — tokenizer, parser, and executor for `CREATE TABLE`, `INSERT`, and `SELECT` (with column projection and `WHERE` clause support)
+- [x] SQL Query Engine — tokenizer, parser, and executor for `CREATE TABLE`, `INSERT`, `DELETE` and `SELECT` (with column projection and `WHERE` clause support)
 - [x] Unit test suite covering buffer pool, metadata pages, B+Tree, and WHERE-clause parsing
-- [ ] `UPDATE` and `DELETE`
+- [ ] `UPDATE`
 - [ ] Concurrency Control: thread-safe access and locking (lock-coupling / crabbing design worked out, implementation pending)
