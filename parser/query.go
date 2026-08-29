@@ -17,6 +17,11 @@ type InsertQuery struct {
 	Columns []string
 	Values [][]string
 }
+type DeleteQuery struct {
+	TableName string
+	Where *storage.Expression
+}
+
 type CreateTableQuery struct {
 	TableName string
 	Columns []entities.ColumnDefinition
