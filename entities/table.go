@@ -628,3 +628,11 @@ func (col *Column) GetDefaultValue(value string) (any, error) {
 		return nil, fmt.Errorf("Unsupported data type for default value")
 	}
 }
+
+func (table *Table) GetColumnNames() []string {
+	names := make([]string, len(table.Columns))
+	for i, col := range table.Columns {
+		names[i] = col.Name
+	}
+	return names
+}
