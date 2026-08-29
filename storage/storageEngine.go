@@ -447,7 +447,7 @@ func (engine *StorageEngine) Delete(tableName string, expr *Expression) (int, er
 				if errors.Is(err, errKeyNotFound) {
 					return 0, err
 				}else {
-					// If the key is found, read the row
+					// If the key is found, Delete the row
 					dataBuffer, err := engine.Bp.Get(pageId)
 					if err != nil {
 						return 0, fmt.Errorf("An Error Occured %w", err)
@@ -469,7 +469,65 @@ func (engine *StorageEngine) Delete(tableName string, expr *Expression) (int, er
 	}
 	return result, nil
 }
-
+func (engine *StorageEngine) Update(tableName string, expr *Expression, updates map[string]string) (int, error) {
+	table, ok := engine.db.Tables[tableName]
+	if !ok {
+		return 0, fmt.Errorf("Table %s not found", tableName)
+	}
+	columnOffsets := make(map[string]int)
+	// Make sure the Search expression is ready for use by other functions
+	if expr != nil { 
+		err := SerializeSearchExpression(expr, table)
+		if err != nil {
+			return 0, fmt.Errorf("An Error Occured %w", err)
+		}
+	}
+	// Validate that the specified columns exist in the table and prepare the updates map
+	updatesMap := make(map[string]any)
+	for colName, newValue := range updates {
+		column, err := table.GetColumnByName(colName)
+		if err != nil {
+			return 0, fmt.Errorf("Column %s not found in table %s", colName, tableName)
+		}
+		Value, err :=column.GetDefaultValue(newValue)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to get default value for column %s: %w", colName, err)
+		}
+		updatesMap[colName] = Value
+	}
+	// If there's only one condition, check if it has an index and use the indexed search
+	if expr != nil && expr.Type == NodeCondition && (expr.Condition.Operator == "=" || expr.Condition.Operator == "==") {
+		condition := expr.Condition
+		if condition != nil {
+			rootID, exists := table.Indexes[condition.ColumnName]// Check if the column has an index
+			// If the column has an index, use the indexed search
+			if exists {
+				column, _ := table.GetColumnByName(condition.ColumnName)
+				pageId, slot, err := engine.IndexSearch(rootID, condition.Value, column)
+				
+				if errors.Is(err, errKeyNotFound) {
+					return 0, err
+				}else {
+					// If the key is found, Update the row
+					dataBuffer, err := engine.Bp.Get(pageId)
+					if err != nil {
+						return 0,  err
+					}
+					err = engine.UpdateRow(table,columnOffsets,dataBuffer, pageId, slot, updatesMap)
+					if err != nil {
+						return 0, err
+					}
+					return 1, nil
+				}
+			}	
+		}
+	}
+	result , err := engine.LinearUpdate(table,columnOffsets, expr, updatesMap)
+	if err != nil {
+		return 0, fmt.Errorf("An Error Occured %w", err)
+	}
+	return result, nil
+}
 func (engine *StorageEngine)  UpdateFreePage(pageID uint32, freeSpace uint16) {
 	engine.db.UpdateFreePage(pageID, freeSpace)
 	engine.metaWrite = true
