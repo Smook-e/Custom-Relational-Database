@@ -381,3 +381,35 @@ func Print(q Query) {
 		fmt.Println("Unknown Query Type")
 	}
 }
+
+func (q *DeleteQuery) Parse(p *Parser) ( error) {
+
+	// Expect DELETE keyword
+	_, err := p.Expect([]TokenType{TokenKeyword}, "DELETE")
+	if err != nil {
+		return  err
+	}
+
+	// Expect FROM keyword
+	_, err = p.Expect([]TokenType{TokenKeyword}, "FROM")
+	if err != nil {
+		return  err
+	}
+
+	// Expect table name
+	tableNameToken, err := p.Expect([]TokenType{TokenIdentifier}, "")
+	if err != nil {
+		return  err
+	}
+	q.TableName = tableNameToken.Value
+
+	if p.Peek().Type == TokenKeyword && p.Peek().Value == "WHERE" {
+		p.Get() // Consume the WHERE keyword
+		whereExpr, err := ParseWhereExpression(p)
+		if err != nil {
+			return  err
+		}
+		q.Where = whereExpr
+	}
+	return  nil
+}
