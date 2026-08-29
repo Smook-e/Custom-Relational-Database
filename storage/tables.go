@@ -309,7 +309,7 @@ func (engine *StorageEngine) DeleteRow(table *entities.Table, colOffsets map[str
 	return nil
 }
 
-func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[string]int, buffer []byte, pageID uint32, slot uint16, newData map[string][]byte) error {
+func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[string]int, buffer []byte, pageID uint32, slot uint16, newData map[string]any) error {
 	
 	offset, err := pages.GetDataPageSlotOffset(buffer, slot)
 	if err != nil {
@@ -326,31 +326,41 @@ func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[str
 		GetColumnOffsets(table, buffer, offset, nullBitmap, colOffsets)
 	}
 	// Check if the new data violates any constraints
+	needsSizeChange := false
 	for colName, newVal := range newData {
 		column, err := table.GetColumnByName(colName)
 		if err != nil {
 			return fmt.Errorf("Error: Column %q not found in table %q for update", colName, table.Name)
 		}
+		colIndex, err := table.GetColumnIndexByName(colName)
+		if err != nil {
+			return fmt.Errorf("Error: Column %q not found in table %q for update", colName, table.Name)
+		}
+		if !column.IsValidValue(newVal) {
+			return fmt.Errorf("Error: Value %v is not valid for column %q of type %q", newVal, colName, column.DataType)
+		}
+		if nullBitmap.IsNull(colIndex) || column.Size == 0 {
+			needsSizeChange = true
+		}
 		if column.DataType == entities.TypeSerial {
 			return fmt.Errorf("Error: Column '%q' is of type Serial and cannot be manually updated.", colName)
 		}
-		if column.HasConstraint(entities.ConstraintNotNull) && (newVal == nil || len(newVal) == 0) {
+		if column.HasConstraint(entities.ConstraintNotNull) && (newVal == nil) {
 			if column.HasConstraint(entities.ConstraintDefault) {
 				// If the column has a default constraint, use the default value instead of returning an error
-				// newData[colName] = 
-		
+				newData[colName] = column.Default	
 			}else{
 				return fmt.Errorf("Error: Column '%q' cannot be null", colName)
 			}
 		}
 		if column.HasConstraint(entities.ConstraintUnique) {
 			// Check for uniqueness in the existing rows
-			// serializedKey, err := entities.Serialize(newVal, column)
-			// if err != nil {
-			// 	return fmt.Errorf("Error serializing new value for column %q: %w", colName, err)
-			// }
+			serializedKey, err := entities.Serialize(newVal, column)
+			if err != nil {
+				return fmt.Errorf("Error serializing new value for column %q: %w", colName, err)
+			}
 			root := table.Indexes[colName]
-			if pageID, _, _ := engine.IndexSearch(root, newVal, column); pageID != 0 {
+			if pageID, _, _ := engine.IndexSearch(root, serializedKey, column); pageID != 0 {
 				return fmt.Errorf("Error: Column %q must be unique. Value %v already exists.", colName, newVal)
 			}
 		}
@@ -361,19 +371,100 @@ func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[str
 				return  fmt.Errorf("Error: Referenced table %q not found for foreign key constraint on column %q", fk.ReferencedTableName, column.Name)
 			}
 			referencedCol := referencedTable.Columns[fk.ReferencedColumnIndex]
-			// serializedKey, err := entities.Serialize(vals[i], &col)
-			// if err != nil {
-			// 	return 0,0, fmt.Errorf("An error occurred while serializing key for foreign key check: %w", err)
-			// }
+			serializedKey, err := entities.Serialize(newVal, &referencedCol)
+			if err != nil {
+				return fmt.Errorf("An error occurred while serializing key for foreign key check: %w", err)
+			}
 			root := referencedTable.Indexes[referencedCol.Name]
-			if pageID, _, _ := engine.IndexSearch(root, newVal, &referencedCol); pageID == 0 {
+			if pageID, _, _ := engine.IndexSearch(root, serializedKey, &referencedCol); pageID == 0 {
 				return  fmt.Errorf("Error: Foreign key constraint violation on column '%q'. Value %v does not exist in Column '%q' of referenced table '%q'.", column.Name, newVal, referencedCol.Name, fk.ReferencedTableName)
 			}
 		}
-
-		
-
 	}
+
+	if !needsSizeChange {
+		// If the size of the new data does not exceed the size of the existing data, we can update in place
+		for colName, newVal := range newData {
+			colOffset := colOffsets[colName]
+			if colOffset == -1 {
+				// Column can never be null since needsSizeChange is false, so we can skip this case
+				continue
+			}
+			column, err := table.GetColumnByName(colName)
+			if err != nil {
+				return fmt.Errorf("Error: Column %q not found in table %q for update", colName, table.Name)
+			}
+			serializedNewVal, err := entities.Serialize(newVal, column)
+			if err != nil {
+				return fmt.Errorf("Error serializing new value for column %q: %w", colName, err)
+			}
+			if column.HasConstraint(entities.ConstraintIndex) {
+				// If the column has an index, we need to update the index as well
+				root := table.Indexes[colName]
+				// Delete the old value from the index
+				oldVal := buffer[colOffset : colOffset+int(column.Size)]
+				err = engine.IndexDelete(root, oldVal, column)
+				if err != nil {
+					return fmt.Errorf("Error deleting old value from index for column %q: %w", colName, err)
+				}
+				// Insert the new value into the index
+				table.Indexes[colName], err = engine.InsertIntoIndex(root, serializedNewVal, pageID, slot, column)
+				if err != nil {
+					return fmt.Errorf("Error inserting new value into index for column %q: %w", colName, err)
+				}
+			}
+			copy(buffer[colOffset:], serializedNewVal)
+		}
+	}else {
+		// If the size of the new data exceeds the size of the existing data, we need to delete the old row and insert a new row
+		// Read the existing row data
+		existingRowData, err := engine.ReadRow(table.Name, table.GetColumnNames(), colOffsets, buffer, offset)
+		if err != nil {
+			return fmt.Errorf("Error reading existing row data for update: %w", err)
+		}
+		// Delete the existing row
+		err = engine.DeleteRow(table, colOffsets, buffer, pageID, slot)
+		if err != nil {
+			return fmt.Errorf("Error deleting existing row for update: %w", err)
+		}
+		// Prepare the new row data by merging existing data with new data
+		newRowData := make([]any, len(existingRowData))
+		for i, col := range table.Columns {		
+			if newVal, exists := newData[col.Name]; exists {
+				newRowData[i] = newVal
+			} else {
+				if existingRowData[i] == nil {
+					newRowData[i] = nil
+				} else {
+					newRowData[i] = existingRowData[i]
+				}
+			}
+		}
+		// Insert the new row
+		_, _, err = engine.InsertRowWithAnySlice(newRowData, table)
+		if err != nil {
+			return fmt.Errorf("Error inserting new row: %w", err)
+		}
+		//Delete the old index entries (the new ones were already inserted in InsertRowWithAnySlice)
+		for colName, root := range table.Indexes {
+			colIndex, err := table.GetColumnIndexByName(colName)
+			if err != nil {
+				return fmt.Errorf("An error occured while updating: %w", err)
+			}
+			if existingRowData[colIndex] == nil {
+				continue // Skip index deletion for null values
+			}
+			OldSerializedKey, err := entities.Serialize(existingRowData[colIndex], &table.Columns[colIndex])
+			if err != nil {
+				return fmt.Errorf("An error occured while updating: Serialize: %w", err)
+			}
+			// Delete the old index entry
+			err = engine.IndexDelete(root, OldSerializedKey, &table.Columns[colIndex])
+			if err != nil {
+				return fmt.Errorf("An error occured while updating: IndexDelete: %w", err)
+			}
+		}
+	}				
 	return nil
 }
 // CreateTable creates a new table in the database with the specified name, columns, and foreign keys.
@@ -526,4 +617,97 @@ func GetColumnOffsets(table *entities.Table,buffer []byte, offset uint16, nullBi
 			}
 		}
 	}
+}
+
+func (engine *StorageEngine) InsertRowWithAnySlice(vals []any, table *entities.Table) (uint32, uint16, error) {
+	//Pass 1: Check Validity and calculate size
+	if len(table.Columns) != len(vals){
+		return 0,0, fmt.Errorf("Error: Invalid input size. Please enter %d Fields", len(table.Columns))
+	}
+	nullBitmap := table.GetNullBitmapForValues(vals)
+	
+	size, err := table.GetSizeOfValues(vals)
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while calculating size: %w", err)
+	}
+	//Get a suitable data page and slot to insert into
+	pageID, err := pages.FindFreePage(engine.db, size)
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while finding free page: %w", err)
+	}
+	buffer, err := engine.Bp.Get(pageID)
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
+	}
+	engine.Bp.MarkDirty(pageID)
+	freeSpaceOffset,slot, newSlotused, err := pages.FindandUpdateDataPageSlot(buffer, size)
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
+	}
+	if newSlotused {
+		engine.UpdateFreePageChange(pageID, -2) // 2 bytes for the new slot that points to the new row
+	}
+	offset := freeSpaceOffset
+	//Pass 2: write the values into the page
+	// Write the null bitmap first
+	err = table.WriteNullBitmap(nullBitmap, buffer[offset:offset+uint16(len(nullBitmap.Bitmap))])
+	if err != nil {
+		return 0,0,fmt.Errorf("An error occured while inserting: %w", err)
+	}
+	offset += uint16(len(nullBitmap.Bitmap))
+	for i, val := range vals {
+		if val == nil {
+			continue
+		}
+		// Write the value based on its type
+		// Use a type switch to determine the type of the value and write it accordingly
+		// Use binary.BigEndian to write multi-byte values in big-endian order
+		// For strings, write the length first as a single byte, then write the string bytes
+		switch v := val.(type) {
+		case int8:
+			buffer[offset] = byte(v)
+			offset++
+		case int16:
+			binary.BigEndian.PutUint16(buffer[offset: offset+2], uint16(v))
+			offset+=2
+		case int32:
+			
+			binary.BigEndian.PutUint32(buffer[offset: offset+4], uint32(v))
+			offset+=4
+		case int64:
+			binary.BigEndian.PutUint64(buffer[offset: offset+8], uint64(v))
+			offset+=8
+		case string:
+			buffer[offset] = uint8(len(v))
+			offset++
+			copy(buffer[offset:], v)
+			if table.Columns[i].Size > 0 {
+				offset += uint16(table.Columns[i].Size)
+			} else {
+				offset += uint16(len(v))
+			}
+		}
+	}
+	//Insert indexes
+	for colName, root := range table.Indexes {
+		
+		colIndex, err := table.GetColumnIndexByName(colName)
+		if err != nil {
+			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+		}
+		if vals[colIndex] == nil {
+			continue // Skip index insertion for null values
+		}
+		serializedKey, err := entities.Serialize(vals[colIndex], &table.Columns[colIndex])
+		if err != nil {
+			return 0,0, fmt.Errorf("An error occured while inserting: Serialize: %w", err)
+		}
+		table.Indexes[colName] , err = engine.InsertIntoIndex(root, serializedKey, pageID, slot, &table.Columns[colIndex])
+		if err != nil {
+			return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+		}
+	}
+
+	return pageID, slot, nil
+
 }
