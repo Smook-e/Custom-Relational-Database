@@ -21,7 +21,11 @@ type DeleteQuery struct {
 	TableName string
 	Where *storage.Expression
 }
-
+type UpdateQuery struct {
+	TableName string
+	SetClauses map[string]string
+	Where *storage.Expression
+}
 type CreateTableQuery struct {
 	TableName string
 	Columns []entities.ColumnDefinition
