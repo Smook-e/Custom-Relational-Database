@@ -111,6 +111,7 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 			{Name: "email", DataType: "varchar(30)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
 			{Name: "phone_number", DataType: "varchar(15)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
 			{Name: "age", DataType: "int", Constraints: []string{}},
+			{Name: "job", DataType: "varchar", Constraints: []string{}},
 		}, []entities.ForeignKeyDefinition{}); err != nil {
 			return nil, fmt.Errorf("failed to create users table: %w", err)
 		}
@@ -135,27 +136,27 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 
 		
 		// insert a few sample rows to make the DB testable (FindFreePage will create data pages)
-		pageID, slot, err := engine.InsertRow([]string{"", "anon","email@example.com","123-456-7890", "20"}, "users");if err != nil {
+		pageID, slot, err := engine.InsertRow([]string{"", "anon","email@example.com","123-456-7890", "20", ""}, "users");if err != nil {
 			fmt.Printf("failed to insert sample user row: %v", err)
 		}
 		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
 		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
 		
-		pageID, slot, err = engine.InsertRow([]string{"", "emily", "emily@example.com", "098-765-4321", "25"}, "users"); if err != nil {
+		pageID, slot, err = engine.InsertRow([]string{"", "emily", "emily@example.com", "098-765-4321", "25", ""}, "users"); if err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
 		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
-		pageID, slot, err = engine.InsertRow([]string{"", "alice", "alice@example.com", "098-765-4320", "30"}, "users"); if err != nil {
+		pageID, slot, err = engine.InsertRow([]string{"", "alice", "alice@example.com", "098-765-4320", "30", "Engineer"}, "users"); if err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
 		// engine.DeleteRow(Rows[0].PageID, Rows[0].Slot)
-		pageID, slot, err = engine.InsertRow([]string{"", "bob", "bob@example.com", "098-761-4321", "35"}, "users"); if err != nil {
+		pageID, slot, err = engine.InsertRow([]string{"", "bob", "bob@example.com", "098-761-4321", "35", "Designer"}, "users"); if err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
-		pageID, slot, err = engine.InsertRow([]string{"", "joe", "joe@example.com", "098-761-4324", "35"}, "users"); if err != nil {
+		pageID, slot, err = engine.InsertRow([]string{"", "joe", "joe@example.com", "098-761-4324", "", "Developer"}, "users"); if err != nil {
 			return engine, fmt.Errorf("failed to insert sample user row: %w", err)
 		}
 		Rows = append(Rows, entities.RowID{PageID: pageID, Slot: slot})
@@ -166,30 +167,25 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		for _, row := range result {
 			fmt.Println(row)
 		}
-		// table := engine.db.Tables["users"]
-		// colOffsets := make(map[string]int)
-		
-		// engine.DeleteRow(table, colOffsets, Rows[0].PageID, Rows[0].Slot)
-		// engine.DeleteRow(table, colOffsets, Rows[1].PageID, Rows[1].Slot)
-		// clear(colOffsets)
-		// engine.DeleteRow(table,colOffsets,Rows[2].PageID, Rows[2].Slot)
-		// engine.DeleteRow(table, colOffsets,Rows[3].PageID, Rows[3].Slot)
-		// engine.Delete("users", &Expression{
-		// 	Type: NodeCondition,
-		// 	Condition: &SearchCondition{
-		// 		ColumnName: "id",
-		// 		Operator: "=",
-		// 		Value: []byte("1"),
-		// 	},
-		// })
-		engine.Delete("users", &Expression{
-			Type: NodeCondition,
-			Condition: &SearchCondition{
-				ColumnName: "age",
-				Operator: ">",
-				Value: []byte("26"),
-			},
+		table := engine.db.Tables["users"]
+		colOffsets := make(map[string]int)
+		buffer, err := engine.Bp.Get(Rows[0].PageID)
+		if err != nil {
+			return engine, fmt.Errorf("failed to get buffer for page %d: %w", Rows[0].PageID, err)
+		}
+		err = engine.UpdateRow(table, colOffsets, buffer, Rows[4].PageID, Rows[4].Slot, map[string]any{
+			"age": int32(40),
+			"phone_number": "111-222-3333",
 		})
+		clear(colOffsets)
+		err = engine.UpdateRow(table, colOffsets, buffer, Rows[0].PageID, Rows[0].Slot, map[string]any{
+			"name": "johnny",
+			"job": "manager",
+			"email": "joe@example.com",
+		})
+		if err != nil {
+			return engine, fmt.Errorf("failed to update row: %w", err)
+		}
 
 		result, err = engine.Search("users", []string{"*"}, nil)
 		if err != nil {

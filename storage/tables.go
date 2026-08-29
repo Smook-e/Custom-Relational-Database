@@ -3,7 +3,9 @@ package storage
 import (
 	// "errors"
 	"encoding/binary"
+	"errors"
 	"fmt"
+
 	// "slices"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
@@ -360,7 +362,7 @@ func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[str
 				return fmt.Errorf("Error serializing new value for column %q: %w", colName, err)
 			}
 			root := table.Indexes[colName]
-			if pageID, _, _ := engine.IndexSearch(root, serializedKey, column); pageID != 0 {
+			if page, slot, err := engine.IndexSearch(root, serializedKey, column); !errors.Is(err, errKeyNotFound) && !(page == pageID && slot == slot) {
 				return fmt.Errorf("Error: Column %q must be unique. Value %v already exists.", colName, newVal)
 			}
 		}
@@ -402,7 +404,13 @@ func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[str
 				// If the column has an index, we need to update the index as well
 				root := table.Indexes[colName]
 				// Delete the old value from the index
-				oldVal := buffer[colOffset : colOffset+int(column.Size)]
+				var oldVal []byte
+				if column.DataType == entities.TypeVarChar {
+					oldVal = buffer[colOffset : colOffset+int(column.Size) + 1] // +1 for length prefix
+				}else {
+					oldVal = buffer[colOffset : colOffset+int(column.Size)]
+				}
+				fmt.Println(string(oldVal))
 				err = engine.IndexDelete(root, oldVal, column)
 				if err != nil {
 					return fmt.Errorf("Error deleting old value from index for column %q: %w", colName, err)
@@ -440,29 +448,33 @@ func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[str
 				}
 			}
 		}
+		//Delete the old index entries (the new ones are already inserted in InsertRowWithAnySlice)
+		// for colName, root := range table.Indexes {
+		// 	colIndex, err := table.GetColumnIndexByName(colName)
+		// 	if err != nil {
+		// 		return fmt.Errorf("An error occured while updating: %w", err)
+		// 	}
+		// 	if table.Columns[colIndex].HasConstraint(entities.ConstraintPrimaryKey) {// already deleted in DeleteRow
+		// 		continue
+		// 	}
+		// 	if existingRowData[colIndex] == nil {
+		// 		continue // Skip index deletion for null values
+		// 	}
+		// 	OldSerializedKey, err := entities.Serialize(existingRowData[colIndex], &table.Columns[colIndex])
+		// 	if err != nil {
+		// 		return fmt.Errorf("An error occured while updating: %w", err)
+		// 	}
+		// 	// Delete the old index entry
+		// 	err = engine.IndexDelete(root, OldSerializedKey, &table.Columns[colIndex])
+		// 	if err != nil {
+		// 		fmt.Println(colName,existingRowData[colIndex], OldSerializedKey)
+		// 		return fmt.Errorf("An error occured while updating: IndexDelete: %w", err)
+		// 	}
+		// }
 		// Insert the new row
 		_, _, err = engine.InsertRowWithAnySlice(newRowData, table)
 		if err != nil {
 			return fmt.Errorf("Error inserting new row: %w", err)
-		}
-		//Delete the old index entries (the new ones were already inserted in InsertRowWithAnySlice)
-		for colName, root := range table.Indexes {
-			colIndex, err := table.GetColumnIndexByName(colName)
-			if err != nil {
-				return fmt.Errorf("An error occured while updating: %w", err)
-			}
-			if existingRowData[colIndex] == nil {
-				continue // Skip index deletion for null values
-			}
-			OldSerializedKey, err := entities.Serialize(existingRowData[colIndex], &table.Columns[colIndex])
-			if err != nil {
-				return fmt.Errorf("An error occured while updating: Serialize: %w", err)
-			}
-			// Delete the old index entry
-			err = engine.IndexDelete(root, OldSerializedKey, &table.Columns[colIndex])
-			if err != nil {
-				return fmt.Errorf("An error occured while updating: IndexDelete: %w", err)
-			}
 		}
 	}				
 	return nil
