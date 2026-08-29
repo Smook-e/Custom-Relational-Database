@@ -22,6 +22,8 @@ func GetQueryType(p *Parser) Query {
 		return &InsertQuery{}
 	case "DELETE":
 		return &DeleteQuery{}
+	case "UPDATE":
+		return &UpdateQuery{}
 	case "CREATE":
 		return &CreateTableQuery{}
 	default:

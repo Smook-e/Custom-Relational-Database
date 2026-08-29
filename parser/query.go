@@ -430,6 +430,14 @@ func Print(q Query) {
 			fmt.Println("Where Condition:")
 			PrintExpression(query.Where, "")
 		}
+	case *UpdateQuery:
+		fmt.Println("Update Query:")
+		fmt.Println("Table Name:", query.TableName)
+		fmt.Println("Set Clauses:", query.SetClauses)
+		if query.Where != nil {
+			fmt.Println("Where Condition:")
+			PrintExpression(query.Where, "")
+		}
 	case *CreateTableQuery:
 		fmt.Println("Create Table Query:")
 		fmt.Println("Table Name:", query.TableName)
