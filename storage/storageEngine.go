@@ -1,16 +1,18 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"os"
-	"errors"
+
 	bufferpool "github.com/Smook-e/Custom-Relational-Database/bufferPool"
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/filehandler"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
 )
+
 /*
-This file contains the implementation of the StorageEngine struct, which is responsible for managing the database file, buffer pool, and metadata. 
+This file contains the implementation of the StorageEngine struct, which is responsible for managing the database file, buffer pool, and metadata.
 It provides methods for initializing the storage engine, committing changes to disk, printing metadata, creating new pages, and managing the B+Tree index.
 */
 
@@ -506,7 +508,7 @@ func (engine *StorageEngine) Update(tableName string, expr *Expression, updates 
 				pageId, slot, err := engine.IndexSearch(rootID, condition.Value, column)
 				
 				if errors.Is(err, errKeyNotFound) {
-					return 0, err
+					return 0, nil
 				}else {
 					// If the key is found, Update the row
 					dataBuffer, err := engine.Bp.Get(pageId)

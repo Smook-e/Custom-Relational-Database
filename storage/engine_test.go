@@ -386,6 +386,193 @@ func TestEngineDelete(t *testing.T) {
 
 }
 
+func TestEngineUpdate(t *testing.T) {
+    handler := newEmptySQLTestEngine(t)
+
+    _, err := handler.ExecuteQuery(`
+        CREATE TABLE test_users (
+            id serial primary key,
+            name varchar(50) not null default 'anonymous',
+            age int default 18,
+            job varchar(50) not null,
+            email varchar(30) unique
+        )
+    `)
+    if err != nil {
+        t.Fatalf("failed to create test table: %v", err)
+    }
+
+    _, err = handler.ExecuteQuery(`
+        INSERT INTO test_users (name, email, age, job) VALUES
+            ('alice', 'alice@example.com', 25, 'engineer'),
+            ('bob', 'bob@example.com', 30, 'manager'),
+            ('charlie', 'charlie@example.com', 35, 'designer'),
+            ('dana', 'dana@example.com', 40, 'analyst')
+    `)
+    if err != nil {
+        t.Fatalf("failed to insert seed rows: %v", err)
+    }
+
+    // Valid update: one row, one column.
+    rowsUpdated, err := handler.ExecuteQuery(`
+        UPDATE test_users SET age = 26 WHERE id = 1
+    `)
+    if err != nil {
+        t.Fatalf("expected valid single-row update to succeed, got error: %v", err)
+    }
+    if rowsUpdated.(int) != 1 {
+        t.Fatalf("expected 1 row updated, got %d", rowsUpdated.(int))
+    }
+
+    res, err := handler.ExecuteQuery(`
+        SELECT id, age FROM test_users WHERE id = 1
+    `)
+    if err != nil {
+        t.Fatalf("failed to verify updated row: %v", err)
+    }
+    rows := res.([][]any)
+    if len(rows) != 1 || rows[0][1].(int32) != 26 {
+        t.Fatalf("expected id=1 age to be 26 after update, got %#v", rows)
+    }
+
+    // Valid update: multiple columns and a complex WHERE clause.
+    rowsUpdated, err = handler.ExecuteQuery(`
+        UPDATE test_users SET name = 'alice-smith', job = 'lead engineer' WHERE (id = 1 OR id = 3) AND age >= 25
+    `)
+    if err != nil {
+        t.Fatalf("expected multi-column update to succeed, got error: %v", err)
+    }
+    if rowsUpdated.(int) != 2 {
+        t.Fatalf("expected 2 rows updated by complex condition, got %d", rowsUpdated.(int))
+    }
+
+    res, err = handler.ExecuteQuery(`
+        SELECT id, name, job FROM test_users WHERE id = 1 OR id = 3 
+    `)
+    if err != nil {
+        t.Fatalf("failed to read updated rows: %v", err)
+    }
+    rows = res.([][]any)
+    if len(rows) != 2 {
+        t.Fatalf("expected 2 matching updated rows, got %d", len(rows))
+    }
+    found := map[int32]map[string]string{}
+    for _, row := range rows {
+        id := row[0].(int32)
+        found[id] = map[string]string{
+            "name": row[1].(string),
+            "job": row[2].(string),
+        }
+    }
+    if found[1]["name"] != "alice-smith" || found[1]["job"] != "lead engineer" {
+        t.Fatalf("expected row 1 updated to alice-smith / lead engineer, got %#v", found[1])
+    }
+    if found[3]["name"] != "alice-smith" || found[3]["job"] != "lead engineer" {
+        t.Fatalf("expected row 3 to also be updated by the matching OR condition, got %#v", found[3])
+    }
+
+    // Update multiple rows matching a simple condition.
+    rowsUpdated, err = handler.ExecuteQuery(`
+        UPDATE test_users SET job = 'senior' WHERE age >= 30
+    `)
+    if err != nil {
+        t.Fatalf("expected bulk update to succeed, got error: %v", err)
+    }
+    if rowsUpdated.(int) != 3 {
+        t.Fatalf("expected 3 rows updated for age >= 30, got %d", rowsUpdated.(int))
+    }
+
+    res, err = handler.ExecuteQuery(`
+        SELECT id, job FROM test_users WHERE age >= 30
+    `)
+    if err != nil {
+        t.Fatalf("failed to verify bulk updated rows: %v", err)
+    }
+    rows = res.([][]any)
+    if len(rows) != 3 {
+        t.Fatalf("expected 3 rows with age >= 30, got %d", len(rows))
+    }
+    for _, row := range rows {
+        if row[1].(string) != "senior" {
+            t.Fatalf("expected all matching rows to have job='senior', got row %#v", row)
+        }
+    }
+
+    // No rows match: update should be a no-op and return 0.
+    rowsUpdated, err = handler.ExecuteQuery(`
+        UPDATE test_users SET age = 99 WHERE id = 999
+    `)
+    if err != nil {
+        t.Fatalf("expected no-op update to succeed, got error: %v", err)
+    }
+    if rowsUpdated.(int) != 0 {
+        t.Fatalf("expected 0 rows updated for missing id, got %d", rowsUpdated.(int))
+    }
+
+    // Unique constraint violation should fail.
+    _, err = handler.ExecuteQuery(`
+        UPDATE test_users SET email = 'alice@example.com' WHERE id = 2
+    `)
+    if err == nil {
+        t.Fatalf("expected duplicate-email update to fail due to unique constraint")
+    }
+
+    // Invalid type should fail.
+    _, err = handler.ExecuteQuery(`
+        UPDATE test_users SET age = 'not-a-number' WHERE id = 1
+    `)
+    if err == nil {
+        t.Fatalf("expected non-numeric age update to fail")
+    }
+
+    // Invalid varchar length should fail.
+    longName := ""
+    for i := 0; i < 60; i++ { longName += "x" }
+    _, err = handler.ExecuteQuery(`
+        UPDATE test_users SET name = '` + longName + `' WHERE id = 1
+    `)
+    if err == nil {
+        t.Fatalf("expected oversized name update to fail")
+    }
+
+    // Serial primary key cannot be manually updated.
+    _, err = handler.ExecuteQuery(`
+        UPDATE test_users SET id = 10 WHERE id = 1
+    `)
+    if err == nil {
+        t.Fatalf("expected serial primary key update to fail")
+    }
+
+    // Set a column to a duplicate value for a unique field should fail even when row itself is being updated.
+    _, err = handler.ExecuteQuery(`
+        UPDATE test_users SET email = 'dana@example.com' WHERE id = 1
+    `)
+    if err == nil {
+        t.Fatalf("expected update to duplicate existing unique email to fail")
+    }
+
+    // Valid multi-column update should apply all assignments together.
+    rowsUpdated, err = handler.ExecuteQuery(`
+        UPDATE test_users SET age = 101, job = 'director' WHERE id = 2
+    `)
+    if err != nil {
+        t.Fatalf("expected valid multi-column update to succeed, got error: %v", err)
+    }
+    if rowsUpdated.(int) != 1 {
+        t.Fatalf("expected 1 row updated by valid multi-column update, got %d", rowsUpdated.(int))
+    }
+
+    res, err = handler.ExecuteQuery(`
+        SELECT id, age, job FROM test_users WHERE id = 2
+    `)
+    if err != nil {
+        t.Fatalf("failed to verify valid multi-column update: %v", err)
+    }
+    rows = res.([][]any)
+    if len(rows) != 1 || rows[0][1].(int32) != 101 || rows[0][2].(string) != "director" {
+        t.Fatalf("expected row 2 to be updated to age=101, job='director', got %#v", rows)
+    }
+}
 
 // createTable is a small helper that executes a CREATE TABLE SQL and returns the error (if any).
 func createTable(handler *parser.QueryHandler, t *testing.T, sql string) error {
