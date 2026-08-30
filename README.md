@@ -1,8 +1,8 @@
 # Custom Relational Database Engine
 
-A relational database engine built from scratch in Go, implementing the storage, indexing, and query execution mechanisms behind modern databases.
+A relational database engine built from scratch in Go, implementing the storage, indexing, and query execution mechanisms.
 
-The engine uses **4KB slotted pages**, a custom **LRU buffer pool**, and a **type-agnostic B+Tree** for persistent, logarithmic-time indexing. On top of that sits a hand-written **SQL tokenizer, parser, and executor** — `CREATE TABLE`, `INSERT`, and `SELECT` (with column projection and `WHERE` clauses supporting `AND`/`OR`/parentheses) all run as real SQL text, not just direct Go function calls. It also supports secondary indexes, constraints, foreign keys, NULL handling, and multiple binary data types.
+The engine uses **4KB slotted pages**, a custom **LRU buffer pool**, and a **type-agnostic B+Tree** for persistent, logarithmic-time indexing. On top of that sits a hand-written **SQL tokenizer, parser, and executor** supporting full CRUD — `CREATE TABLE`, `INSERT`, `SELECT` (with column projection and `WHERE` clauses supporting `AND`/`OR`/parentheses), `UPDATE`, and `DELETE` all run as real SQL text, not just direct Go function calls. It also supports secondary indexes, constraints, foreign keys, NULL handling, and multiple binary data types.
 
 ## Core Engine Features
 
@@ -12,9 +12,11 @@ A hand-written tokenizer, recursive-descent parser, and executor sitting above t
 
 - **Tokenizer:** converts raw SQL text into typed tokens (keywords, identifiers, literals, operators), with case-insensitive keyword matching and quoted string literal handling.
 - **WHERE-clause expression parser:** builds a binary expression tree from `AND`/`OR`/parenthesized conditions with correct operator precedence (`AND` binds tighter than `OR`) and support for nested grouping — derived independently rather than via a standard precedence-climbing algorithm.
-- **Statement interface:** each statement type (`SelectStatement`, `InsertStatement`, `CreateTableStatement`) implements a common `Execute` method, so adding a new statement type is enforced at compile time rather than requiring a manually-maintained dispatch table.
+- **Statement interface:** each statement type (`SelectStatement`, `InsertStatement`, `CreateTableStatement`, `UpdateStatement`, `DeleteStatement`) implements a common `Execute` method, so adding a new statement type is enforced at compile time rather than requiring a manually-maintained dispatch table.
 - **Query planning:** a `SELECT` with a single indexable condition routes directly through the B+Tree; multi-condition queries fall back to walking the expression tree against a linear scan.
 - **Column projection:** `SELECT id, name FROM ...` returns only the requested columns, reading and validating rows via direct column-offset seeks rather than deserializing full rows unnecessarily.
+- **UPDATE:** re-validates constraints (`UNIQUE`, foreign keys, `NOT NULL`/`DEFAULT`, `Serial` immutability) against the new values before committing. Fixed-size, non-indexed columns are updated in place; a size-changing update or a change to an indexed column falls back to delete-and-reinsert, keeping every index in sync with the row's new location.
+- **DELETE:** removes matching rows via in-page entry compaction and slot reclamation (freed slots are reused by the next insert into that page); page-level rebalancing across the B+Tree is deliberately out of scope, a scoping decision made after estimating its cost-to-benefit ratio at this project's scale.
 
 ### 2. B+Tree Indexing
 
@@ -29,14 +31,14 @@ A recursive, type-agnostic B+Tree supporting O(log n) key lookups, indexing both
 
 ### 3. Schema, Constraints & Relational Integrity
 
-A full schema layer sitting above the storage engine, enforced directly in the insert path rather than left to the caller.
+A full schema layer sitting above the storage engine, enforced directly in the insert and update paths rather than left to the caller.
 
 - **Secondary indexes:** any column, not just the primary key, can have its own B+Tree, letting the engine choose the right index for a given lookup rather than always falling back to a full scan.
 - **NULL handling via a null bitmap:** each row carries a compact bitmap marking which columns are null, avoiding the need to reserve space or sentinel values for absent data.
-- **NOT NULL and UNIQUE constraints:** validated at insert time, before a row is committed to a page.
+- **NOT NULL and UNIQUE constraints:** validated at insert and update time, before a row is committed to a page.
 - **DEFAULT values:** static defaults for any type, plus a distinct `Serial` type backed by a per-table auto-incrementing counter stored in table metadata.
 - **Fixed-width `VarChar(N)`:** strings are stored in a constant-size slot (`N + 1` bytes: a 1-byte length prefix plus up to `N` bytes of content), keeping B+Tree entry sizes uniform and making string columns indexable with the same offset math as fixed-width integer types.
-- **Foreign keys:** column-level references to other tables, enforced during insert.
+- **Foreign keys:** column-level references to other tables, enforced during insert and update.
 
 ### 4. Slotted Page Architecture
 
@@ -128,7 +130,6 @@ A warm hit is roughly **118x faster** than a cold read, and allocates nothing �
 - [x] B+Tree Indexing — insertion, page-splitting, multi-level root growth, and search, verified at 1M+ rows for both integer and string keys
 - [x] Secondary Indexes
 - [x] Constraints — NOT NULL, UNIQUE, DEFAULT, Serial, Foreign Keys, null-bitmap NULL handling
-- [x] SQL Query Engine — tokenizer, parser, and executor for `CREATE TABLE`, `INSERT`, `DELETE` and `SELECT` (with column projection and `WHERE` clause support)
-- [x] Unit test suite covering buffer pool, metadata pages, B+Tree, and WHERE-clause parsing
-- [ ] `UPDATE`
-- [ ] Concurrency Control: thread-safe access and locking (lock-coupling / crabbing design worked out, implementation pending)
+- [x] SQL Query Engine — tokenizer, parser, and executor for full CRUD: `CREATE TABLE`, `INSERT`, `SELECT` (with column projection and `WHERE` clause support), `UPDATE`, `DELETE`
+- [x] Unit test suite covering buffer pool, metadata pages, B+Tree, and the storage layer
+- [ ] Concurrency Control: thread-safe access and locking 
