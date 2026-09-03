@@ -13,8 +13,11 @@ func newEmptySQLTestEngine(t *testing.T) *parser.QueryHandler {
     t.Helper()
 
     dbPath := filepath.Join(t.TempDir(), "sql-test.db")
-
-    return parser.InitializeQueryHandler(dbPath)
+    qh , err := parser.InitializeQueryHandler(dbPath)
+    if err != nil {
+        t.Fatalf("failed to initialize query handler: %v", err)
+    }
+    return qh
 }
 
 

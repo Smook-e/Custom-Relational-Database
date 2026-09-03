@@ -11,9 +11,12 @@ func newEmptySQLTestEngine(t *testing.T) *QueryHandler {
     t.Helper()
 
     dbPath := filepath.Join(t.TempDir(), "sql-test.db")
-    return InitializeQueryHandler(dbPath)
+    qh , err := InitializeQueryHandler(dbPath)
+    if err != nil {
+        t.Fatalf("failed to initialize query handler: %v", err)
+    }
+    return qh
 }
-
 func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
     handler := newEmptySQLTestEngine(t)
 
