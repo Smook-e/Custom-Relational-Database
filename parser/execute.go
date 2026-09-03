@@ -122,3 +122,7 @@ func InitializeQueryHandler(fileName string) (*QueryHandler, error) {
 		engine: engine,
 	}, nil
 }
+
+func (qh *QueryHandler) Close() error {
+	return qh.engine.Close()
+}
