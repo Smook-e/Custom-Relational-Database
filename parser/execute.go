@@ -11,11 +11,11 @@ type QueryHandler struct {
 
 
 type Query interface {
-	Execute(engine *storage.StorageEngine) (QueryResult, error)
+	Execute(engine *storage.StorageEngine) (*QueryResult, error)
 	Parse(p *Parser) ( error)
 }
 type QueryResult struct {
-	result any
+	Result any
 	QueryType string
 	columns []string
 }
@@ -37,66 +37,66 @@ func GetQueryType(p *Parser) Query {
 	}
 }
 
-func (q *CreateTableQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
+func (q *CreateTableQuery) Execute(engine *storage.StorageEngine) (*QueryResult, error) {
 	err :=engine.CreateTable(q.TableName, q.Columns, q.ForeignKeys)
 	if err != nil {
-		return QueryResult{result: "Failed to create table"}, err
+		return &QueryResult{Result: "Failed to create table"}, err
 	}
 	qr := QueryResult{
-		result: fmt.Sprintf("Table %s created successfully", q.TableName),
+		Result: fmt.Sprintf("Table %s created successfully", q.TableName),
 		QueryType: "CREATE TABLE",
 	}
-	return qr, nil
+	return &qr, nil
 }
 
-func (q *SelectQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
+func (q *SelectQuery) Execute(engine *storage.StorageEngine) (*QueryResult, error) {
 	result, cols, err := engine.Search(q.TableName,q.Columns, q.Where)
 	if err != nil {
-		return QueryResult{result: "Failed to execute SELECT query"}, err
+		return &QueryResult{Result: result}, err
 	}
 	qr := QueryResult{
-		result: result,
+		Result: result,
 		QueryType: "SELECT",
 		columns: cols,
 	}
-	return qr, nil
+	return	&qr, nil
 }
 
-func (q *InsertQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
+func (q *InsertQuery) Execute(engine *storage.StorageEngine) (*QueryResult, error) {
 	result, err := engine.Insert(q.TableName, q.Columns, q.Values)
 	if err != nil {
-		return QueryResult{result: "Failed to execute INSERT query"}, err
+		return &QueryResult{Result: result}, err
 	}
 	qr := QueryResult{
-		result: result,
+		Result: result,
 		QueryType: "INSERT",
 	}
-	return qr, nil
+	return &qr, nil
 }
-func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
+func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (*QueryResult, error) {
 	result, err := engine.Delete(q.TableName, q.Where)
 	if err != nil {
-		return QueryResult{result: "Failed to execute DELETE query"}, err
+		return &QueryResult{Result: result}, err
 	}
 	qr := QueryResult{
-		result: result,
+		Result: result,
 		QueryType: "DELETE",
 	}
-	return  qr, nil
+	return  &qr, nil
 } 
-func (q *UpdateQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
+func (q *UpdateQuery) Execute(engine *storage.StorageEngine) (*QueryResult, error) {
 	result, err := engine.Update(q.TableName,  q.Where, q.SetClauses)
 	if err != nil {
-		return QueryResult{result: "Failed to execute UPDATE query"}, err
+		return &QueryResult{Result: result}, err
 	}
 	qr := QueryResult{
-		result: result,
+		Result: result,
 		QueryType: "UPDATE",
 	}
-	return  qr, nil
+	return  &qr, nil
 }
 
-func (Q *QueryHandler) ExecuteQuery(query string) (any, error) {
+func (Q *QueryHandler) ExecuteQuery(query string) (*QueryResult, error) {
 	tokens, err := Tokenize(query)
 	if err != nil {
 		return nil, fmt.Errorf("Syntax Error: %w", err)

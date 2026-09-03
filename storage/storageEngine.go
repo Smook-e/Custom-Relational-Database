@@ -447,7 +447,7 @@ func (engine *StorageEngine) Delete(tableName string, expr *Expression) (int, er
 				pageId, slot, err := engine.IndexSearch(rootID, condition.Value, column)
 				
 				if errors.Is(err, errKeyNotFound) {
-					return 0, err
+					return 0, nil
 				}else {
 					// If the key is found, Delete the row
 					dataBuffer, err := engine.Bp.Get(pageId)

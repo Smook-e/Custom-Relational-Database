@@ -54,9 +54,9 @@ func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
         t.Fatalf("SELECT query failed: %v", err)
     }
 
-    rows, ok := result.([][]any)
+    rows, ok := result.Result.([][]any)
     if !ok {
-        t.Fatalf("expected [][]any result, got %T", result)
+        t.Fatalf("expected [][]any result, got %T", result.Result)
     }
 
     if len(rows) != 1 {
@@ -114,9 +114,9 @@ func TestSQL_InsertMultipleRows_ThenSelectAll(t *testing.T) {
         t.Fatalf("SELECT failed: %v", err)
     }
 
-    rows, ok := result.([][]any)
+    rows, ok := result.Result.([][]any)
     if !ok {
-        t.Fatalf("expected [][]any result, got %T", result)
+        t.Fatalf("expected [][]any result, got %T", result.Result)
     }
 
     if len(rows) != 1 {

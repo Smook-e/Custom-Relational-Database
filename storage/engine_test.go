@@ -1,13 +1,9 @@
 package storage_test
 
 import (
-	// "errors"
-	// "fmt"
+
 	"testing"
 
-	
-
-	// "github.com/Smook-e/Custom-Relational-Database/entities"
 	"path/filepath"
 
 	"github.com/Smook-e/Custom-Relational-Database/parser"
@@ -142,8 +138,8 @@ func TestEngineSelect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to execute query: %v", err)
 	}
-	if inserted.(int) != 6 {
-		t.Fatalf("expected 6 rows inserted, got %d", inserted.(int))
+	if inserted.Result.(int) != 6 {
+		t.Fatalf("expected 6 rows inserted, got %d", inserted.Result.(int))
 	}
 
     // Select specific columns
@@ -153,7 +149,7 @@ func TestEngineSelect(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute select query: %v", err)
     }
-    rows := res.([][]any)
+    rows := res.Result.([][]any)
     if len(rows) != 6 {
         t.Fatalf("expected 6 rows from select, got %d", len(rows))
     }
@@ -169,7 +165,7 @@ func TestEngineSelect(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute complex where select: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     // Expect alice (id 1) and charlie (id 3)
     if len(rows) != 2 {
         t.Fatalf("expected 2 rows from complex where, got %d", len(rows))
@@ -190,7 +186,7 @@ func TestEngineSelect(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute job OR select: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     if len(rows) != 2 {
         t.Fatalf("expected 2 rows for job filter, got %d", len(rows))
     }
@@ -202,7 +198,7 @@ func TestEngineSelect(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute age filter select: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     if len(rows) != 2 {
         t.Fatalf("expected 2 rows for age > 40, got %d", len(rows))
     }
@@ -253,7 +249,7 @@ func TestEngineDelete(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute select query: %v", err)
     }
-    rows := res.([][]any)
+    rows := res.Result.([][]any)
     if len(rows) != 5 {
         t.Fatalf("expected 5 rows after delete, got %d", len(rows))
     }
@@ -267,8 +263,11 @@ func TestEngineDelete(t *testing.T) {
     rowsDeleted, err := handler.ExecuteQuery(`
         DELETE FROM test_users WHERE id = 999
     `)
-    if rowsDeleted.(int) != 0 {
-        t.Fatalf("expected 0 rows deleted for non-existent user, got %d", rowsDeleted.(int))
+    if err != nil {
+        t.Fatalf("failed to execute delete query for non-existent user: %v", err)
+    }
+    if rowsDeleted.Result.(int) != 0 {
+        t.Fatalf("expected 0 rows deleted for non-existent user, got %d", rowsDeleted.Result.(int))
     }
 
     //Delete multiple users with a condition
@@ -286,7 +285,7 @@ func TestEngineDelete(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute select query after delete: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     for _, r := range rows {
         if r[2].(int32) >= 40 {
             t.Fatalf("expected no users with age >= 40 after delete, but found user with age %d", r[2].(int32))
@@ -323,7 +322,7 @@ func TestEngineDelete(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute select query after deleting all: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     if len(rows) != 0 {
         t.Fatalf("expected 0 rows after deleting all users, got %d", len(rows))
     }
@@ -335,8 +334,8 @@ func TestEngineDelete(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to execute delete on empty table: %v", err)
     }
-    if rowsDeleted.(int) != 0 {
-        t.Fatalf("expected 0 rows deleted from empty table, got %d", rowsDeleted.(int))
+    if rowsDeleted.Result.(int) != 0 {
+        t.Fatalf("expected 0 rows deleted from empty table, got %d", rowsDeleted.Result.(int))
     }
     // Attempt to insert a user after deletion to ensure table is still functional
     _, err = handler.ExecuteQuery(`
@@ -352,7 +351,7 @@ func TestEngineDelete(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to select newly inserted user: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     if len(rows) != 1 || rows[0][1].(string) != "grace" {
         t.Fatalf("expected to find newly inserted user 'grace', but did not")
     }
@@ -415,8 +414,8 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("expected valid single-row update to succeed, got error: %v", err)
     }
-    if rowsUpdated.(int) != 1 {
-        t.Fatalf("expected 1 row updated, got %d", rowsUpdated.(int))
+    if rowsUpdated.Result.(int) != 1 {
+        t.Fatalf("expected 1 row updated, got %d", rowsUpdated.Result.(int))
     }
 
     res, err := handler.ExecuteQuery(`
@@ -425,7 +424,7 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to verify updated row: %v", err)
     }
-    rows := res.([][]any)
+    rows := res.Result.([][]any)
     if len(rows) != 1 || rows[0][1].(int32) != 26 {
         t.Fatalf("expected id=1 age to be 26 after update, got %#v", rows)
     }
@@ -437,8 +436,8 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("expected multi-column update to succeed, got error: %v", err)
     }
-    if rowsUpdated.(int) != 2 {
-        t.Fatalf("expected 2 rows updated by complex condition, got %d", rowsUpdated.(int))
+    if rowsUpdated.Result.(int) != 2 {
+        t.Fatalf("expected 2 rows updated by complex condition, got %d", rowsUpdated.Result.(int))
     }
 
     res, err = handler.ExecuteQuery(`
@@ -447,7 +446,7 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to read updated rows: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     if len(rows) != 2 {
         t.Fatalf("expected 2 matching updated rows, got %d", len(rows))
     }
@@ -473,8 +472,8 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("expected bulk update to succeed, got error: %v", err)
     }
-    if rowsUpdated.(int) != 3 {
-        t.Fatalf("expected 3 rows updated for age >= 30, got %d", rowsUpdated.(int))
+    if rowsUpdated.Result.(int) != 3 {
+        t.Fatalf("expected 3 rows updated for age >= 30, got %d", rowsUpdated.Result.(int))
     }
 
     res, err = handler.ExecuteQuery(`
@@ -483,7 +482,7 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to verify bulk updated rows: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     if len(rows) != 3 {
         t.Fatalf("expected 3 rows with age >= 30, got %d", len(rows))
     }
@@ -500,8 +499,8 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("expected no-op update to succeed, got error: %v", err)
     }
-    if rowsUpdated.(int) != 0 {
-        t.Fatalf("expected 0 rows updated for missing id, got %d", rowsUpdated.(int))
+    if rowsUpdated.Result.(int) != 0 {
+        t.Fatalf("expected 0 rows updated for missing id, got %d", rowsUpdated.Result.(int))
     }
 
     // Unique constraint violation should fail.
@@ -553,8 +552,8 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("expected valid multi-column update to succeed, got error: %v", err)
     }
-    if rowsUpdated.(int) != 1 {
-        t.Fatalf("expected 1 row updated by valid multi-column update, got %d", rowsUpdated.(int))
+    if rowsUpdated.Result.(int) != 1 {
+        t.Fatalf("expected 1 row updated by valid multi-column update, got %d", rowsUpdated.Result.(int))
     }
 
     res, err = handler.ExecuteQuery(`
@@ -563,7 +562,7 @@ func TestEngineUpdate(t *testing.T) {
     if err != nil {
         t.Fatalf("failed to verify valid multi-column update: %v", err)
     }
-    rows = res.([][]any)
+    rows = res.Result.([][]any)
     if len(rows) != 1 || rows[0][1].(int32) != 101 || rows[0][2].(string) != "director" {
         t.Fatalf("expected row 2 to be updated to age=101, job='director', got %#v", rows)
     }
