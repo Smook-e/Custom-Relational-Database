@@ -63,7 +63,15 @@ func (q *SelectQuery) Execute(engine *storage.StorageEngine) (QueryResult, error
 }
 
 func (q *InsertQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
-	return engine.Insert(q.TableName, q.Columns, q.Values)
+	result, err := engine.Insert(q.TableName, q.Columns, q.Values)
+	if err != nil {
+		return QueryResult{result: "Failed to execute INSERT query"}, err
+	}
+	qr := QueryResult{
+		result: result,
+		QueryType: "INSERT",
+	}
+	return qr, nil
 }
 func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return engine.Delete(q.TableName, q.Where)
