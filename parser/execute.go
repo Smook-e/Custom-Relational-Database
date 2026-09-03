@@ -11,9 +11,15 @@ type QueryHandler struct {
 
 
 type Query interface {
-	Execute(engine *storage.StorageEngine) (any, error)
+	Execute(engine *storage.StorageEngine) (QueryResult, error)
 	Parse(p *Parser) ( error)
 }
+type QueryResult struct {
+	result any
+	QueryType string
+	columns []string
+}
+
 func GetQueryType(p *Parser) Query {
 	switch p.Peek().Value {
 	case "SELECT":
@@ -31,20 +37,20 @@ func GetQueryType(p *Parser) Query {
 	}
 }
 
-func (q *CreateTableQuery) Execute(engine *storage.StorageEngine) (any, error) {
+func (q *CreateTableQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return true, engine.CreateTable(q.TableName, q.Columns, q.ForeignKeys)
 }
-func (q *SelectQuery) Execute(engine *storage.StorageEngine) (any, error) {
+func (q *SelectQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return engine.Search(q.TableName,q.Columns, q.Where)
 }
 
-func (q *InsertQuery) Execute(engine *storage.StorageEngine) (any, error) {
+func (q *InsertQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return engine.Insert(q.TableName, q.Columns, q.Values)
 }
-func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (any, error) {
+func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return engine.Delete(q.TableName, q.Where)
 }
-func (q *UpdateQuery) Execute(engine *storage.StorageEngine) (any, error) {
+func (q *UpdateQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return engine.Update(q.TableName,  q.Where, q.SetClauses)
 }
 
