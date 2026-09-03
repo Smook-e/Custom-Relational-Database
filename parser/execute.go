@@ -85,7 +85,15 @@ func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (QueryResult, error
 	return  qr, nil
 } 
 func (q *UpdateQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
-	return engine.Update(q.TableName,  q.Where, q.SetClauses)
+	result, err := engine.Update(q.TableName,  q.Where, q.SetClauses)
+	if err != nil {
+		return QueryResult{result: "Failed to execute UPDATE query"}, err
+	}
+	qr := QueryResult{
+		result: result,
+		QueryType: "UPDATE",
+	}
+	return  qr, nil
 }
 
 func (Q *QueryHandler) ExecuteQuery(query string) (any, error) {
