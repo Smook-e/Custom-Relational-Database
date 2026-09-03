@@ -30,6 +30,15 @@ func MainLoop() {
         if line == "" {
             continue
         }
+		if strings.HasPrefix(line, "\\") || strings.HasPrefix(line, ".") {
+			quit := strings.HasPrefix(line, "\\q") || strings.HasPrefix(line, ".quit")
+			if quit {
+				break
+			}
+			handleMetaCommand(line, qh)
+			continue
+		}
+
 		_ , err := qh.ExecuteQuery(line)
 		if err != nil {
 			fmt.Printf("Error executing query: %v\n", err)
