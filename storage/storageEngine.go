@@ -321,11 +321,11 @@ func (engine *StorageEngine) NewPage() (uint32, error) {
 }
 
 
-func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expression) ([][]any, error) {
+func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expression) ([][]any,[]string, error) {
 	// Get the table object from the database
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
-		return nil, fmt.Errorf("Table %s not found", tableName)
+		return nil, nil, fmt.Errorf("Table %s not found", tableName)
 	}
 	if cols[0] == "*" {
 		cols = make([]string, len(table.Columns))
@@ -336,7 +336,7 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 		// Validate that the specified columns exist in the table
 		for _, colName := range cols {
 			if _, err := table.GetColumnByName(colName); err != nil {
-				return nil, fmt.Errorf("Column %s not found in table %s", colName, tableName)
+				return nil, nil, fmt.Errorf("Column %s not found in table %s", colName, tableName)
 			}
 		}
 	}
@@ -344,7 +344,7 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 	if expr != nil { 
 		err := SerializeSearchExpression(expr, table)
 		if err != nil {
-			return nil, fmt.Errorf("An Error Occured %w", err)
+			return nil, nil, fmt.Errorf("An Error Occured %w", err)
 		}
 	}
 
@@ -359,25 +359,25 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 				pageId, slot, _ := engine.IndexSearch(rootID, condition.Value, column)
 				
 				if pageId == 0 && slot == 0 {
-					return [][]any{}, nil
+					return [][]any{}, nil, nil
 				}else {
 					// If the key is found, read the row
 					dataBuffer, err := engine.Bp.Get(pageId)
 					if err != nil {
-						return nil, fmt.Errorf("An Error Occured %w", err)
+						return nil, nil, fmt.Errorf("An Error Occured %w", err)
 					}
 					tableOffset, err  := pages.GetDataPageSlotOffset(dataBuffer, slot)
 					if errors.Is(err, pages.ErrRowNotFound){
-						return [][]any{}, nil
+						return [][]any{}, nil, nil
 					}
 					if err != nil {
-						return nil,fmt.Errorf("an error occured while Reading Row: %w", err)
+						return nil, nil, fmt.Errorf("an error occured while Reading Row: %w", err)
 					}
 					row, err := engine.ReadRow(tableName, cols, columnOffsets,dataBuffer, tableOffset)
 					if err != nil {
-						return nil, fmt.Errorf("An Error Occured %w", err)
+						return nil, nil, fmt.Errorf("An Error Occured %w", err)
 					}
-					return [][]any{row}, nil
+					return [][]any{row}, cols, nil
 				}
 
 			}
@@ -387,10 +387,10 @@ func (engine *StorageEngine) Search(tableName string, cols []string, expr *Expre
 	// If the condition is more complex or the column doesn't have an index, use linear search
 	results, err := engine.LinearSearch(tableName,cols,columnOffsets, expr)
 	if err != nil {
-		return nil, fmt.Errorf("An Error Occured %w", err)
+		return nil, nil, fmt.Errorf("An Error Occured %w", err)
 	}
 
-	return results, nil
+	return results, cols, nil
 }
 
 func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]string) (int, error) {

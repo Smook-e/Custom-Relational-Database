@@ -50,7 +50,16 @@ func (q *CreateTableQuery) Execute(engine *storage.StorageEngine) (QueryResult, 
 }
 
 func (q *SelectQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
-	return engine.Search(q.TableName,q.Columns, q.Where)
+	result, cols, err := engine.Search(q.TableName,q.Columns, q.Where)
+	if err != nil {
+		return QueryResult{result: "Failed to execute SELECT query"}, err
+	}
+	qr := QueryResult{
+		result: result,
+		QueryType: "SELECT",
+		columns: cols,
+	}
+	return qr, nil
 }
 
 func (q *InsertQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
