@@ -74,8 +74,16 @@ func (q *InsertQuery) Execute(engine *storage.StorageEngine) (QueryResult, error
 	return qr, nil
 }
 func (q *DeleteQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
-	return engine.Delete(q.TableName, q.Where)
-}
+	result, err := engine.Delete(q.TableName, q.Where)
+	if err != nil {
+		return QueryResult{result: "Failed to execute DELETE query"}, err
+	}
+	qr := QueryResult{
+		result: result,
+		QueryType: "DELETE",
+	}
+	return  qr, nil
+} 
 func (q *UpdateQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return engine.Update(q.TableName,  q.Where, q.SetClauses)
 }
