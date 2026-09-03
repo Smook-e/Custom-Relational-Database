@@ -126,3 +126,9 @@ func InitializeQueryHandler(fileName string) (*QueryHandler, error) {
 func (qh *QueryHandler) Close() error {
 	return qh.engine.Close()
 }
+func (qh *QueryHandler) PrintTables() {
+	qh.engine.PrintTables()
+}
+func (qh *QueryHandler) PrintTable(tableName string) error {
+	return qh.engine.PrintTable(tableName)
+}
