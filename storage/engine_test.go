@@ -5,7 +5,7 @@ import (
 	// "fmt"
 	"testing"
 
-	"github.com/Smook-e/Custom-Relational-Database/storage"
+	
 
 	// "github.com/Smook-e/Custom-Relational-Database/entities"
 	"path/filepath"
@@ -18,12 +18,7 @@ func newEmptySQLTestEngine(t *testing.T) *parser.QueryHandler {
 
     dbPath := filepath.Join(t.TempDir(), "sql-test.db")
 
-    engine, err := storage.InitializeStorageEngine(dbPath)
-    if err != nil {
-        t.Fatalf("failed to initialize storage engine: %v", err)
-    }
-
-    return parser.InitializeQueryHandler(engine)
+    return parser.InitializeQueryHandler(dbPath)
 }
 
 

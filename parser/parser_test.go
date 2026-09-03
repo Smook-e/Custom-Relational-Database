@@ -17,7 +17,7 @@ func newEmptySQLTestEngine(t *testing.T) *QueryHandler {
         t.Fatalf("failed to initialize storage engine: %v", err)
     }
 
-    return InitializeQueryHandler(engine)
+    return InitializeQueryHandler(dbPath)
 }
 
 func TestSQL_CreateTable_ThenInsert_ThenSelect(t *testing.T) {
