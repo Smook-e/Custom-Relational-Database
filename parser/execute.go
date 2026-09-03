@@ -38,8 +38,17 @@ func GetQueryType(p *Parser) Query {
 }
 
 func (q *CreateTableQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
-	return true, engine.CreateTable(q.TableName, q.Columns, q.ForeignKeys)
+	err :=engine.CreateTable(q.TableName, q.Columns, q.ForeignKeys)
+	if err != nil {
+		return QueryResult{result: "Failed to create table"}, err
+	}
+	qr := QueryResult{
+		result: fmt.Sprintf("Table %s created successfully", q.TableName),
+		QueryType: "CREATE TABLE",
+	}
+	return qr, nil
 }
+
 func (q *SelectQuery) Execute(engine *storage.StorageEngine) (QueryResult, error) {
 	return engine.Search(q.TableName,q.Columns, q.Where)
 }
