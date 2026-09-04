@@ -35,3 +35,54 @@ func handleMetaCommand(line string, qh *parser.QueryHandler) {
         fmt.Println("unknown command:", line)
     }
 }
+func printSelectResult(columns []string, rows [][]any) {
+    if len(rows) == 0 {
+        fmt.Println("(0 rows)")
+        return
+    }
+
+    // Compute each column's display width: max of header length and every value's length
+    widths := make([]int, len(columns))
+    for i, col := range columns {
+        widths[i] = len(col)
+    }
+    strRows := make([][]string, len(rows))
+    for r, row := range rows {
+        strRows[r] = make([]string, len(row))
+        for i, val := range row {
+            s := formatValue(val)
+            strRows[r][i] = s
+            if len(s) > widths[i] {
+                widths[i] = len(s)
+            }
+        }
+    }
+
+    printRow(columns, widths)
+    printSeparator(widths)
+    for _, row := range strRows {
+        printRow(row, widths)
+    }
+    fmt.Printf("(%d rows)\n", len(rows))
+}
+
+func formatValue(val any) string {
+    if val == nil {
+        return "NULL"
+    }
+    return fmt.Sprintf("%v", val)
+}
+
+func printRow(values []string, widths []int) {
+    for i, v := range values {
+        fmt.Printf("| %-*s ", widths[i], v)
+    }
+    fmt.Println("|")
+}
+
+func printSeparator(widths []int) {
+    for _, w := range widths {
+        fmt.Print("+" + strings.Repeat("-", w+2))
+    }
+    fmt.Println("+")
+}
