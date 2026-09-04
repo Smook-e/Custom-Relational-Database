@@ -132,3 +132,6 @@ func (qh *QueryHandler) PrintTables() {
 func (qh *QueryHandler) PrintTable(tableName string) error {
 	return qh.engine.PrintTable(tableName)
 }
+func (qh *QueryHandler) Commit() error {
+	return qh.engine.Commit()
+}
