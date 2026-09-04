@@ -51,7 +51,6 @@ func (engine *StorageEngine) Commit() error {
 		}
 		engine.metaWrite = false
 	}
-	fmt.Println("Committed Changes to disk successfully")
 	return nil
 }
 func (engine *StorageEngine) PrintTables() {
@@ -135,16 +134,16 @@ func InitializeStorageEngine(filename string) (*StorageEngine, error) {
 		// }
 		
 		
-		if err := engine.CreateTable("users", []entities.ColumnDefinition{
-			{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
-			{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "anonymous"},
-			{Name: "email", DataType: "varchar(30)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
-			{Name: "phone_number", DataType: "varchar(15)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
-			{Name: "age", DataType: "int", Constraints: []string{}},
-			{Name: "job", DataType: "varchar", Constraints: []string{}},
-		}, []entities.ForeignKeyDefinition{}); err != nil {
-			return nil, fmt.Errorf("failed to create users table: %w", err)
-		}
+		// if err := engine.CreateTable("users", []entities.ColumnDefinition{
+		// 	{Name: "id", DataType: "serial", Constraints: []string{"primarykey"}},
+		// 	{Name: "name", DataType: "varchar(50)", Constraints: []string{"notnull", "default"}, Default: "anonymous"},
+		// 	{Name: "email", DataType: "varchar(30)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
+		// 	{Name: "phone_number", DataType: "varchar(15)", Constraints: []string{"notnull","unique", "default"}, Default: "unknown"},
+		// 	{Name: "age", DataType: "int", Constraints: []string{}},
+		// 	{Name: "job", DataType: "varchar", Constraints: []string{}},
+		// }, []entities.ForeignKeyDefinition{}); err != nil {
+		// 	return nil, fmt.Errorf("failed to create users table: %w", err)
+		// }
 		
 		// if err := engine.CreateTable("orders", []entities.ColumnDefinition{
 		// 	{Name: "user_id", DataType: "int", Constraints: []string{"primarykey", "notnull"}},

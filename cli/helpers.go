@@ -24,6 +24,13 @@ func handleMetaCommand(line string, qh *parser.QueryHandler) {
             fmt.Println(err)
             return
         }
+    case line == "\\w" || line == ".commit":
+        err := qh.Commit()
+        if err != nil {
+            fmt.Println("Error committing changes:", err)
+        } else {
+            fmt.Println("Changes committed successfully.")
+        }
 
     case line == "\\?" || line == "help":
         fmt.Println("\\t          list tables")
