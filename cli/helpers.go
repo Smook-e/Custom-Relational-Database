@@ -86,3 +86,24 @@ func printSeparator(widths []int) {
     }
     fmt.Println("+")
 }
+
+func printQueryResult(qr *parser.QueryResult) {
+    if qr == nil {
+        fmt.Println("No result to display.")
+        return
+    }
+    switch qr.QueryType {
+        case "SELECT":
+            printSelectResult(qr.Columns, qr.Result.([][]any))
+        case "INSERT":
+            fmt.Printf("Inserted %d rows", qr.Result.(int))
+        case "UPDATE":
+            fmt.Printf("Updated %d rows", qr.Result.(int))
+        case "DELETE":
+            fmt.Printf("Deleted %d rows", qr.Result.(int))
+        case "CREATE TABLE":
+            fmt.Println(qr.Result)
+        default:
+            fmt.Println(qr.Result)
+    }
+}

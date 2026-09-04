@@ -17,7 +17,7 @@ type Query interface {
 type QueryResult struct {
 	Result any
 	QueryType string
-	columns []string
+	Columns []string
 }
 
 func GetQueryType(p *Parser) Query {
@@ -57,7 +57,7 @@ func (q *SelectQuery) Execute(engine *storage.StorageEngine) (*QueryResult, erro
 	qr := QueryResult{
 		Result: result,
 		QueryType: "SELECT",
-		columns: cols,
+		Columns: cols,
 	}
 	return	&qr, nil
 }
