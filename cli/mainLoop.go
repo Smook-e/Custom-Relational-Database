@@ -2,7 +2,6 @@ package cli
 import (
 	"github.com/Smook-e/Custom-Relational-Database/parser"
 	"fmt"
-	"bufio"
 	"strings"
 	"os"
 	"golang.org/x/term"
@@ -16,20 +15,25 @@ func MainLoop() {
 		return
 	}
 	defer qh.Close()
-	scanner := bufio.NewScanner(os.Stdin)
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		fmt.Printf("Error setting raw mode: %v\n", err)
+		return
+	}
+	// Crucial: Restore original terminal settings when the program exits!
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
+	// 2. Use term.Terminal to handle line editing, cursor movement, and pasting natively
+	t := term.NewTerminal(os.Stdin, "> ")
 	var buffer []string
 
-	fmt.Println("SQL Engine initialized. Enter your SQL commands below.\nType '\\q' to exit.\nType '\\w' or '.commit' to write changes to disk.\nType '\\h' for help.")
+	fmt.Print("SQL Engine initialized. Enter your SQL commands below.\r\nType '\\q' to exit.\r\nType '\\w' or '.commit' to write changes to disk.\r\nType '\\h' for help.", "\r\n")
 	for {
-		if len(buffer) == 0 {
-			fmt.Print("> ")
-		} else {
-			fmt.Print("-> ")
+		
+		line, err := t.ReadLine()
+		if err != nil {// Ctrl + c
+			break 
 		}
-		if !scanner.Scan() {
-			break
-		}
-		line := scanner.Text()
 		trimmedLine := strings.TrimSpace(line)
 		if trimmedLine == "" {
 			continue
@@ -53,10 +57,14 @@ func MainLoop() {
 			buffer = buffer[:0] // Clear the buffer
 			qr, err := qh.ExecuteQuery(fullQuery)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Print(err, "\r\n")
 				continue
 			}
 			printQueryResult(qr)
+			t.SetPrompt("> ") 
+		}else {
+			// Change prompt to continuation prompt for multi-line inputs
+			t.SetPrompt("-> ")
 		}
 		
 	}

@@ -54,9 +54,9 @@ func (engine *StorageEngine) Commit() error {
 	return nil
 }
 func (engine *StorageEngine) PrintTables() {
-	fmt.Printf("%d Tables\n", len(engine.db.Tables))
+	fmt.Printf("%d Tables\r\n", len(engine.db.Tables))
 	for tableName, _ := range engine.db.Tables {
-		fmt.Printf("- %s\n", tableName)
+		fmt.Printf("- %s\r\n", tableName)
 	}
 }
 func (engine *StorageEngine) PrintTable(tableName string) error {
@@ -64,20 +64,20 @@ func (engine *StorageEngine) PrintTable(tableName string) error {
 	if !ok {
 		return fmt.Errorf("Table %s not found", tableName)
 	}
-	fmt.Printf("Table: %s | Columns: %d\n", table.Name, len(table.Columns))
+	fmt.Printf("Table: %s | Columns: %d\r\n", table.Name, len(table.Columns))
 	
 	for _, col := range table.Columns {
-		fmt.Printf(" Column: %s | Type: %s | Constraints: %s | Size: %d\n", col.Name, col.PrintDataType(col.DataType), col.PrintConstraints(col.Constraints), col.Size)
+		fmt.Printf(" Column: %s | Type: %s | Constraints: %s | Size: %d\r\n", col.Name, col.PrintDataType(col.DataType), col.PrintConstraints(col.Constraints), col.Size)
 	}
-	fmt.Println("==================================")
-	fmt.Println(" Indexes:")
+	fmt.Println("==================================\r")
+	fmt.Println(" Indexes:\r")
 	for indexName, indexID := range table.Indexes {
-		fmt.Printf("  Index: %s | Page ID: %d\n", indexName, indexID)
+		fmt.Printf("  Index: %s | Page ID: %d\r\n", indexName, indexID)
 	}
-	fmt.Println("==================================")
-	fmt.Println("Foreign Keys:")
+	fmt.Println("==================================\r")
+	fmt.Println("Foreign Keys:\r")
 	for fkName, fk := range table.ForeignKeys {
-		fmt.Printf("  Foreign Key: %s | Referenced Column: %s.%s\n", fkName, fk.ReferencedTableName, engine.db.Tables[fk.ReferencedTableName].Columns[fk.ReferencedColumnIndex].Name)
+		fmt.Printf("  Foreign Key: %s | Referenced Column: %s.%s\r\n", fkName, fk.ReferencedTableName, engine.db.Tables[fk.ReferencedTableName].Columns[fk.ReferencedColumnIndex].Name)
 	}
 	return nil
 }
