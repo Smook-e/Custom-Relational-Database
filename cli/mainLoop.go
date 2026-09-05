@@ -5,11 +5,12 @@ import (
 	"bufio"
 	"strings"
 	"os"
+	"golang.org/x/term"
 )
 
 
 func MainLoop() {
-	qh, err := parser.InitializeQueryHandler("database.db")
+	qh, err := parser.InitializeQueryHandler("database.bin")
 	if err != nil {
 		fmt.Printf("Error: Failed to initialize query handler: %v\n", err)
 		return
@@ -48,7 +49,6 @@ func MainLoop() {
 		// Execute the query if the line ends with a semicolon
 		if strings.HasSuffix(trimmedLine, ";") {
 			fullQuery := strings.Join(buffer, "\n")
-			fullQuery = strings.TrimSuffix(fullQuery, ";")
 			
 			buffer = buffer[:0] // Clear the buffer
 			qr, err := qh.ExecuteQuery(fullQuery)

@@ -31,7 +31,7 @@ func TestEngineInsert(t *testing.T) {
             email varchar(30) not null unique,
             age int default 18,
 			job varchar(50) not null	
-        )
+        );
     `)
     if err != nil {
         t.Fatalf("failed to execute query: %v", err)
