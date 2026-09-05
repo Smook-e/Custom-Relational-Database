@@ -217,6 +217,27 @@ DELETE FROM test_users WHERE age > 40;
 ```
 
 
+## Benchmarks
+
+**Indexed lookup vs. full table scan**, on a 1,000,000-row `BigInt`-keyed table (AMD Ryzen 5 5600), searching for the same worst-case key via both an indexed B+Tree lookup and a full linear scan of the leaf chain:
+
+```text
+BenchmarkIndexSearch-12     894442       1340 ns/op
+BenchmarkLinearSearch-12        67   16969646 ns/op
+```
+
+An indexed lookup is roughly **12,660x faster** than a full scan on this dataset. With ~292 entries per leaf page and ~341-way fanout on internal nodes, the tree stays at just 3 levels for datasets up to ~34 million entries — every lookup up to that scale costs at most 3 page accesses, while a full scan cost grows linearly with row count.
+
+**Buffer pool cache hit vs. miss**, measured separately (AMD Ryzen 5 5600):
+
+```text
+BenchmarkWarmRead-12    74507995      15.79 ns/op      0 B/op    0 allocs/op
+BenchmarkColdRead-12      628132    1859.00 ns/op     52 B/op    1 allocs/op
+```
+
+A warm hit is roughly **118x faster** than a cold read, and allocates nothing — the LRU list simply repoints an existing node. A cold read allocates one `Node` (52 bytes) to register the newly loaded page in the pool's hash map and linked list. This is a lower bound on the real-world gap: the test machine's OS-level disk cache likely absorbs some of the cold path's I/O cost, so a genuinely cold disk read on a full cache-miss would be slower still.
+
+
 ## Roadmap
 
 - [x] Slotted Page Layout
