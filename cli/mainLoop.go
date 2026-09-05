@@ -8,8 +8,8 @@ import (
 )
 
 
-func MainLoop() {
-	qh, err := parser.InitializeQueryHandler("database.bin")
+func MainLoop(path string) {
+	qh, err := parser.InitializeQueryHandler(path)
 	if err != nil {
 		fmt.Printf("Error: Failed to initialize query handler: %v\n", err)
 		return

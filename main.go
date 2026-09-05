@@ -1,23 +1,18 @@
 package main
 
 import (
-	// "fmt"
-	// "log"
-	// "os"
-
-	// "encoding/binary"
-	// "github.com/Smook-e/Custom-Relational-Database/filehandler"
-	
-	
-	// "github.com/Smook-e/Custom-Relational-Database/entities"
-	// "github.com/Smook-e/Custom-Relational-Database/pages"
-	// "github.com/Smook-e/Custom-Relational-Database/storage"
+	"fmt"
+	"os"
 	"github.com/Smook-e/Custom-Relational-Database/cli"
 )
 
 
 
 func main(){
-
-	cli.MainLoop()   
+	if len(os.Args) < 2 {
+        fmt.Println("usage: sql_engine <database_file>")
+        os.Exit(1)
+    }
+    path := os.Args[1]
+	cli.MainLoop(path)   
 }
