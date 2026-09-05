@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	// "slices"
+	"slices"
 
 	"github.com/Smook-e/Custom-Relational-Database/entities"
 	"github.com/Smook-e/Custom-Relational-Database/pages"
@@ -76,7 +76,7 @@ func (engine *StorageEngine) ReadRow(tableName string, cols []string, colOffsets
 // it also checks for constraints such as not null, unique, primary key, and foreign key before inserting the row.
 // and updates the B+Tree index for the table if necessary.
 // it returns an error if any constraint is violated or if the insertion fails for any reason.
-func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint32, uint16, error) {
+func  (engine *StorageEngine) InsertRow(cols []string, data []string, tableName string) (uint32, uint16, error) {
 	//Pass 1: Check Validity and calculate size
 	table, ok := engine.db.Tables[tableName]
 	if !ok {
@@ -92,33 +92,42 @@ func  (engine *StorageEngine) InsertRow( data []string, tableName string) (uint3
 	
 	// Validate constraints for each column
 	for i, col := range table.Columns {
-		if col.DataType == entities.TypeSerial && vals[i] != nil {
-			return 0,0, fmt.Errorf("Error: Column '%q' is of type Serial and cannot be manually set.", col.Name)
+		if col.DataType == entities.TypeSerial && slices.Contains(cols, col.Name) {
+			return 0,0, fmt.Errorf("Error: Column %q is of type Serial and cannot be manually set.", col.Name)
 		}
-		if col.HasConstraint(entities.ConstraintNotNull) && (vals[i] == nil || vals[i] == "") {
-			if col.HasConstraint(entities.ConstraintDefault) {
-				// If the column has a default constraint, use the default value instead of returning an error
-				vals[i] = col.Default
-				if col.DataType == entities.TypeSerial {
-					// If the column is of type Serial, increment the default value for the next insertion
-					col.Default = vals[i].(int32) + 1
-					table.Columns[i].Default = col.Default // Update the column in the table with the new default value
-					engine.metaWrite = true // Mark the meta page for writing since the default value has changed
-				}
-				// Clear the null bit from the null bitmap since we are using a default value
-				nullBitmap.ClearNull(i)
-				// Update the size to account for the default value
-				defaultSize, err := entities.GetSize(&col)
-				if err != nil {
-					return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
-				}
-				if defaultSize == 0 {// Varchar with no size specified, use the length of the default value
-					size += uint16(len(col.Default.(string))) + 1 // +1 for length prefix
-				}else{
-					size += uint16(defaultSize)
+		//Handle Null
+		if vals[i] == nil {
+			// Check if the user provided it
+			if slices.Contains(cols, col.Name) {
+				if col.HasConstraint(entities.ConstraintNotNull) {
+					return 0,0, fmt.Errorf("Error: Column %q cannot be null", col.Name)
 				}
 			}else {
-				return 0,0, fmt.Errorf("Error: Column '%q' cannot be null", col.Name)
+				// If the user did not provide it, check if there's a default value
+				if col.HasConstraint(entities.ConstraintDefault) {
+					// If the column has a default constraint, use the default value instead of returning an error
+					vals[i] = col.Default
+					if col.DataType == entities.TypeSerial {
+						// If the column is of type Serial, increment the default value for the next insertion
+						col.Default = vals[i].(int32) + 1
+						table.Columns[i].Default = col.Default // Update the column in the table with the new default value
+						engine.metaWrite = true // Mark the meta page for writing since the default value has changed
+					}
+					// Clear the null bit from the null bitmap since we are using a default value
+					nullBitmap.ClearNull(i)
+					// Update the size to account for the default value
+					defaultSize, err := entities.GetSize(&col)
+					if err != nil {
+						return 0,0, fmt.Errorf("An error occured while inserting: %w", err)
+					}
+					if defaultSize == 0 {// Varchar with no size specified, use the length of the default value
+						size += uint16(len(col.Default.(string))) + 1 // +1 for length prefix
+					}else{
+						size += uint16(defaultSize)
+					}
+				}else if col.HasConstraint(entities.ConstraintNotNull) {
+					return 0,0, fmt.Errorf("Error: Column %q cannot be null", col.Name)
+				}
 			}
 		}
 		if vals[i] != nil && (col.HasConstraint(entities.ConstraintUnique) || col.HasConstraint(entities.ConstraintPrimaryKey) || col.HasConstraint(entities.ConstraintIndex)) {

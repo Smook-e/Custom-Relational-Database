@@ -104,7 +104,7 @@ func TestEngineInsert(t *testing.T) {
 
     // Valid insert: provide empty name (should use default 'anonymous')
     _, err = handler.ExecuteQuery(`
-        INSERT INTO test_users (name, email, age, job) VALUES ('', 'gina@example.com', 27, 'analyst')
+        INSERT INTO test_users (email, age, job) VALUES ( 'gina@example.com', 27, 'analyst')
     `)
     if err != nil {
         t.Fatalf("expected insert with empty name to use default and succeed, got error: %v", err)

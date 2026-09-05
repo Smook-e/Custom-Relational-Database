@@ -442,7 +442,7 @@ func (engine *StorageEngine) Insert(tableName string, cols []string, values [][]
 			columnIndex, _ := table.GetColumnIndexByName(colName)
 			row[columnIndex] = rowValues[i]
 		}
-		if _, _, err := engine.InsertRow(row, tableName); err != nil {
+		if _, _, err := engine.InsertRow(cols, row, tableName); err != nil {
 			return insertedCount, fmt.Errorf("Failed to insert row: %w", err)
 		}
 		insertedCount++
