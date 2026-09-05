@@ -25,6 +25,7 @@ func MainLoop() {
 
 	// 2. Use term.Terminal to handle line editing, cursor movement, and pasting natively
 	t := term.NewTerminal(os.Stdin, "> ")
+	t.SetSize(500, 24)
 	var buffer []string
 
 	fmt.Print("SQL Engine initialized. Enter your SQL commands below.\r\nType '\\q' to exit.\r\nType '\\w' or '.commit' to write changes to disk.\r\nType '\\h' for help.", "\r\n")
