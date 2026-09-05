@@ -120,16 +120,3 @@ A warm hit is roughly **118x faster** than a cold read, and allocates nothing �
 [ K0 ] [ PageID0 (4B) ] [ Slot0 (2B) ] [ K1 ] [ PageID1 (4B) ] [ Slot1 (2B) ] ...
 ```
 
-## Roadmap
-
-- [x] Slotted Page Layout
-- [x] Free Space Management
-- [x] Binary Type Serialization
-- [x] LRU Buffer Pool & Dirty Page Tracking
-- [x] Atomic Commit Logic
-- [x] B+Tree Indexing — insertion, page-splitting, multi-level root growth, and search, verified at 1M+ rows for both integer and string keys
-- [x] Secondary Indexes
-- [x] Constraints — NOT NULL, UNIQUE, DEFAULT, Serial, Foreign Keys, null-bitmap NULL handling
-- [x] SQL Query Engine — tokenizer, parser, and executor for full CRUD: `CREATE TABLE`, `INSERT`, `SELECT` (with column projection and `WHERE` clause support), `UPDATE`, `DELETE`
-- [x] Unit test suite covering buffer pool, metadata pages, B+Tree, and the storage layer
-- [ ] Concurrency Control: thread-safe access and locking 
