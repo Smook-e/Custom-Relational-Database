@@ -24,7 +24,7 @@ func MainLoop() {
 	defer term.Restore(int(os.Stdin.Fd()), oldState)
 
 	// 2. Use term.Terminal to handle line editing, cursor movement, and pasting natively
-	t := term.NewTerminal(os.Stdin, "> ")
+	t := term.NewTerminal(os.Stdin, "\r\n> ")
 	t.SetSize(500, 24)
 	var buffer []string
 
@@ -62,7 +62,7 @@ func MainLoop() {
 				continue
 			}
 			printQueryResult(qr)
-			t.SetPrompt("> ") 
+			t.SetPrompt("\r\n> ") 
 		}else {
 			// Change prompt to continuation prompt for multi-line inputs
 			t.SetPrompt("-> ")

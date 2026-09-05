@@ -27,7 +27,7 @@ type StorageEngine struct {
 // Closes the database file and flushes the buffer pool to disk.
 func (engine *StorageEngine) Close() error {
 	if engine.Bp != nil {
-		if err := engine.Bp.Flush(); err != nil {
+		if err := engine.Commit(); err != nil {
 			return fmt.Errorf("failed to flush buffer pool: %w", err)
 		}
 	}
