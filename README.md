@@ -1,135 +1,217 @@
 # Custom Relational Database Engine
 
-A relational database engine built from scratch in Go, implementing the storage, indexing, and query execution mechanisms.
+A relational database engine built from scratch in Go, implementing the storage, indexing, and query execution mechanisms behind modern databases — no ORM, no third-party SQL library, no borrowed storage layer.
 
-The engine uses **4KB slotted pages**, a custom **LRU buffer pool**, and a **type-agnostic B+Tree** for persistent, logarithmic-time indexing. On top of that sits a hand-written **SQL tokenizer, parser, and executor** supporting full CRUD — `CREATE TABLE`, `INSERT`, `SELECT` (with column projection and `WHERE` clauses supporting `AND`/`OR`/parentheses), `UPDATE`, and `DELETE` all run as real SQL text, not just direct Go function calls. It also supports secondary indexes, constraints, foreign keys, NULL handling, and multiple binary data types.
+**[Download latest release](https://github.com/Smook-e/Custom-Relational-Database/releases/latest)**
 
-## Core Engine Features
+---
 
-### 1. SQL Query Engine
+## Contents
 
-A hand-written tokenizer, recursive-descent parser, and executor sitting above the storage engine — no parser generator, no third-party SQL library.
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [SQL Support](#sql-support)
+- [Benchmarks](#benchmarks)
+- [Roadmap](#roadmap)
+- [Architecture](ARCHITECTURE.md)
 
-- **Tokenizer:** converts raw SQL text into typed tokens (keywords, identifiers, literals, operators), with case-insensitive keyword matching and quoted string literal handling.
-- **WHERE-clause expression parser:** builds a binary expression tree from `AND`/`OR`/parenthesized conditions with correct operator precedence (`AND` binds tighter than `OR`) and support for nested grouping — derived independently rather than via a standard precedence-climbing algorithm.
-- **Statement interface:** each statement type (`SelectStatement`, `InsertStatement`, `CreateTableStatement`, `UpdateStatement`, `DeleteStatement`) implements a common `Execute` method, so adding a new statement type is enforced at compile time rather than requiring a manually-maintained dispatch table.
-- **Query planning:** a `SELECT` with a single indexable condition routes directly through the B+Tree; multi-condition queries fall back to walking the expression tree against a linear scan.
-- **Column projection:** `SELECT id, name FROM ...` returns only the requested columns, reading and validating rows via direct column-offset seeks rather than deserializing full rows unnecessarily.
-- **UPDATE:** re-validates constraints (`UNIQUE`, foreign keys, `NOT NULL`/`DEFAULT`, `Serial` immutability) against the new values before committing. Fixed-size, non-indexed columns are updated in place; a size-changing update or a change to an indexed column falls back to delete-and-reinsert, keeping every index in sync with the row's new location.
-- **DELETE:** removes matching rows via in-page entry compaction and slot reclamation (freed slots are reused by the next insert into that page); page-level rebalancing across the B+Tree is deliberately out of scope, a scoping decision made after estimating its cost-to-benefit ratio at this project's scale.
+---
 
-### 2. B+Tree Indexing
+## Features
 
-A recursive, type-agnostic B+Tree supporting O(log n) key lookups, indexing both primary and secondary columns across arbitrarily large tables without knowing what type of data it's indexing.
+- **Hand-written SQL engine** — tokenizer, parser, and executor with no external dependencies
+- **B+Tree indexing** — O(log n) primary and secondary key lookups, verified at 1,000,000 rows
+- **LRU buffer pool** — page caching with dirty-page tracking, minimizing disk I/O
+- **Slotted page storage** — 4KB pages with O(1) record access and efficient variable-length row packing
+- **Full CRUD** — `CREATE TABLE`, `INSERT`, `SELECT`, `UPDATE`, `DELETE`
+- **Column projection** — `SELECT id, name FROM ...` reads only the requested columns
+- **WHERE clause** — single conditions and compound expressions with `AND`, `OR`, and parentheses
+- **Secondary indexes** — any column can have its own B+Tree for fast lookups
+- **Constraints** — `NOT NULL`, `UNIQUE`, `DEFAULT`, `SERIAL` (auto-increment), foreign keys
+- **NULL handling** — compact null bitmap per row, no sentinel values
+- **Multiple data types** — `TinyInt`, `SmallInt`, `Int`, `BigInt`, `Serial`, `VarChar(N)`
+- **Persistent storage** — all data survives restarts, stored in a single `.bin` file
+- **Interactive CLI** — multiline SQL input, meta-commands, formatted table output
 
-- **Type-agnostic by design:** the tree never inspects key contents — it operates entirely on raw byte buffers, delegating all ordering decisions to a pluggable comparison function. The same tree implementation indexes `TinyInt`, `BigInt`, and fixed-width `VarChar` columns identically.
-- **In-place insertion with binary search:** keys are inserted directly into existing pages via byte-level shifting when space allows, avoiding unnecessary allocation on the common path.
-- **Page-splitting with median propagation:** on overflow, a page splits and its median key propagates to the parent — internal nodes push the median up and out, leaf nodes copy it up while retaining it, matching standard B+Tree semantics.
-- **Linked leaf pages:** every leaf holds a pointer to its right sibling, enabling full table scans and range queries to walk the leaf layer directly without re-traversing the tree.
-- **Multi-level tree growth:** when a root page overflows, a new root is created above it, growing the tree by a level.
-- **Verified at scale:** tested with 1,000,000 sequential `BigInt` keys and 1,000,000 fixed-width `VarChar` string keys, including case-sensitivity and prefix-relationship edge cases (e.g. `"Cat"` vs `"Catalog"`), across sequential and interleaved insertion patterns that force mid-page and multi-level splits.
+---
 
-### 3. Schema, Constraints & Relational Integrity
+## Installation
 
-A full schema layer sitting above the storage engine, enforced directly in the insert and update paths rather than left to the caller.
+### Download a pre-built binary
 
-- **Secondary indexes:** any column, not just the primary key, can have its own B+Tree, letting the engine choose the right index for a given lookup rather than always falling back to a full scan.
-- **NULL handling via a null bitmap:** each row carries a compact bitmap marking which columns are null, avoiding the need to reserve space or sentinel values for absent data.
-- **NOT NULL and UNIQUE constraints:** validated at insert and update time, before a row is committed to a page.
-- **DEFAULT values:** static defaults for any type, plus a distinct `Serial` type backed by a per-table auto-incrementing counter stored in table metadata.
-- **Fixed-width `VarChar(N)`:** strings are stored in a constant-size slot (`N + 1` bytes: a 1-byte length prefix plus up to `N` bytes of content), keeping B+Tree entry sizes uniform and making string columns indexable with the same offset math as fixed-width integer types.
-- **Foreign keys:** column-level references to other tables, enforced during insert and update.
+Download the binary for your platform from the [latest release](https://github.com/Smook-e/Custom-Relational-Database/releases/latest).
 
-### 4. Slotted Page Architecture
-
-A **slotted page** layout for both table metadata and data rows, using 4KB pages to align with OS and disk page sizes.
-
-- **Forward-growing slot directory:** a slot array at the page start storing exact byte offsets of records for O(1) access by index.
-- **Backward-growing payload:** row data is appended from the page end toward the header, so variable-length rows pack tightly without wasted space.
-- **Symmetric I/O:** a mirrored serialization/deserialization pipeline guarantees that what gets written is exactly what gets read back — no drift between the two paths.
-
-### 5. LRU Buffer Pool Manager
-
-A custom buffer pool sits between every higher layer (B+Tree, page logic) and disk, so no component ever performs raw disk I/O directly.
-
-- **LRU eviction in O(1):** a doubly linked list tracks access order, a hash map gives direct pointers into that list — both lookup and eviction are constant time, not the O(log n) a naive priority-queue-based LRU would cost.
-- **Dirty page tracking:** modified pages are marked in memory and only flushed to disk on eviction or explicit commit, avoiding a syscall on every write.
-- **GC-friendly fixed allocation:** the pool holds pages in a static, fixed-size array (`[PoolSize][4096]byte`) rather than heap-allocating a struct per page, so the garbage collector never has to scan or manage individual page buffers.
-
-### 6. Advanced Metadata & Page Management
-
-- **Schema serialization:** table and column definitions are stored using length-prefixing and linked page chaining (`nextPage` pointers), supporting an unbounded number of tables without a fixed-size metadata region.
-- **Free space manager:** a global map of `PageID → RemainingBytes` allows the engine to locate a page with sufficient room instantly, without scanning disk.
-- **Sized allocation:** a dry-run pass validates row size and type constraints before a single byte is committed to a page, preventing partial writes on invalid input.
-- **Zero-allocation buffering:** metadata page operations draw scratch buffers from a `sync.Pool` rather than allocating fresh ones, reducing GC pressure during schema reads and writes.
-
-### 7. Strict Binary Type System
-
-- **Supported types:** `TinyInt` (8-bit), `SmallInt` (16-bit), `Int` (32-bit), `BigInt` (64-bit), `Serial`, and `VarChar` (fixed-width or unbounded).
-- **Type guardrails:** every value is validated against its column's bit-width and constraints during conversion, catching silent overflow or invalid input before it corrupts a page.
-- **BigEndian encoding:** used throughout for cross-platform binary compatibility.
-
-## Testing
-
-Unit tests cover the buffer pool, metadata pages, B+Tree, and WHERE-clause parsing.
-
-- **Notable bug found:** a missing `MarkDirty` call on one insertion path let a write succeed in memory but be silently dropped on buffer pool eviction — no error, no crash. Fixed and reconfirmed at 1M-key scale.
-
-## Benchmarks
-
-**Indexed lookup vs. full table scan**, on a 1,000,000-row `BigInt`-keyed table (AMD Ryzen 5 5600), searching for the same worst-case key via both an indexed B+Tree lookup and a full linear scan of the leaf chain:
-
-```text
-BenchmarkIndexSearch-12     894442       1340 ns/op
-BenchmarkLinearSearch-12        67   16969646 ns/op
+**Linux**
+```bash
+chmod +x sql_engine_linux
+./sql_engine_linux mydb.bin
 ```
 
-An indexed lookup is roughly **12,660x faster** than a full scan on this dataset. With ~292 entries per leaf page and ~341-way fanout on internal nodes, the tree stays at just 3 levels for datasets up to ~34 million entries — every lookup up to that scale costs at most 3 page accesses, while a full scan cost grows linearly with row count.
-
-**Buffer pool cache hit vs. miss**, measured separately (AMD Ryzen 5 5600):
-
-```text
-BenchmarkWarmRead-12    74507995      15.79 ns/op      0 B/op    0 allocs/op
-BenchmarkColdRead-12      628132    1859.00 ns/op     52 B/op    1 allocs/op
+**macOS**
+```bash
+chmod +x sql_engine_mac
+./sql_engine_mac mydb.bin
 ```
 
-A warm hit is roughly **118x faster** than a cold read, and allocates nothing — the LRU list simply repoints an existing node. A cold read allocates one `Node` (52 bytes) to register the newly loaded page in the pool's hash map and linked list. This is a lower bound on the real-world gap: the test machine's OS-level disk cache likely absorbs some of the cold path's I/O cost, so a genuinely cold disk read on a full cache-miss would be slower still.
-
-## Page Layout (4KB)
-
-```text
-[ Free Space Offset (2B) ] [ Num Elements (2B) ]
-[ Slot 0 Offset (2B) ] [ Slot 1 Offset (2B) ] ... [ Slot N Offset (2B) ]
-... (Unused Space) ...
-[ Row N Data (Variable) ]
-[ Row N-1 Data (Variable) ]
-[ Row 0 Data (Variable) ]
+**Windows**
+```powershell
+sql_engine_windows.exe mydb.bin
 ```
 
-## B+Tree Node Layout
+> The `.bin` file is your database — it will be created automatically on first run if it doesn't exist. You can name it anything you like.
 
-**Internal node** — `N` keys, `N+1` child pointers:
-```text
-[ IsLeaf (1B) ] [ NumKeys (2B) ]
-[ P0 (4B) ] [ K0 ] [ P1 (4B) ] [ K1 ] ... [ PN (4B) ]
+### Build from source
+
+Requires [Go 1.21+](https://go.dev/dl/).
+
+```bash
+git clone https://github.com/Smook-e/Custom-Relational-Database.git
+cd Custom-Relational-Database
+go run main.go
 ```
 
-**Leaf node** — keys paired with a Record ID (`PageID` + `Slot`), plus a pointer to the next leaf:
-```text
-[ IsLeaf (1B) ] [ NextLeafPage (4B) ] [ NumKeys (2B) ]
-[ K0 ] [ PageID0 (4B) ] [ Slot0 (2B) ] [ K1 ] [ PageID1 (4B) ] [ Slot1 (2B) ] ...
+Or build a binary yourself:
+
+```bash
+go build -o sql_engine main.go
+./sql_engine
 ```
 
-## Roadmap
+---
 
-- [x] Slotted Page Layout
-- [x] Free Space Management
-- [x] Binary Type Serialization
-- [x] LRU Buffer Pool & Dirty Page Tracking
-- [x] Atomic Commit Logic
-- [x] B+Tree Indexing — insertion, page-splitting, multi-level root growth, and search, verified at 1M+ rows for both integer and string keys
-- [x] Secondary Indexes
-- [x] Constraints — NOT NULL, UNIQUE, DEFAULT, Serial, Foreign Keys, null-bitmap NULL handling
-- [x] SQL Query Engine — tokenizer, parser, and executor for full CRUD: `CREATE TABLE`, `INSERT`, `SELECT` (with column projection and `WHERE` clause support), `UPDATE`, `DELETE`
-- [x] Unit test suite covering buffer pool, metadata pages, B+Tree, and the storage layer
-- [ ] Concurrency Control: thread-safe access and locking 
+## Usage
+
+Start the engine by running the binary with a database file path:
+
+```bash
+./sql_engine mydb.bin
+```
+
+The file will be created automatically on first run. You will see an interactive prompt:
+
+```
+> 
+```
+
+SQL statements are executed when a semicolon is reached. Multiline input is supported — the prompt changes to `->` on continuation lines:
+
+```sql
+> SELECT * FROM users
+-> WHERE age > 18;
+```
+
+### Meta-commands
+
+| Command | Description |
+|---|---|
+| `\t` | List all tables |
+| `\d <table>` | Describe a table's columns and constraints |
+| `\w` | Flush all dirty pages to disk |
+| `\q` | Quit |
+
+---
+
+## SQL Support
+
+### CREATE TABLE
+
+```sql
+CREATE TABLE test_users (
+    id     SERIAL PRIMARY KEY,
+    name   VARCHAR(50) NOT NULL DEFAULT 'anonymous',
+    email  VARCHAR(30) NOT NULL UNIQUE,
+    age    INT DEFAULT 18,
+    job    VARCHAR(50) NOT NULL
+);
+```
+
+With a foreign key:
+
+```sql
+CREATE TABLE orders (
+    id       SERIAL PRIMARY KEY,
+    user_id  INT,
+    FOREIGN KEY (user_id) REFERENCES test_users(id)
+);
+```
+
+Supported column types: `TINYINT`, `SMALLINT`, `INT`, `BIGINT`, `SERIAL`, `VARCHAR(N)`
+
+Supported constraints: `PRIMARY KEY`, `NOT NULL`, `UNIQUE`, `DEFAULT <value>`, `FOREIGN KEY (<col>) REFERENCES <table>(<col>)`
+
+---
+
+### INSERT
+
+Single row:
+```sql
+INSERT INTO test_users (name, email, age, job)
+VALUES ('alice', 'alice@example.com', 25, 'engineer');
+```
+
+Multiple rows:
+```sql
+INSERT INTO test_users (name, email, age, job) VALUES
+    ('alice',   'alice@example.com',   25, 'engineer'),
+    ('bob',     'bob@example.com',     30, 'manager'),
+    ('charlie', 'charlie@example.com', 35, 'developer');
+```
+
+---
+
+### SELECT
+
+```sql
+-- All columns
+SELECT * FROM test_users;
+
+-- Column projection
+SELECT id, name, email FROM test_users;
+
+-- WHERE clause
+SELECT * FROM test_users WHERE age > 30;
+
+-- Compound conditions
+SELECT * FROM test_users WHERE age > 25 AND job = 'engineer';
+
+-- Parenthesized grouping
+SELECT * FROM test_users WHERE (age > 30 OR job = 'manager') AND name = 'bob';
+```
+
+Example output:
+
+```
+> SELECT * FROM test_users;
+| id | name    | email               | age | job        |
++----+---------+---------------------+-----+------------+
+| 1  | alice   | alice@example.com   | 25  | engineer   |
+| 2  | bob     | bob@example.com     | 30  | manager    |
+| 3  | charlie | charlie@example.com | 35  | developer  |
+| 4  | dave    | dave@example.com    | 40  | designer   |
+| 5  | eve     | eve@example.com     | 45  | analyst    |
+| 6  | frank   | frank@example.com   | 50  | consultant |
+(6 rows)
+```
+
+---
+
+### UPDATE
+
+```sql
+-- Update a single column
+UPDATE test_users SET age = 26 WHERE id = 1;
+
+-- Update multiple columns
+UPDATE test_users SET name = 'alice_updated', age = 26 WHERE id = 1;
+```
+
+---
+
+### DELETE
+
+```sql
+DELETE FROM test_users WHERE id = 1;
+
+DELETE FROM test_users WHERE age > 40;
+```
