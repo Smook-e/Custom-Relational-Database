@@ -4,3 +4,6 @@ mem.prof
 *.test
 *.bin
 extra_test/*
+sql_engine_linux
+sql_engine_windows.exe
+sql_engine_mac
