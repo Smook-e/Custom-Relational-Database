@@ -4,6 +4,8 @@ A relational database engine built from scratch in Go, implementing the storage,
 
 **[Download latest release](https://github.com/Smook-e/Custom-Relational-Database/releases/latest)**
 
+https://github.com/user-attachments/assets/b46ffda8-a7be-4148-b229-f02418d8b1be
+
 ---
 
 ## Contents
