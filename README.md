@@ -1,6 +1,9 @@
 # Custom Relational Database Engine
 
-A relational database engine built from scratch in Go, implementing the storage, indexing, and query execution mechanisms.
+A relational database engine built from scratch in Go, implementing SQL query execution, persistent storage, and indexing mechanisms found in modern databases.
+
+It features a hand-written SQL parser and executor, 4KB slotted-page storage, a custom LRU buffer pool, and a type-agnostic B+Tree.
+
 
 **[Download latest release](https://github.com/Smook-e/Custom-Relational-Database/releases/latest)**
 
