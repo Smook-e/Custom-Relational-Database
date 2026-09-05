@@ -324,11 +324,17 @@ func (q *InsertQuery) Parse(p *Parser) ( error) {
 		}
 		var row []string
 		for p.Peek().Type != TokenRParen {
-			val, err := p.Expect([]TokenType{TokenString, TokenNumber}, "")
-			if err != nil {
-				return  err
+			// Handle NULL
+			if p.Peek().Type == TokenKeyword && p.Peek().Value == "NULL" {
+				p.Get() 
+				row = append(row, "")
+			}else {
+				val, err := p.Expect([]TokenType{TokenString, TokenNumber}, "")
+				if err != nil {
+					return  err
+				}
+				row = append(row, val.Value)
 			}
-			row = append(row, val.Value)
 			if p.Peek().Type == TokenComma {
 				p.Get() // Consume the comma
 			} else {
