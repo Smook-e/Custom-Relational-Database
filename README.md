@@ -251,4 +251,3 @@ A warm hit is roughly **118x faster** than a cold read, and allocates nothing â€
 - [x] SQL Query Engine â€” tokenizer, parser, and executor for full CRUD: `CREATE TABLE`, `INSERT`, `SELECT` (with column projection and `WHERE` clause support), `UPDATE`, `DELETE`
 - [x] Unit test suite covering buffer pool, metadata pages, B+Tree, and the storage layer
 - [ ] Concurrency Control: thread-safe access and locking 
-```
