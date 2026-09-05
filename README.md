@@ -43,6 +43,7 @@ https://github.com/user-attachments/assets/b46ffda8-a7be-4148-b229-f02418d8b1be
 ### Download a pre-built binary
 
 Download the binary for your platform from the [latest release](https://github.com/Smook-e/Custom-Relational-Database/releases/latest).
+Open a terminal in the directory.
 
 **Linux**
 ```bash
