@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	// "log"
 	// "os"
 
@@ -11,23 +11,13 @@ import (
 	
 	// "github.com/Smook-e/Custom-Relational-Database/entities"
 	// "github.com/Smook-e/Custom-Relational-Database/pages"
-	"github.com/Smook-e/Custom-Relational-Database/storage"
+	// "github.com/Smook-e/Custom-Relational-Database/storage"
+	"github.com/Smook-e/Custom-Relational-Database/cli"
 )
 
 
 
 func main(){
 
-	filename := "database.bin"
-	
-	engine, err := storage.InitializeStorageEngine(filename)
-	if err != nil {
-		fmt.Print(err)
-	}
-	defer engine.Bp.File.Close()
-	engine.PrintMetaData()
-	
-	
-
-    
+	cli.MainLoop()   
 }

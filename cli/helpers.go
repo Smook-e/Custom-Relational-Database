@@ -12,7 +12,7 @@ func handleMetaCommand(line string, qh *parser.QueryHandler) {
     case line == "\\t" || line == ".tables":
         qh.PrintTables()
 
-    case strings.HasPrefix(line, "\\d ") || strings.HasPrefix(line, ".schema "):
+    case strings.HasPrefix(line, "\\d") || strings.HasPrefix(line, ".schema"):
         parts := strings.Fields(line)
         if len(parts) < 2 {
             fmt.Println("usage: \\d <table_name>")
@@ -32,7 +32,7 @@ func handleMetaCommand(line string, qh *parser.QueryHandler) {
             fmt.Println("Changes committed successfully.")
         }
 
-    case line == "\\?" || line == "help":
+    case line == "\\?" || line == "help" || line == "\\h":
         fmt.Println("\\t          list tables")
         fmt.Println("\\d <table>  describe table columns")
         fmt.Println("\\?          show this help")
