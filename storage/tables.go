@@ -419,7 +419,6 @@ func (engine *StorageEngine) UpdateRow(table *entities.Table, colOffsets map[str
 				}else {
 					oldVal = buffer[colOffset : colOffset+int(column.Size)]
 				}
-				fmt.Println(string(oldVal))
 				err = engine.IndexDelete(root, oldVal, column)
 				if err != nil {
 					return fmt.Errorf("Error deleting old value from index for column %q: %w", colName, err)

@@ -121,7 +121,7 @@ func TestEngineSelect(t *testing.T) {
             name varchar(50) not null default 'anonymous',
             email varchar(30) not null unique,
             age int default 18,
-			job varchar(50) not null	
+            job varchar(50) not null
         )
     `)
 	if err != nil {
